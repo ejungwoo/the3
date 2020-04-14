@@ -12,8 +12,8 @@ void prefit()
 
   //ejungwoo::gfixcvsxy(1);
 
-  int idx_particles[] = {12};
-  //int idx_particles[] = {1,2,3,4,5,6,7,8,9,12};
+  //int idx_particles[] = {12};
+  int idx_particles[] = {1,2,3,4,5,6,7,8,9,12};
   //int idx_particles[] = {5,6,7,8,9};
   //int idx_particles[] = {1};
   //int idx_particles[] = {8,9};
@@ -67,51 +67,22 @@ void prefit()
 
     auto graph_fitproj = ejungwoo::new_ge(TString("graph_pdedx_")+name_cut);
 
-    TF1 *fit_dedx = nullptr;
-    if (0) {
-           if (idx== 0) { fit_dedx = new TF1(TString("fit_dedx_")+name_cut, stp::bb_dedx_pin, p_hist_min, p_hist_max, 2); fit_dedx -> SetParameters(0.730379, -51.818967);}
-      else if (idx== 1) { fit_dedx = new TF1(TString("fit_dedx_")+name_cut, stp::bb_dedx_pip, p_hist_min, p_hist_max, 2); fit_dedx -> SetParameters(0.945242, -42.6304);  }
-      else if (idx== 2) { fit_dedx = new TF1(TString("fit_dedx_")+name_cut, stp::bb_dedx_p  , p_hist_min, p_hist_max, 2); fit_dedx -> SetParameters(0.945242, -42.6304);  }
-      else if (idx== 3) { fit_dedx = new TF1(TString("fit_dedx_")+name_cut, stp::bb_dedx_d  , p_hist_min, p_hist_max, 2); fit_dedx -> SetParameters(0.758891, -54.0868);  }
-      else if (idx== 4) { fit_dedx = new TF1(TString("fit_dedx_")+name_cut, stp::bb_dedx_t  , p_hist_min, p_hist_max, 2); fit_dedx -> SetParameters(1.37889, -29.8536);   }
-      else if (idx== 5) { fit_dedx = new TF1(TString("fit_dedx_")+name_cut, stp::bb_dedx_he3, p_hist_min, p_hist_max, 2); fit_dedx -> SetParameters(0.867347, -54.3779);  }
-      else if (idx== 6) { fit_dedx = new TF1(TString("fit_dedx_")+name_cut, stp::bb_dedx_he4, p_hist_min, p_hist_max, 2); fit_dedx -> SetParameters(0.19517, -247.207);   }
-      else if (idx== 7) { fit_dedx = new TF1(TString("fit_dedx_")+name_cut, stp::bb_dedx_he6, p_hist_min, p_hist_max, 2); fit_dedx -> SetParameters(9.46557, -5.98054);   }
-      else if (idx== 8) { fit_dedx = new TF1(TString("fit_dedx_")+name_cut, stp::bb_dedx_li6, p_hist_min, p_hist_max, 2); fit_dedx -> SetParameters(0.00328109, -15279.4); }
-      else if (idx== 9) { fit_dedx = new TF1(TString("fit_dedx_")+name_cut, stp::bb_dedx_li7, p_hist_min, p_hist_max, 2); fit_dedx -> SetParameters(0.00471953, -11279.9); }
-      else if (idx==10) { fit_dedx = new TF1(TString("fit_dedx_")+name_cut, stp::bb_dedx_ele, p_hist_min, p_hist_max, 2); fit_dedx -> SetParameters(0.945242, -42.6304);  }
-      else if (idx==11) { fit_dedx = new TF1(TString("fit_dedx_")+name_cut, stp::bb_dedx_pos, p_hist_min, p_hist_max, 2); fit_dedx -> SetParameters(0.945242, -42.6304);  }
-    } else {
-           if (idx== 0) { fit_dedx = new TF1(TString("fit_dedx_")+name_cut, stp::expression_bb_dedx_pin(), p_hist_min, p_hist_max); /*cout << stp::expression_bb_dedx_pin() << endl;*/ fit_dedx -> SetParameters(0.730379, -51.818967);}
-      else if (idx== 1) { fit_dedx = new TF1(TString("fit_dedx_")+name_cut, stp::expression_bb_dedx_pip(), p_hist_min, p_hist_max); /*cout << stp::expression_bb_dedx_pip() << endl;*/ fit_dedx -> SetParameters(0.945242, -42.6304);  }
-      else if (idx== 2) { fit_dedx = new TF1(TString("fit_dedx_")+name_cut, stp::expression_bb_dedx_p()  , p_hist_min, p_hist_max); /*cout << stp::expression_bb_dedx_p()   << endl;*/ fit_dedx -> SetParameters(0.945242, -42.6304);  }
-      else if (idx== 3) { fit_dedx = new TF1(TString("fit_dedx_")+name_cut, stp::expression_bb_dedx_d()  , p_hist_min, p_hist_max); /*cout << stp::expression_bb_dedx_d()   << endl;*/ fit_dedx -> SetParameters(0.758891, -54.0868);  }
-      else if (idx== 4) { fit_dedx = new TF1(TString("fit_dedx_")+name_cut, stp::expression_bb_dedx_t()  , p_hist_min, p_hist_max); /*cout << stp::expression_bb_dedx_t()   << endl;*/ fit_dedx -> SetParameters(1.37889, -29.8536);   }
-      else if (idx== 5) { fit_dedx = new TF1(TString("fit_dedx_")+name_cut, stp::expression_bb_dedx_he3(), p_hist_min, p_hist_max); /*cout << stp::expression_bb_dedx_he3() << endl;*/ fit_dedx -> SetParameters(0.867347, -54.3779);  }
-      else if (idx== 6) { fit_dedx = new TF1(TString("fit_dedx_")+name_cut, stp::expression_bb_dedx_he4(), p_hist_min, p_hist_max); /*cout << stp::expression_bb_dedx_he4() << endl;*/ fit_dedx -> SetParameters(0.19517, -247.207);   }
-      else if (idx== 7) { fit_dedx = new TF1(TString("fit_dedx_")+name_cut, stp::expression_bb_dedx_he6(), p_hist_min, p_hist_max); /*cout << stp::expression_bb_dedx_he6() << endl;*/ fit_dedx -> SetParameters(9.46557, -5.98054);   }
-      else if (idx== 8) { fit_dedx = new TF1(TString("fit_dedx_")+name_cut, stp::expression_bb_dedx_li6(), p_hist_min, p_hist_max); /*cout << stp::expression_bb_dedx_li6() << endl;*/ fit_dedx -> SetParameters(0.00328109, -15279.4); }
-      else if (idx== 9) { fit_dedx = new TF1(TString("fit_dedx_")+name_cut, stp::expression_bb_dedx_li7(), p_hist_min, p_hist_max); /*cout << stp::expression_bb_dedx_li7() << endl;*/ fit_dedx -> SetParameters(0.00471953, -11279.9); }
-      else if (idx==10) { fit_dedx = new TF1(TString("fit_dedx_")+name_cut, stp::expression_bb_dedx_ele(), p_hist_min, p_hist_max); /*cout << stp::expression_bb_dedx_ele() << endl;*/ fit_dedx -> SetParameters(0.945242, -42.6304);  }
-      else if (idx==11) { fit_dedx = new TF1(TString("fit_dedx_")+name_cut, stp::expression_bb_dedx_pos(), p_hist_min, p_hist_max); /*cout << stp::expression_bb_dedx_pos() << endl;*/ fit_dedx -> SetParameters(0.945242, -42.6304);  }
-      else if (idx==12) { fit_dedx = new TF1(TString("fit_dedx_")+name_cut, stp::expression_bb_dedx_li (), p_hist_min, p_hist_max); /*cout << stp::expression_bb_dedx_li () << endl;*/ fit_dedx -> SetParameters(0.945242, -42.6304);  }
-    }
-
-    TF1 *fit_dedx_par5 = nullptr;
+    TF1 *fit_dedx_par5 = stp::f1_dedx_p5(idx,p_hist_min,p_hist_max);
+    fit_dedx_par5 -> SetName(TString("fit_dedx_par5_")+name_cut);
     {
-           if (idx== 0) { fit_dedx_par5 = new TF1(TString("fit_dedx_par5_")+name_cut, stp::p5_dedx_pin, p_hist_min, p_hist_max, 5); }
-      else if (idx== 1) { fit_dedx_par5 = new TF1(TString("fit_dedx_par5_")+name_cut, stp::p5_dedx_pip, p_hist_min, p_hist_max, 5); fit_dedx_par5 -> SetParameters(-0.838172, -17.197, 2.74259, 1.1186, -2.03426);   }
-      else if (idx== 2) { fit_dedx_par5 = new TF1(TString("fit_dedx_par5_")+name_cut, stp::p5_dedx_p  , p_hist_min, p_hist_max, 5); fit_dedx_par5 -> SetParameters(-5.82913, 3.4971, 488.69, 0.972273, 1.48717);     }
-      else if (idx== 3) { fit_dedx_par5 = new TF1(TString("fit_dedx_par5_")+name_cut, stp::p5_dedx_d  , p_hist_min, p_hist_max, 5); fit_dedx_par5 -> SetParameters(-5.81648, 8.19503, 65740.6, 0.975845, 2.58973);   }
-      else if (idx== 4) { fit_dedx_par5 = new TF1(TString("fit_dedx_par5_")+name_cut, stp::p5_dedx_t  , p_hist_min, p_hist_max, 5); fit_dedx_par5 -> SetParameters(-0.561179, -24.1703, 22146.2, 0.963454, 2.53092); }
-      else if (idx== 5) { fit_dedx_par5 = new TF1(TString("fit_dedx_par5_")+name_cut, stp::p5_dedx_he3, p_hist_min, p_hist_max, 5); fit_dedx_par5 -> SetParameters(-20.7459, 4.11136, 3845.17, 0.902391, 3.60306);   }
-      else if (idx== 6) { fit_dedx_par5 = new TF1(TString("fit_dedx_par5_")+name_cut, stp::p5_dedx_he4, p_hist_min, p_hist_max, 5); fit_dedx_par5 -> SetParameters(-15.2432, 4.09085, 26656.4, 0.863061, 4.75901);   }
-      else if (idx== 7) { fit_dedx_par5 = new TF1(TString("fit_dedx_par5_")+name_cut, stp::p5_dedx_he6, p_hist_min, p_hist_max, 5); fit_dedx_par5 -> SetParameters(-1.53396, -57.5896, 20306.2, 0.816746, -17.5053); }
-      else if (idx== 8) { fit_dedx_par5 = new TF1(TString("fit_dedx_par5_")+name_cut, stp::p5_dedx_li6, p_hist_min, p_hist_max, 5); fit_dedx_par5 -> SetParameters(-1.53396, -57.5896, 20306.2, 0.816746, -17.5053); }
-      else if (idx== 9) { fit_dedx_par5 = new TF1(TString("fit_dedx_par5_")+name_cut, stp::p5_dedx_li7, p_hist_min, p_hist_max, 5); fit_dedx_par5 -> SetParameters(-1.53396, -57.5896, 20306.2, 0.816746, -17.5053); }
-      else if (idx==10) { fit_dedx_par5 = new TF1(TString("fit_dedx_par5_")+name_cut, stp::p5_dedx_ele, p_hist_min, p_hist_max, 5); }
-      else if (idx==11) { fit_dedx_par5 = new TF1(TString("fit_dedx_par5_")+name_cut, stp::p5_dedx_pos, p_hist_min, p_hist_max, 5); }
-      else if (idx==12) { fit_dedx_par5 = new TF1(TString("fit_dedx_par5_")+name_cut, stp::p5_dedx_li , p_hist_min, p_hist_max, 5); fit_dedx_par5 -> SetParameters(-1.53396, -57.5896, 20306.2, 0.816746, -17.5053); }
+           if (idx== 0) { /*fit_dedx_par5 = new TF1(TString("fit_dedx_par5_")+name_cut, stp::p5_dedx_pin, p_hist_min, p_hist_max, 5);*/ }
+      else if (idx== 1) { /*fit_dedx_par5 = new TF1(TString("fit_dedx_par5_")+name_cut, stp::p5_dedx_pip, p_hist_min, p_hist_max, 5);*/ fit_dedx_par5 -> SetParameters(-0.838172, -17.197, 2.74259, 1.1186, -2.03426);   }
+      else if (idx== 2) { /*fit_dedx_par5 = new TF1(TString("fit_dedx_par5_")+name_cut, stp::p5_dedx_p  , p_hist_min, p_hist_max, 5);*/ fit_dedx_par5 -> SetParameters(-5.82913, 3.4971, 488.69, 0.972273, 1.48717);     }
+      else if (idx== 3) { /*fit_dedx_par5 = new TF1(TString("fit_dedx_par5_")+name_cut, stp::p5_dedx_d  , p_hist_min, p_hist_max, 5);*/ fit_dedx_par5 -> SetParameters(-5.81648, 8.19503, 65740.6, 0.975845, 2.58973);   }
+      else if (idx== 4) { /*fit_dedx_par5 = new TF1(TString("fit_dedx_par5_")+name_cut, stp::p5_dedx_t  , p_hist_min, p_hist_max, 5);*/ fit_dedx_par5 -> SetParameters(-0.561179, -24.1703, 22146.2, 0.963454, 2.53092); }
+      else if (idx== 5) { /*fit_dedx_par5 = new TF1(TString("fit_dedx_par5_")+name_cut, stp::p5_dedx_he3, p_hist_min, p_hist_max, 5);*/ fit_dedx_par5 -> SetParameters(-20.7459, 4.11136, 3845.17, 0.902391, 3.60306);   }
+      else if (idx== 6) { /*fit_dedx_par5 = new TF1(TString("fit_dedx_par5_")+name_cut, stp::p5_dedx_he4, p_hist_min, p_hist_max, 5);*/ fit_dedx_par5 -> SetParameters(-15.2432, 4.09085, 26656.4, 0.863061, 4.75901);   }
+      else if (idx== 7) { /*fit_dedx_par5 = new TF1(TString("fit_dedx_par5_")+name_cut, stp::p5_dedx_he6, p_hist_min, p_hist_max, 5);*/ fit_dedx_par5 -> SetParameters(-1.53396, -57.5896, 20306.2, 0.816746, -17.5053); }
+      else if (idx== 8) { /*fit_dedx_par5 = new TF1(TString("fit_dedx_par5_")+name_cut, stp::p5_dedx_li6, p_hist_min, p_hist_max, 5);*/ fit_dedx_par5 -> SetParameters(-1.53396, -57.5896, 20306.2, 0.816746, -17.5053); }
+      else if (idx== 9) { /*fit_dedx_par5 = new TF1(TString("fit_dedx_par5_")+name_cut, stp::p5_dedx_li7, p_hist_min, p_hist_max, 5);*/ fit_dedx_par5 -> SetParameters(-1.53396, -57.5896, 20306.2, 0.816746, -17.5053); }
+      else if (idx==10) { /*fit_dedx_par5 = new TF1(TString("fit_dedx_par5_")+name_cut, stp::p5_dedx_ele, p_hist_min, p_hist_max, 5);*/ }
+      else if (idx==11) { /*fit_dedx_par5 = new TF1(TString("fit_dedx_par5_")+name_cut, stp::p5_dedx_pos, p_hist_min, p_hist_max, 5);*/ }
+      else if (idx==12) { /*fit_dedx_par5 = new TF1(TString("fit_dedx_par5_")+name_cut, stp::p5_dedx_li , p_hist_min, p_hist_max, 5);*/ fit_dedx_par5 -> SetParameters(-1.53396, -57.5896, 20306.2, 0.816746, -17.5053); }
 
       fit_dedx_par5 -> SetLineColor(kRed);
       //fit_dedx_par5 -> SetParameters(1,1,1,1,1);
@@ -195,9 +166,7 @@ void prefit()
         graph_fitproj -> SetPointError(graph_fitproj->GetN()-1, dbin_p/2., sigma);
       }
 
-      graph_fitproj -> Fit(fit_dedx,"Q0");
       ejungwoo::write(graph_fitproj);
-      ejungwoo::write(fit_dedx);
 
 
       graph_fitproj -> Fit(fit_dedx_par5,"Q0");
@@ -218,9 +187,6 @@ void prefit()
       cvs -> SetLogz();
       hist_cut -> Draw("colz");
       graph_fitproj -> Draw("1samepz");
-      fit_dedx -> SetLineColor(kGray+1);
-      fit_dedx -> SetNpx(2000);
-      fit_dedx -> Draw("samel");
       fit_dedx_par5 -> SetLineColor(kRed);
       fit_dedx_par5 -> SetNpx(2000);
       fit_dedx_par5 -> Draw("samel");

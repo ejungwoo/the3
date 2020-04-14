@@ -1,44 +1,33 @@
 #include "stp.h"
 
 double c_limit_p = .4;
-double c_limit_oli = .15;
-double c_limit_all = .10;
+double c_limit_oli = .20;
+double c_limit_all = .20;
 
 void get_par_limits(double p_current, int idx_particle, TH1D * hist, double &a, double &m, double &s, double &a1, double &a2, double &m1, double &m2, double &s1, double &s2);
 void get_par_limits2(double s_current, int idx_particle, TH1D * hist, double &a, double &m, double &s, double &a1, double &a2, double &m1, double &m2, double &s1, double &s2);
 
-void fit_sn108(bool verbose = 1, int pit = -1, int yaw = -1)
+void fit_sn108(bool verbose = 1, int index_py = 0)
 {
   int system = 108;
   ejungwoo::gzcolor(0);
-  ejungwoo::gstat(0);
+  ejungwoo::gstat("ne");
   ejungwoo::gsave(0);
   ejungwoo::gcvspos(1300,0);
+  ejungwoo::gsetjumpcvs();
 
-  bool eeeeeeeee = true;
-
-  bool draw_proj = false;
-  bool draw_fit_status = false;
+  bool draw_proj = true;
+  bool draw_fit_status = true;
 
   double p_start = 100.;
-  double p_end = 2000.;
-  int bin_size_p = 5;
+  double p_end = 2500.;
+  int bin_size_p = 8;
 
   double s_start = 100.;
   double s_end = 1300.;
-  //double s_end = 988.;
-  int bin_size_s = 10;
+  int bin_size_s = 20;
 
-  int idx_particles[] = {
-    stp::kpip,
-    stp::kp,
-    stp::kd,
-    stp::kt,
-    stp::khe3,
-    stp::khe4,
-    stp::khe6,
-    stp::kli,
-    };
+  int idx_particles[] = { stp::kpip, stp::kp, stp::kd, stp::kt, stp::khe3, stp::khe4, stp::khe6, stp::kli, };
 
   double p_hist_min = 0;
   double p_hist_max = 2500;
@@ -53,70 +42,71 @@ void fit_sn108(bool verbose = 1, int pit = -1, int yaw = -1)
 
   double plimit1[] = {
   /*stp::kpin*/ p_hist_min, 
-  /*stp::kpip*/ 100, 
-  /*stp::kp  */ 350, 
-  /*stp::kd  */ 400, 
-  /*stp::kt  */ 600       , 
-  /*stp::khe3*/ 600       , 
-  /*stp::khe4*/ 700       , 
-  /*stp::khe6*/ 1700      , 
-  /*stp::kli6*/ 1000      , 
-  /*stp::kli7*/ 1500      , 
+  /*stp::kpip*/ 100,
+  /*stp::kp  */ 350,
+  /*stp::kd  */ 400,
+  /*stp::kt  */ 600,
+  /*stp::khe3*/ 600,
+  /*stp::khe4*/ 700,
+  /*stp::khe6*/ 1700,
+  /*stp::kli6*/ 1000,
+  /*stp::kli7*/ 1500,
   /*stp::kele*/ p_hist_min, 
   /*stp::kpos*/ p_hist_min,
-  /*stp::kli */ 1000    , 
+  /*stp::kli */ 1000,
   };
 
   double plimit2[] = {
   /*stp::kpin*/ p_hist_max, 
-  /*stp::kpip*/ 500       , 
-  /*stp::kp  */ 1700   , 
-  /*stp::kd  */ p_hist_max, 
+  /*stp::kpip*/ 500,
+  /*stp::kp  */ 1700,
+  /*stp::kd  */ 2200,
   /*stp::kt  */ p_hist_max, 
-  /*stp::khe3*/ 1400 , 
+  /*stp::khe3*/ 1500,
   /*stp::khe4*/ p_hist_max, 
   /*stp::khe6*/ p_hist_max, 
-  /*stp::kli6*/ 2000 , 
-  /*stp::kli7*/ 2300      , 
+  /*stp::kli6*/ 2000,
+  /*stp::kli7*/ 2300,
   /*stp::kele*/ p_hist_max, 
   /*stp::kpos*/ p_hist_max,
-  /*stp::kli */ 2000 , 
+  /*stp::kli */ 2000,
   };
 
   double slimit1[] = {
   /*stp::kpin*/ 0,
   /*stp::kpip*/ 100,
-  /*stp::kp  */ 1000, 
-  /*stp::kd  */ 1000, 
-  /*stp::kt  */ 1000, 
-  /*stp::khe3*/ 1000, 
-  /*stp::khe4*/ 1000, 
-  /*stp::khe6*/ 0, 
-  /*stp::kli6*/ 0, 
-  /*stp::kli7*/ 0, 
-  /*stp::kele*/ 0, 
+  /*stp::kp  */ 500,
+  /*stp::kd  */ 700,
+  /*stp::kt  */ 700,
+  /*stp::khe3*/ 700,
+  /*stp::khe4*/ 700,
+  /*stp::khe6*/ 0,
+  /*stp::kli6*/ 0,
+  /*stp::kli7*/ 0,
+  /*stp::kele*/ 0,
   /*stp::kpos*/ 0,
-  /*stp::kli */ 0, 
+  /*stp::kli */ 0,
   };
 
   double slimit2[] = {
-  /*stp::kpin*/ 0, 
-  /*stp::kpip*/ 200, 
-  /*stp::kp  */ 1500, 
-  /*stp::kd  */ 1500, 
-  /*stp::kt  */ 1500, 
-  /*stp::khe3*/ 1500, 
-  /*stp::khe4*/ 1500, 
-  /*stp::khe6*/ 0, 
-  /*stp::kli6*/ 0, 
-  /*stp::kli7*/ 0, 
-  /*stp::kele*/ 0, 
+  /*stp::kpin*/ 0,
+  /*stp::kpip*/ 200,
+  /*stp::kp  */ 1500,
+  /*stp::kd  */ 1500,
+  /*stp::kt  */ 1500,
+  /*stp::khe3*/ 1500,
+  /*stp::khe4*/ 1500,
+  /*stp::khe6*/ 0,
+  /*stp::kli6*/ 0,
+  /*stp::kli7*/ 0,
+  /*stp::kele*/ 0,
   /*stp::kpos*/ 0,
-  /*stp::kli */ 0, 
+  /*stp::kli */ 0,
   };
 
-  TString nameVersion = Form("sys108_p%dy%d",pit,yaw);
-  if (pit<0&&yaw<0) nameVersion = "sys108";
+  //TString nameVersion = Form("sys108_p%dy%d",pit,yaw);
+  TString nameVersion = Form("sys108_ipy%d",index_py);
+  if (index_py<0) nameVersion = "sys108";
   ejungwoo::gversion(nameVersion);
   TString name_hist = TString("hist_") + ejungwoo::version();
   TString name_cvs = TString("cvs_") + ejungwoo::version();
@@ -133,12 +123,19 @@ void fit_sn108(bool verbose = 1, int pit = -1, int yaw = -1)
     name_pid_file = Form("data__%s/%s.%s.root",ejungwoo::version().Data(),name_ana.Data(),ejungwoo::version().Data());
     cout << name_pid_file << endl;
     auto file_pid = new TFile(name_pid_file);
-    if (file_pid -> IsOpen()) {
+    //if (file_pid -> IsOpen()) {
+    if (0) {
       hist_pid = (TH2D *) file_pid -> Get(name_ana);
     } else {
-      auto fileTree = new TFile(Form("data__in/pdedx%d.root",system));
+      auto fileTree = new TFile(Form("data__in/pdedx%d2.root",system));
       auto tree = (TTree *) fileTree -> Get("data");
-      hist_pid = (TH2D *) ejungwoo::tp(Form("%s",name_ana.Data()),tree,"dedx:p","qrun","",nbins_p,p_min,p_max,nbins_s,s_min,s_max);
+      auto cut = TCut();
+      //if (pit>0&&yaw>0)
+      if (index_py==0)
+        cut = cut + TCut("ipy==1515||ipy==1516||ipy==1615||ipy==1616");
+        //cut = cut + TCut("ipy==1515");
+      cout << cut << endl;
+      hist_pid = (TH2D *) ejungwoo::tp(Form("%s",name_ana.Data()),tree,"dedx:p",cut,"",nbins_p,p_min,p_max,nbins_s,s_min,s_max);
       ejungwoo::write(hist_pid);
     }
   }
@@ -154,7 +151,7 @@ void fit_sn108(bool verbose = 1, int pit = -1, int yaw = -1)
   double parlimits1[50] = {0};
   double parlimits2[50] = {0};
   TGraphErrors *graph_dedx_onpid[3][20];
-  TGraphErrors *graph_particle_ams[2][3][20];
+  TGraphErrors *graph_particle_ams[2][4][20];
 
   TF1 *fit_dedx_array[20] = {0};
   for (auto idx_particle : idx_particles)
@@ -163,31 +160,28 @@ void fit_sn108(bool verbose = 1, int pit = -1, int yaw = -1)
     graph_dedx_onpid[0][idx_particle] = ejungwoo::new_ge(TString("dedx_") + name_particle);
     graph_dedx_onpid[1][idx_particle] = ejungwoo::new_ge(TString("dedx_") + name_particle + "_1");
     graph_dedx_onpid[2][idx_particle] = ejungwoo::new_ge(TString("dedx_") + name_particle + "_2");
+    graph_dedx_onpid[0][idx_particle] -> SetMarkerColor(stp::fColor[idx_particle]);
+    graph_dedx_onpid[1][idx_particle] -> SetMarkerColor(stp::fColor[idx_particle]);
+    graph_dedx_onpid[2][idx_particle] -> SetMarkerColor(stp::fColor[idx_particle]);
 
     graph_particle_ams[0][0][idx_particle] = ejungwoo::new_ge("amp_"  +name_particle+"_s");
     graph_particle_ams[0][1][idx_particle] = ejungwoo::new_ge("mean_" +name_particle+"_s");
     graph_particle_ams[0][2][idx_particle] = ejungwoo::new_ge("sigma_"+name_particle+"_s");
+    graph_particle_ams[0][3][idx_particle] = ejungwoo::new_ge("resolution_"+name_particle+"_s");
     graph_particle_ams[1][0][idx_particle] = ejungwoo::new_ge("amp_"  +name_particle);
     graph_particle_ams[1][1][idx_particle] = ejungwoo::new_ge("mean_" +name_particle);
     graph_particle_ams[1][2][idx_particle] = ejungwoo::new_ge("sigma_"+name_particle);
+    graph_particle_ams[1][3][idx_particle] = ejungwoo::new_ge("resolution_"+name_particle);
 
     auto file_fit = new TFile(TString("data__prefit/fit_dedx_par5_region_")+name_particle+".prefit.root");
     auto fit_par5 = (TF1 *) file_fit -> Get(TString("fit_dedx_par5_region_")+name_particle);
-    TF1 *fit_dedx;
+
+    //auto file_fit = new TFile("/Users/ejungwoo/spirit/the3/mary/pid/data__sys108/summary.sys108.root");
+    //auto fit_par5 = (TF1 *) file_fit -> Get(TString("fit_dedx_")+name_particle+"_0");
+
     auto name_par5 = TString("fpre_dedx_")+name_particle;
-    /**/ if (idx_particle == stp::kpin) { fit_dedx = new TF1(name_par5, stp::p5_dedx_pin, p_hist_min, p_hist_max, 5); }
-    else if (idx_particle == stp::kpip) { fit_dedx = new TF1(name_par5, stp::p5_dedx_pip, p_hist_min, p_hist_max, 5); }
-    else if (idx_particle == stp::kp  ) { fit_dedx = new TF1(name_par5, stp::p5_dedx_p  , p_hist_min, p_hist_max, 5); }
-    else if (idx_particle == stp::kd  ) { fit_dedx = new TF1(name_par5, stp::p5_dedx_d  , p_hist_min, p_hist_max, 5); }
-    else if (idx_particle == stp::kt  ) { fit_dedx = new TF1(name_par5, stp::p5_dedx_t  , p_hist_min, p_hist_max, 5); }
-    else if (idx_particle == stp::khe3) { fit_dedx = new TF1(name_par5, stp::p5_dedx_he3, p_hist_min, p_hist_max, 5); }
-    else if (idx_particle == stp::khe4) { fit_dedx = new TF1(name_par5, stp::p5_dedx_he4, p_hist_min, p_hist_max, 5); }
-    else if (idx_particle == stp::khe6) { fit_dedx = new TF1(name_par5, stp::p5_dedx_he6, p_hist_min, p_hist_max, 5); }
-    else if (idx_particle == stp::kli6) { fit_dedx = new TF1(name_par5, stp::p5_dedx_li6, p_hist_min, p_hist_max, 5); }
-    else if (idx_particle == stp::kli7) { fit_dedx = new TF1(name_par5, stp::p5_dedx_li7, p_hist_min, p_hist_max, 5); }
-    else if (idx_particle == stp::kele) { fit_dedx = new TF1(name_par5, stp::p5_dedx_ele, p_hist_min, p_hist_max, 5); }
-    else if (idx_particle == stp::kpos) { fit_dedx = new TF1(name_par5, stp::p5_dedx_pos, p_hist_min, p_hist_max, 5); }
-    else if (idx_particle == stp::kli ) { fit_dedx = new TF1(name_par5, stp::p5_dedx_li , p_hist_min, p_hist_max, 5); }
+    TF1 *fit_dedx = stp::f1_dedx_p5(idx_particle,p_hist_min,p_hist_max);
+    fit_dedx -> SetName(name_par5);
 
     fit_dedx -> SetParameters(
         fit_par5->GetParameter(0),
@@ -198,7 +192,7 @@ void fit_sn108(bool verbose = 1, int pit = -1, int yaw = -1)
 
     fit_dedx -> SetNpx(2000);
     fit_dedx -> SetLineColor(kGray);
-    //fit_dedx -> Draw("samel");
+    fit_dedx -> Draw("samel");
     fit_dedx_array[idx_particle] = fit_dedx;
   }
 
@@ -217,12 +211,15 @@ void fit_sn108(bool verbose = 1, int pit = -1, int yaw = -1)
     auto s_current1 = hist_pid -> GetYaxis() -> GetBinCenter(bin1);
     auto s_current2 = hist_pid -> GetYaxis() -> GetBinCenter(bin2);
     auto s_current = (s_current1 + s_current2)/2.;
-    //TString name_s = Form("proj_bin_s%.2f_b%d",s_current,bin1);
     TString name_s = Form("proj_bin_s%.2f_b%d_%d",s_current,bin1,bin2);
     auto hist_proj = hist_pid -> ProjectionX(name_s,bin2,bin1);
+    if (hist_proj -> GetEntries() < 200)
+      continue;
     hist_proj -> SetTitle(name_s);
 
     TCanvas *cvs_proj = nullptr;
+    TCanvas *cvs_proj1 = nullptr;
+    TCanvas *cvs_proj2 = nullptr;
 
     double p_amp_array[20] = {0};
     double p_mean_array[20] = {0};
@@ -232,7 +229,7 @@ void fit_sn108(bool verbose = 1, int pit = -1, int yaw = -1)
     graph_init -> SetMarkerColor(kRed);
     graph_init -> SetLineColor(kRed);
 
-    bool aaaaaaaaaaaaa = false;
+    bool particle_is_in_range = false;
 
     for (auto idx_particle : idx_particles)
     {
@@ -242,7 +239,7 @@ void fit_sn108(bool verbose = 1, int pit = -1, int yaw = -1)
       if (s_current > srange1 && s_current < srange2)
       {
         idx_is_good[idx_particle] = true;
-        aaaaaaaaaaaaa = true;
+        particle_is_in_range = true;
         auto p_mean_init = fit -> GetX(s_current);
 
         p_amp_array[idx_particle] = hist_proj -> GetBinContent(hist_proj->GetXaxis()->FindBin(p_mean_init));
@@ -250,12 +247,20 @@ void fit_sn108(bool verbose = 1, int pit = -1, int yaw = -1)
       }
     }
 
-    if (!aaaaaaaaaaaaa)
+    if (!particle_is_in_range)
       continue;
 
     if (draw_proj) {
-      cvs_proj = ejungwoo::cv(name_s);
-      cvs_proj -> SetLogy();
+      cvs_proj = ejungwoo::cv(name_s, 500,800);
+      ejungwoo::div(cvs_proj,1,2);
+      cvs_proj1 = (TCanvas *) cvs_proj -> cd(1);
+      cvs_proj2 = (TCanvas *) cvs_proj -> cd(2);
+
+      cvs_proj1 -> cd();
+      cvs_proj1 -> SetLogy();
+      hist_proj -> Draw();
+
+      cvs_proj2 -> cd();
       hist_proj -> Draw();
     }
 
@@ -298,7 +303,7 @@ void fit_sn108(bool verbose = 1, int pit = -1, int yaw = -1)
       parlimits2[3*idx_particle+2] = s2;
 
       if (draw_proj && draw_fit_status) {
-        cvs_proj -> cd();
+        cvs_proj1 -> cd();
         graph_init -> SetPoint(idx_particle, p_mean_init,100);
         graph_init -> SetPointError(idx_particle, (m2-m1)/2., 0);
       }
@@ -307,7 +312,7 @@ void fit_sn108(bool verbose = 1, int pit = -1, int yaw = -1)
     }
 
     if (draw_proj && draw_fit_status) {
-      cvs_proj -> cd();
+      cvs_proj1 -> cd();
       graph_init -> Sort();
       graph_init -> Draw("samepz1");
     }
@@ -352,14 +357,20 @@ void fit_sn108(bool verbose = 1, int pit = -1, int yaw = -1)
       marker -> SetMarkerSize(1.5);
       marker -> SetMarkerColor(kBlack);
       if (draw_proj && draw_fit_status) {
-        cvs_proj -> cd();
+        cvs_proj1 -> cd();
         marker -> Draw("samep");
         auto fit_p_single = new TF1(Form("fit_p_single_%s",name_particle.Data()),"gaus(0)",0,1000);
         fit_p_single -> SetParameters(p_amp,p_mean,p_sigma);
-        fit_p_single -> SetLineColor(kGray);
+        fit_p_single -> SetLineColor(stp::fColor[idx_particle]);
         fit_p_single -> Draw("samel");
 
         legend -> AddEntry(fit_p_single,Form("%s: %.2e, %.2e, %.2e",name_particle.Data(), p_amp,p_mean,p_sigma),"l");
+
+        cvs_proj2 -> cd();
+        marker -> Draw("samep");
+        fit_p_single -> Draw("samel");
+
+        //legend -> AddEntry(fit_p_single,Form("%s: %.2e, %.2e, %.2e",name_particle.Data(), p_amp,p_mean,p_sigma),"l");
       }
 
       auto idxn = graph_dedx_onpid[0][idx_particle] -> GetN();
@@ -371,14 +382,21 @@ void fit_sn108(bool verbose = 1, int pit = -1, int yaw = -1)
       graph_particle_ams[0][0][idx_particle] -> SetPoint(graph_particle_ams[0][0][idx_particle] -> GetN(), s_current, p_amp);
       graph_particle_ams[0][1][idx_particle] -> SetPoint(graph_particle_ams[0][1][idx_particle] -> GetN(), s_current, p_mean);
       graph_particle_ams[0][2][idx_particle] -> SetPoint(graph_particle_ams[0][2][idx_particle] -> GetN(), s_current, p_sigma);
+      graph_particle_ams[0][3][idx_particle] -> SetPoint(graph_particle_ams[0][3][idx_particle] -> GetN(), s_current, p_mean/p_sigma);
     }
 
     if (draw_proj && draw_fit_status) {
-      cvs_proj -> cd();
+      cvs_proj1 -> cd();
       fit_p_total -> SetNpx(2000);
       fit_p_total -> SetLineColor(kGray+2);
       fit_p_total -> Draw("samel");
-      ejungwoo::make_l(cvs_proj,legend,0,0,0.6,0.4) -> Draw("same");
+      ejungwoo::make_l(cvs_proj1,legend,0,0,0.6,0.4) -> Draw("same");
+
+      cvs_proj2 -> cd();
+      //fit_p_total -> SetNpx(2000);
+      //fit_p_total -> SetLineColor(kGray+2);
+      fit_p_total -> Draw("samel");
+      //ejungwoo::make_l(cvs_proj2,legend,0,0,0.6,0.4) -> Draw("same");
 
       auto npar = fit_p_total -> GetNpar();
       auto p_mean_last = fit_p_total -> GetParameter(npar-2);
@@ -386,16 +404,14 @@ void fit_sn108(bool verbose = 1, int pit = -1, int yaw = -1)
 
       hist_proj -> GetXaxis() -> SetRangeUser(0,p_mean_last+2*p_sigma_last);
 
-      //auto hist_sub = ejungwoo::subtract(hist_proj, fit_p_total);
-      //hist_sub -> SetLineColor(kGray+2);
-      //hist_sub -> Draw("same hist");
+      ejungwoo::make_c(cvs_proj1);
+      ejungwoo::make_c(cvs_proj2);
     }
   }
 
   int bin_p_start = hist_pid -> GetXaxis() -> FindBin(p_start);
   int bin_p_end = hist_pid -> GetXaxis() -> FindBin(p_end);
 
-  if (eeeeeeeee)
   for (auto bin1 = bin_p_start; bin1 < bin_p_end; bin1+=bin_size_p)
   {
     bool idx_is_good[20] = {0};
@@ -409,12 +425,25 @@ void fit_sn108(bool verbose = 1, int pit = -1, int yaw = -1)
     auto p_current = (p_current1 + p_current2)/2.;
     TString name_p = Form("proj_bin_p%.2f_b%d_%d",p_current,bin1,bin2);
     auto hist_proj = hist_pid -> ProjectionY(name_p,bin1,bin2);
+    if (hist_proj -> GetEntries() < 200)
+      continue;
     hist_proj -> SetTitle(name_p);
 
     TCanvas *cvs_proj = nullptr;
+    TCanvas *cvs_proj1 = nullptr;
+    TCanvas *cvs_proj2 = nullptr;
+
     if (draw_proj) {
-      cvs_proj = ejungwoo::cv(name_p);
-      cvs_proj -> SetLogy();
+      cvs_proj = ejungwoo::cv(name_p, 500,800);
+      ejungwoo::div(cvs_proj,1,2);
+      cvs_proj1 = (TCanvas *) cvs_proj -> cd(1);
+      cvs_proj2 = (TCanvas *) cvs_proj -> cd(2);
+
+      cvs_proj1 -> cd();
+      hist_proj -> Draw();
+
+      cvs_proj2 -> cd();
+      cvs_proj2 -> SetLogy();
       hist_proj -> Draw();
     }
 
@@ -480,7 +509,7 @@ void fit_sn108(bool verbose = 1, int pit = -1, int yaw = -1)
       parlimits2[3*idx_particle+2] = s2;
 
       if (draw_proj && draw_fit_status) {
-        cvs_proj -> cd();
+        cvs_proj1 -> cd();
         graph_init -> SetPoint(idx_particle, s_mean_init,100);
         graph_init -> SetPointError(idx_particle, (m2-m1)/2., 0);
       }
@@ -489,7 +518,7 @@ void fit_sn108(bool verbose = 1, int pit = -1, int yaw = -1)
     }
 
     if (draw_proj && draw_fit_status) {
-      cvs_proj -> cd();
+      cvs_proj1 -> cd();
       graph_init -> Sort();
       graph_init -> Draw("samepz1");
     }
@@ -534,11 +563,17 @@ void fit_sn108(bool verbose = 1, int pit = -1, int yaw = -1)
       marker -> SetMarkerSize(1.5);
       marker -> SetMarkerColor(kBlack);
       if (draw_proj && draw_fit_status) {
-        cvs_proj -> cd();
+        cvs_proj1 -> cd();
         marker -> Draw("samep");
         auto fit_s_single = new TF1(Form("fit_s_single_%s",name_particle.Data()),"gaus(0)",0,1000);
         fit_s_single -> SetParameters(s_amp,s_mean,s_sigma);
-        fit_s_single -> SetLineColor(kGray);
+        fit_s_single -> SetLineColor(stp::fColor[idx_particle]);
+        fit_s_single -> Draw("samel");
+
+        legend -> AddEntry(fit_s_single,Form("%s: %.2e, %.2e, %.2e",name_particle.Data(), s_amp,s_mean,s_sigma),"l");
+
+        cvs_proj2 -> cd();
+        marker -> Draw("samep");
         fit_s_single -> Draw("samel");
 
         legend -> AddEntry(fit_s_single,Form("%s: %.2e, %.2e, %.2e",name_particle.Data(), s_amp,s_mean,s_sigma),"l");
@@ -553,14 +588,21 @@ void fit_sn108(bool verbose = 1, int pit = -1, int yaw = -1)
       graph_particle_ams[1][0][idx_particle] -> SetPoint(graph_particle_ams[1][0][idx_particle] -> GetN(), p_current, s_amp);
       graph_particle_ams[1][1][idx_particle] -> SetPoint(graph_particle_ams[1][1][idx_particle] -> GetN(), p_current, s_mean);
       graph_particle_ams[1][2][idx_particle] -> SetPoint(graph_particle_ams[1][2][idx_particle] -> GetN(), p_current, s_sigma);
+      graph_particle_ams[1][3][idx_particle] -> SetPoint(graph_particle_ams[1][3][idx_particle] -> GetN(), p_current, s_mean/s_sigma);
     }
 
     if (draw_proj && draw_fit_status) {
-      cvs_proj -> cd();
+      cvs_proj1 -> cd();
       fit_s_total -> SetNpx(2000);
       fit_s_total -> SetLineColor(kGray+2);
       fit_s_total -> Draw("samel");
-      ejungwoo::make_l(cvs_proj,legend,0,0,0.6,0.4) -> Draw("same");
+      ejungwoo::make_l(cvs_proj1,legend,0,0,0.6,0.4) -> Draw("same");
+
+      cvs_proj2 -> cd();
+      //fit_s_total -> SetNpx(2000);
+      //fit_s_total -> SetLineColor(kGray+2);
+      fit_s_total -> Draw("samel");
+      //ejungwoo::make_l(cvs_proj2,legend,0,0,0.6,0.4) -> Draw("same");
 
       auto npar = fit_s_total -> GetNpar();
       auto s_mean_last = fit_s_total -> GetParameter(npar-2);
@@ -568,12 +610,10 @@ void fit_sn108(bool verbose = 1, int pit = -1, int yaw = -1)
 
       hist_proj -> GetXaxis() -> SetRangeUser(0,s_mean_last+2*s_sigma_last);
 
-      //auto hist_sub = ejungwoo::subtract(hist_proj, fit_s_total);
-      //hist_sub -> SetLineColor(kGray+2);
-      //hist_sub -> Draw("same hist");
+      ejungwoo::make_c(cvs_proj1);
+      ejungwoo::make_c(cvs_proj2);
     }
   }
-
 
   auto name_summary = ejungwoo::name_full("summary");
   auto file_summary = new TFile(name_summary,"recreate");
@@ -586,20 +626,11 @@ void fit_sn108(bool verbose = 1, int pit = -1, int yaw = -1)
     cout << name_particle << endl;
 
     TF1 *fit_dedx_par5[3];
-    auto name_par5 = TString("fit_dedx_")+name_particle+"_";
-         if (idx_particle == stp::kpin) { for (auto ifit : {0,1,2}) fit_dedx_par5[ifit] = new TF1(name_par5+ifit, stp::p5_dedx_pin, p_hist_min, p_hist_max, 5); }
-    else if (idx_particle == stp::kpip) { for (auto ifit : {0,1,2}) fit_dedx_par5[ifit] = new TF1(name_par5+ifit, stp::p5_dedx_pip, p_hist_min, p_hist_max, 5); }
-    else if (idx_particle == stp::kp  ) { for (auto ifit : {0,1,2}) fit_dedx_par5[ifit] = new TF1(name_par5+ifit, stp::p5_dedx_p  , p_hist_min, p_hist_max, 5); }
-    else if (idx_particle == stp::kd  ) { for (auto ifit : {0,1,2}) fit_dedx_par5[ifit] = new TF1(name_par5+ifit, stp::p5_dedx_d  , p_hist_min, p_hist_max, 5); }
-    else if (idx_particle == stp::kt  ) { for (auto ifit : {0,1,2}) fit_dedx_par5[ifit] = new TF1(name_par5+ifit, stp::p5_dedx_t  , p_hist_min, p_hist_max, 5); }
-    else if (idx_particle == stp::khe3) { for (auto ifit : {0,1,2}) fit_dedx_par5[ifit] = new TF1(name_par5+ifit, stp::p5_dedx_he3, p_hist_min, p_hist_max, 5); }
-    else if (idx_particle == stp::khe4) { for (auto ifit : {0,1,2}) fit_dedx_par5[ifit] = new TF1(name_par5+ifit, stp::p5_dedx_he4, p_hist_min, p_hist_max, 5); }
-    else if (idx_particle == stp::khe6) { for (auto ifit : {0,1,2}) fit_dedx_par5[ifit] = new TF1(name_par5+ifit, stp::p5_dedx_he6, p_hist_min, p_hist_max, 5); }
-    else if (idx_particle == stp::kli6) { for (auto ifit : {0,1,2}) fit_dedx_par5[ifit] = new TF1(name_par5+ifit, stp::p5_dedx_li6, p_hist_min, p_hist_max, 5); }
-    else if (idx_particle == stp::kli7) { for (auto ifit : {0,1,2}) fit_dedx_par5[ifit] = new TF1(name_par5+ifit, stp::p5_dedx_li7, p_hist_min, p_hist_max, 5); }
-    else if (idx_particle == stp::kele) { for (auto ifit : {0,1,2}) fit_dedx_par5[ifit] = new TF1(name_par5+ifit, stp::p5_dedx_pos, p_hist_min, p_hist_max, 5); }
-    else if (idx_particle == stp::kpos) { for (auto ifit : {0,1,2}) fit_dedx_par5[ifit] = new TF1(name_par5+ifit, stp::p5_dedx_li , p_hist_min, p_hist_max, 5); }
-    else if (idx_particle == stp::kli ) { for (auto ifit : {0,1,2}) fit_dedx_par5[ifit] = new TF1(name_par5+ifit, stp::p5_dedx_ele, p_hist_min, p_hist_max, 5); }
+    for (auto ifit : {0,1,2}) {
+      TString name_par5 = Form("fit_dedx_%s_%d",name_particle.Data(),ifit);
+      fit_dedx_par5[ifit] = stp::f1_dedx_p5(idx_particle,p_hist_min,p_hist_max);
+      fit_dedx_par5[ifit] -> SetName(name_par5);
+    }
 
     for (auto ifit : {0,1,2})
     {
@@ -613,18 +644,17 @@ void fit_sn108(bool verbose = 1, int pit = -1, int yaw = -1)
       }
 
       cvs_pid -> cd();
-      //gg -> SetLineColor(kOrange-2);
-      //gg -> Draw("samepz1");
 
       auto ff = fit_dedx_par5[ifit];
       if (ifit==0) {
         auto fx = fit_dedx_array[idx_particle];
         ff -> SetParameters(fx->GetParameter(0), fx->GetParameter(1), fx->GetParameter(2), fx->GetParameter(3), fx->GetParameter(4));
+        //ff -> SetLineColor(stp::fColor[idx_particle]);
         ff -> SetLineColor(kBlack);
       } else {
         auto f0 = fit_dedx_par5[0];
         ff -> SetParameters(f0->GetParameter(0), f0->GetParameter(1), f0->GetParameter(2), f0->GetParameter(3), f0->GetParameter(4));
-        ff -> SetLineColor(kOrange+8);
+        ff -> SetLineColor(stp::fColor[idx_particle]);
       }
 
       gg -> Fit(ff,"Q0");
@@ -636,7 +666,9 @@ void fit_sn108(bool verbose = 1, int pit = -1, int yaw = -1)
         ff -> SetRange(ejungwoo::x1_g(gg)-10, ejungwoo::x2_g(gg)+10);
 
       ff -> SetNpx(2000);
-      if (ifit !=0) ff -> Draw("samel");
+      if (ifit==0)
+        gg -> Draw("samepz1");
+      ff -> Draw("samel");
 
       gglist.push_back(gg);
       fflist.push_back(ff);
@@ -644,21 +676,23 @@ void fit_sn108(bool verbose = 1, int pit = -1, int yaw = -1)
   }
 
   for (auto idx_particle : idx_particles) {
-    ejungwoo::addto("amp0"  ,graph_particle_ams[0][0][idx_particle]);
-    ejungwoo::addto("mean0" ,graph_particle_ams[0][1][idx_particle]);
-    ejungwoo::addto("sigma0",graph_particle_ams[0][2][idx_particle]);
-    ejungwoo::addto("amp1"  ,graph_particle_ams[1][0][idx_particle]);
-    ejungwoo::addto("mean1" ,graph_particle_ams[1][1][idx_particle]);
-    ejungwoo::addto("sigma1",graph_particle_ams[1][2][idx_particle]);
+    //ejungwoo::addto("amp0"  ,graph_particle_ams[0][0][idx_particle]);
+    //ejungwoo::addto("mean0" ,graph_particle_ams[0][1][idx_particle]);
+    //ejungwoo::addto("sigma0",graph_particle_ams[0][2][idx_particle]);
+    ejungwoo::addto("amp"  ,graph_particle_ams[1][0][idx_particle],"samep");
+    ejungwoo::addto("mean" ,graph_particle_ams[1][1][idx_particle],"samepl");
+    ejungwoo::addto("sigma",graph_particle_ams[1][2][idx_particle],"samepl");
+    ejungwoo::addto("resol",graph_particle_ams[1][3][idx_particle],"samepl");
   }
 
-  ejungwoo::drawc("amp0");
-  ejungwoo::drawc("mean0");
-  ejungwoo::drawc("sigma0");
-  ejungwoo::drawc("mean1");
-  ejungwoo::drawc("sigma1");
+  //ejungwoo::drawc("amp0");
+  //ejungwoo::drawc("mean0");
+  //ejungwoo::drawc("sigma0");
+  auto cvs_mean = ejungwoo::drawc("mean");
+  auto cvs_sigma = ejungwoo::drawc("sigma");
+  auto cvs_resol = ejungwoo::drawc("resol");
 
-  auto cvs_amp = ejungwoo::drawc("amp1");
+  auto cvs_amp = ejungwoo::drawc("amp");
   for (auto idx_particle : idx_particles)
   {
     cvs_amp -> cd();
@@ -676,6 +710,7 @@ void fit_sn108(bool verbose = 1, int pit = -1, int yaw = -1)
   }
 
   file_summary -> cd();
+  hist_pid -> Write("hist_pid");
   for (auto gg : gglist) gg -> Write();
   for (auto ff : fflist) ff -> Write();
   cout << name_summary << endl;
