@@ -7,9 +7,9 @@ double c_limit_all = .20;
 void get_par_limits(double p_current, int idx_particle, TH1D * hist, double &a, double &m, double &s, double &a1, double &a2, double &m1, double &m2, double &s1, double &s2);
 void get_par_limits2(double s_current, int idx_particle, TH1D * hist, double &a, double &m, double &s, double &a1, double &a2, double &m1, double &m2, double &s1, double &s2);
 
-void fit_sn108(bool verbose = 1, int index_py = -1)
+void fit_sn132(bool verbose = 1, int index_py = -1)
 {
-  int system = 108;
+  int system = 132;
   ejungwoo::gzcolor(0);
   ejungwoo::gstat("ne");
   ejungwoo::gsave(0);
@@ -108,9 +108,9 @@ void fit_sn108(bool verbose = 1, int index_py = -1)
   /*stp::kli */ 0,
   };
 
-  //TString nameVersion = Form("sys108_p%dy%d",pit,yaw);
-  TString nameVersion = Form("sys108_ipy%d",index_py);
-  if (index_py<0) nameVersion = "sys108";
+  //TString nameVersion = Form("sys132_p%dy%d",pit,yaw);
+  TString nameVersion = Form("sys132_ipy%d",index_py);
+  if (index_py<0) nameVersion = "sys132";
   ejungwoo::gversion(nameVersion);
   TString name_hist = TString("hist_") + ejungwoo::version();
   TString name_cvs = TString("cvs_") + ejungwoo::version();
