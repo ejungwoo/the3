@@ -22,6 +22,13 @@ void run_analysis_xml(
   TString fOutName = Form("Sn%d",fSystem);
 
   TString spiritroot = TString(gSystem -> Getenv("VMCWORKDIR"))+"/";
+  TString fVersionOut; {
+    TString name = spiritroot + "VERSION.compiled";
+    std::ifstream vfile(name);
+    vfile >> fVersionOut;
+    vfile.close();
+  }
+
   TString fPathToData = "/data/Q20393/production/20191214/data/Sn"; fPathToData = fPathToData + fSystem + "/";
   TString fVersionIn = "develop.1964.781a3cf";
 
@@ -90,8 +97,8 @@ void run_analysis_xml(
 
   TString par = spiritroot+"parameters/ST.parameters.par";
   TString geo = spiritroot+"geometry/geomSpiRIT.man.root";
-  TString out = fPathToDataOut+fOutName+"_" + TString::Itoa(splitID, 10) + "_ana.root";
-  TString log = fPathToDataOut+fOutName+"_" + TString::Itoa(splitID, 10) + "_ana.log";
+  TString out = fPathToDataOut+fOutName+"_" + TString::Itoa(splitID, 10) + "_ana."+fVersionOut+".root";
+  TString log = fPathToDataOut+fOutName+"_" + TString::Itoa(splitID, 10) + "_ana."+fVersionOut+".log";
 
   FairLogger *logger = FairLogger::GetLogger();
   logger -> SetLogToScreen(true);
