@@ -84,7 +84,7 @@ void run_analysis_core(TString par, TString geo, TString out,
     settings.NClusters = 15;
     settings.DPoca = 15;
     //settings.PhiCuts = {{160, 220}, {0, 20}, {320, 360}};
-    settings.PhiCuts = {{-180, 140}, {-40, 40}, {140, 180}};
+    settings.PhiCuts = {{-40, 20}, {160, 220}, {140, 180}};
 
     /*
     settings.NClusters = 10;
@@ -178,7 +178,8 @@ void run_analysis
     chain.Add(fPathToInput+"run"+sRunNo+Form("_s*.reco.%s.conc.root",fVersionIn.Data()));
   }
 
-  auto effFactory = new EfficiencyInCMFactory();
+  auto effFactory = new EfficiencyFromConcFactory();
+  effFactory -> SetUpScalingFactor(10);
   effFactory -> SetDataBaseForPDG(2212,       "inputFiles/Run2899KanekoNoSC_embedNewProton.root");
   effFactory -> SetDataBaseForPDG(1000010020, "inputFiles/Run2899KanekoNoSC_embedNewDeuteron.root");
   effFactory -> SetDataBaseForPDG(1000010030, "inputFiles/Run2899KanekoNoSC_embedNewTriton.root");
