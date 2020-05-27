@@ -5,6 +5,8 @@ void eval_prob108()
   ejungwoo::gstat(0);
   ejungwoo::gcvspos(1300,0);
 
+  ejungwoo::gversion("eval_prob108");
+
   int idx_particles[] = { stp::kpip, stp::kp, stp::kd, stp::kt, stp::khe3, stp::khe4, stp::khe6, stp::kli, };
   //int idx_particles[] = { stp::kp, stp::kd, stp::kt, stp::khe3, stp::khe4, stp::khe6, stp::kli, };
 
@@ -13,10 +15,12 @@ void eval_prob108()
   file -> ls();
 
   auto hist = (TH2D *) file -> Get("hist_pid");
-  ejungwoo::cc4() -> SetLogz();
+  auto cvs = ejungwoo::cc4("pid");
+  cvs -> SetLogz();
   hist -> Draw("colz");
 
   TF1 *fit_dedx[3][20];
+  //ejungwoo::addto("ampl",new TH2D("amplitude","",200,0,3000,200,0,200000),"lx");
   for (auto idx_particle : idx_particles)
   {
     TString name_particle = stp::fNameShort[idx_particle];
@@ -31,14 +35,17 @@ void eval_prob108()
     //fit_dedx[1][idx_particle] -> SetRange(10,2000);
     //fit_dedx[2][idx_particle] -> SetRange(10,2000);
 
-    ejungwoo::addto("ampl",fit_dedx[0][idx_particle]);
-    ejungwoo::addto("mean",fit_dedx[1][idx_particle]);
-    ejungwoo::addto("sigm",fit_dedx[2][idx_particle]);
+    ejungwoo::addto("ampl",fit_dedx[0][idx_particle],"l",name_particle);
+    ejungwoo::addto("mean",fit_dedx[1][idx_particle],"l",name_particle);
+    ejungwoo::addto("sigm",fit_dedx[2][idx_particle],"l",name_particle);
 
     fit_dedx[1][idx_particle] -> Draw("samel");
   }
+  ejungwoo::save(cvs);
 
-  ejungwoo::drawall();
+  ejungwoo::save(ejungwoo::drawc("ampl"));
+  //ejungwoo::save(ejungwoo::drawc("mean"));
+  //ejungwoo::save(ejungwoo::drawc("sigm"));
 
   // dummy run
   for (auto idx_particle : idx_particles) {

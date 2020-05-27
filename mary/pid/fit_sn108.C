@@ -20,7 +20,7 @@ void fit_sn108(bool verbose = 1, int index_py = -1)
   bool draw_proj1 = true;
   bool draw_proj2 = false;
   bool draw_fit_status = true;
-  bool draw_refit = false;
+  bool draw_refit = true;
   bool draw_pid = true;
 
   double p_start = 100.;
