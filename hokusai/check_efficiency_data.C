@@ -1,4 +1,8 @@
-void read_eff()
+void check_efficiency_data(
+  //const char *anaFile = "~/data/pid2/beam108_run2272_2276_ana.root"
+  //const char *anaFile = "/home/ejungwoo/data/pid3/beam132_run2841_2846_ana2.root"
+  const char *anaFile = "/home/ejungwoo/data/pid4/Sn132_0_ana.root"
+  )
 {
   gStyle -> SetOptStat(0);
 
@@ -11,8 +15,9 @@ void read_eff()
   cvs -> Divide(5,2,0.01,0.001);
 
   Int_t idx = 0;
-  //auto file = new TFile("~/data/pid2/beam108_run2272_2276_ana.root");
-  auto file = new TFile("/home/ejungwoo/data/pid3/beam132_run2841_2846_ana2.root");
+  //auto file = new TFile(
+  //auto file = new TFile(
+  auto file = new TFile(anaFile);
   for (auto pdg : pdgs)
   {
     auto teff = (TEfficiency *) file -> Get(Form("Efficiency%d",pdg));
