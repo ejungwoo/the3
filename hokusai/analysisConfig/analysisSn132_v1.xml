@@ -4,9 +4,9 @@
 -->
 <AnalysisConfig>
     <IOInfo Type="Real">
-        <DataDir>data/Sn108/</DataDir>
-        <RunFirst>2272</RunFirst>
-        <RunLast>2500</RunLast>
+        <DataDir>data/Sn132/</DataDir>
+        <RunFirst>2841</RunFirst>
+        <RunLast>3000</RunLast>
     </IOInfo>
     <TaskList>
     
@@ -16,9 +16,9 @@
         </PIDProbTask>
     
         <TransformFrameTask>
-             <TargetMass>112</TargetMass>
+             <TargetMass>124</TargetMass>
              <TargetThickness>0.8</TargetThickness>
-             <EnergyLossFile>inputFiles/Sn108Sn112.txt</EnergyLossFile>
+             <EnergyLossFile>inputFiles/Sn132Sn124.txt</EnergyLossFile>
         </TransformFrameTask>
     
         <EfficiencyTask Type="Lab">
@@ -26,10 +26,10 @@
              <DPoca>15</DPoca> 
              <!-- <Phi>160-200,0-20,320-360</Phi> -->
              <Phi>160-220</Phi>
-             <UpscaleFactor>10</UpscaleFactor>
+             <UpscaleFactor>1</UpscaleFactor>
              <ThetaBins>15</ThetaBins>
              <MomBins>15</MomBins>
-             <UpscaleFactor>10</UpscaleFactor>
+             <UpscaleFactor>1</UpscaleFactor>
              <PhaseSpaceFactor>3</PhaseSpaceFactor>
              <Particle Name="p">
                 <EffFile>inputFiles/Run2899KanekoNoSC_embedNewProton.root</EffFile>

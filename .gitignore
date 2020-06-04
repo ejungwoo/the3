@@ -2,6 +2,7 @@ data*/
 log*/
 figures*/
 mac*.sh
+mac*.sh.o*
 
 zz*
 temp*/
@@ -11,3 +12,5 @@ temp*/
 core-root.exe*
 *png
 *pdf
+
+.d*

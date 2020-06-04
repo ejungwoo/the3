@@ -24,7 +24,8 @@
         <EfficiencyTask Type="Lab">
              <NClus>15</NClus> 
              <DPoca>15</DPoca> 
-             <Phi>160-200,0-20,320-360</Phi>
+             <!-- <Phi>160-200,0-20,320-360</Phi> -->
+             <Phi>160-220</Phi>
              <UpscaleFactor>10</UpscaleFactor>
              <ThetaBins>15</ThetaBins>
              <MomBins>15</MomBins>
