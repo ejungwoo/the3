@@ -13,13 +13,22 @@ std::vector<std::string> glob(const char *pattern) {
 } 
 
 void run_analysis_xml(
-    int fSystem = 132,
-    int NSplit = 100,
-    int splitID = 0)
+    int fSystem = 108,
+    int NSplit = 200,
+    int splitID = 0,
+    int version = 0,
+    //TString fOutName = "test_108"
+    TString fOutName = ""
+    )
 {
-  const std::string& xmlFile = Form("analysisConfig/analysisSn%d.xml",fSystem);
+  //const std::string& xmlFile = Form("analysisConfig/analysisSn%d.xml",fSystem);
+  TString xmlFile = Form("analysisConfig/analysisSn%d.xml",fSystem);
+  if (version != 0)
+    xmlFile = Form("analysisConfig/analysisSn%d_v%d.xml",fSystem,version);
+
   TString fPathToDataOut="/home/ejungwoo/data/pid4/";
-  TString fOutName = Form("Sn%d",fSystem);
+  if (fOutName.IsNull())
+    fOutName = Form("Sn%d",fSystem);
 
   TString spiritroot = TString(gSystem -> Getenv("VMCWORKDIR"))+"/";
   TString fVersionOut; {
@@ -37,7 +46,7 @@ void run_analysis_xml(
   ****************************************************************/
   TDOMParser parser;
   parser.SetValidate(false);
-  parser.ParseFile(xmlFile.c_str());
+  parser.ParseFile(xmlFile.Data());
   auto node = parser.GetXMLDocument()->GetRootNode()->GetChildren();
   TXMLNode *TaskNode = nullptr;
   TChain chain("spirit");
@@ -97,8 +106,8 @@ void run_analysis_xml(
 
   TString par = spiritroot+"parameters/ST.parameters.par";
   TString geo = spiritroot+"geometry/geomSpiRIT.man.root";
-  TString out = fPathToDataOut+fOutName+"_" + TString::Itoa(splitID, 10) + "_ana."+fVersionOut+".root";
-  TString log = fPathToDataOut+fOutName+"_" + TString::Itoa(splitID, 10) + "_ana."+fVersionOut+".log";
+  TString out = fPathToDataOut+fOutName+"_" + TString::Itoa(splitID, 10) + "_ana"+"_v"+version+"."+fVersionOut+".root";
+  TString log = fPathToDataOut+fOutName+"_" + TString::Itoa(splitID, 10) + "_ana"+"_v"+version+"."+fVersionOut+".log";
 
   FairLogger *logger = FairLogger::GetLogger();
   logger -> SetLogToScreen(true);
