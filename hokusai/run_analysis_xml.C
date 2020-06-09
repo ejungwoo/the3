@@ -26,10 +26,6 @@ void run_analysis_xml(
   if (version != 0)
     xmlFile = Form("analysisConfig/analysisSn%d_v%d.xml",fSystem,version);
 
-  TString fPathToDataOut="/home/ejungwoo/data/pid4/";
-  if (fOutName.IsNull())
-    fOutName = Form("Sn%d",fSystem);
-
   TString spiritroot = TString(gSystem -> Getenv("VMCWORKDIR"))+"/";
   TString fVersionOut; {
     TString name = spiritroot + "VERSION.compiled";
@@ -38,8 +34,16 @@ void run_analysis_xml(
     vfile.close();
   }
 
-  TString fPathToData = "/data/Q20393/production/20191214/data/Sn"; fPathToData = fPathToData + fSystem + "/";
-  TString fVersionIn = "develop.1964.781a3cf";
+  TString fVersionIn = "NewAna.2034.45b9400";
+  TString fPathToDataIn = Form("/home/ejungwoo/data/trim/%s/Sn%d/",fVersionIn.Data(),fSystem);
+  TString fPathToDataOut = Form("/home/ejungwoo/data/ana/%s/Sn%d/",fVersionOut.Data(),fSystem);
+  gSystem -> Exec(TString("mkdir -p ")+fPathToDataOut);
+
+  if (fOutName.IsNull())
+    fOutName = Form("Sn%d",fSystem);
+
+  //TString fPathToDataIn = "/data/Q20393/production/20191214/data/Sn"; fPathToDataIn = fPathToDataIn + fSystem + "/";
+  //TString fVersionIn = "develop.1964.781a3cf";
 
   /***************************************************************
   * Read xml
@@ -49,7 +53,8 @@ void run_analysis_xml(
   parser.ParseFile(xmlFile.Data());
   auto node = parser.GetXMLDocument()->GetRootNode()->GetChildren();
   TXMLNode *TaskNode = nullptr;
-  TChain chain("spirit");
+  //TChain chain("spirit");
+  TChain chain("cbmsim");
 
   for(auto child = node; child; child = child -> GetNextNode())
     if(child -> GetNodeType() == TXMLNode::kXMLElementNode)
@@ -59,7 +64,7 @@ void run_analysis_xml(
       {
         std::string dataType(static_cast<TXMLAttr*>(child -> GetAttributes() -> At(0)) -> GetValue());
         //for(auto IOInfo = child -> GetChildren(); IOInfo; IOInfo = IOInfo -> GetNextNode())
-          //if(std::strcmp(IOInfo -> GetNodeName(), "DataDir") == 0) fPathToData = IOInfo -> GetText(); 
+          //if(std::strcmp(IOInfo -> GetNodeName(), "DataDir") == 0) fPathToDataIn = IOInfo -> GetText(); 
 
         if(dataType == "Real")
         {
@@ -68,20 +73,20 @@ void run_analysis_xml(
           {
             if(std::strcmp(IOInfo -> GetNodeName(), "RunFirst") == 0) start_run = std::atoi(IOInfo -> GetText());
             if(std::strcmp(IOInfo -> GetNodeName(), "RunLast") == 0) last_run = std::atoi(IOInfo -> GetText());
-            cout << start_run << " " << last_run << endl;
           }
           auto origLevel = gErrorIgnoreLevel;
           gErrorIgnoreLevel = kFatal;
           for(int runNo = start_run; runNo <= last_run; ++runNo)
           {
-            auto fileName = Form("%srun%d_s*.reco.%s.conc.root",fPathToData.Data(),runNo,fVersionIn.Data());
+            //auto fileName = Form("%srun%d_s*.reco.%s.conc.root",fPathToDataIn.Data(),runNo,fVersionIn.Data());
+            auto fileName = Form("%srun%d_s*.reco.%s.conc.trimmed.root",fPathToDataIn.Data(),runNo,fVersionIn.Data());
             cout << fileName << endl;
             chain.Add(fileName);
             //TString sRunNo = TString::Itoa(runNo, 10);
-            //chain.Add(fPathToData+"run"+sRunNo+"_s*.reco.*trimmed*.root/cbmsim");
-            //chain.Add(fPathToData+"run"+sRunNo+"_s*.reco.*conc*.root/spirit");
-            //chain.Add(fPathToData+"run"+sRunNo+"_s*.reco.*conc*.root/cbmsim");
-            //std::cout << "Reading from file " << fPathToData+"run"+sRunNo+"_s*.reco.*root" << std::endl;
+            //chain.Add(fPathToDataIn+"run"+sRunNo+"_s*.reco.*trimmed*.root/cbmsim");
+            //chain.Add(fPathToDataIn+"run"+sRunNo+"_s*.reco.*conc*.root/spirit");
+            //chain.Add(fPathToDataIn+"run"+sRunNo+"_s*.reco.*conc*.root/cbmsim");
+            //std::cout << "Reading from file " << fPathToDataIn+"run"+sRunNo+"_s*.reco.*root" << std::endl;
           }
           if(chain.GetEntries() == 0) throw std::runtime_error("No entries is being read from the file!");
           gErrorIgnoreLevel = origLevel;
@@ -92,7 +97,7 @@ void run_analysis_xml(
           TString inputName;
           for(auto IOInfo = child -> GetChildren(); IOInfo; IOInfo = IOInfo -> GetNextNode())
             if(std::strcmp(IOInfo -> GetNodeName(), "InputName") == 0) inputName = IOInfo -> GetText();
-          for(const auto &filename : glob(fPathToData+inputName+".conc.root"))
+          for(const auto &filename : glob(fPathToDataIn+inputName+".conc.root"))
             chain.Add(filename.c_str());
         }
         */
