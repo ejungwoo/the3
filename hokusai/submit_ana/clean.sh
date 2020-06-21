@@ -1,1 +1,1 @@
-rm -f mac_*_*.sh.o*
+rm -f m_*_*.sh.o*

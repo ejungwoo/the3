@@ -3,109 +3,116 @@
 void draw_from_ana(
   int system=132,
   int iSplit=1,
-  int version=1
+  int version=1,
+  double probCut = 0.9,
+  double effCut = 0.1
   )
 {
-  ejungwoo::gstat(0);
+  bool testmode = true;
 
-  //TString file_name_in  = TString("/home/ejungwoo/data/pid4/Sn")+system+"_"+iSplit+"_ana_v"+version+".NewAna.2034.45b9400.root";
-  TString file_name_in  = Form("/home/ejungwoo/data/ana/NewAna.2034.45b9400/Sn%d/Sn%d_0_ana_v%d.NewAna.2034.45b9400.root",system,system,version);
-  //TString file_name_out = TString("/home/ejungwoo/the3/hokusai/data_xml/summary_hist_")+system+"_s"+iSplit+"_v"+version+".root";
-  TString file_name_out = TString("/home/ejungwoo/the3/hokusai/submit_ana/data_with_trim/summary_hist_")+system+"_s"+iSplit+"_v"+version+".root";
+  ejungwoo::gstat("ien");
+  ejungwoo::gfill(0);
+
+  const char *cut_string = Form("e%d_p%d",int(10*effCut),int(10*probCut));
+
+  TString file_name_in = Form("/home/ejungwoo/data/ana/NewAna.2034.45b9400/Sn%d/Sn%d_%d_ana_v%d.NewAna.2034.45b9400.root",system,system,iSplit,version);
+  TString file_name_out = Form("/home/ejungwoo/the3/hokusai/submit_ana/data_with_trim/summary_hist_%d_s%d_v%d_%s.root",system,iSplit,version,cut_string);
+  if (testmode)
+    file_name_out = Form("/home/ejungwoo/the3/hokusai/submit_ana/data_with_trim/test_summary_hist_%d_s%d_v%d_%s.root",system,iSplit,version,cut_string);
 
   auto yBeamCM = 0.36;
-  auto probCut = 0.2;
-  auto effCut = 0.1;
+  ejungwoo::setpar("ybeam",yBeamCM);
+  ejungwoo::setpar("rd","TMath::RadToDeg()");
 
   TString particle_name[] = {"p","d","t","he3","he4"};
   double particle_mass[] = {938.272 ,1871.06 ,2809.41 ,2809.41 ,3728.4};
   double particle_a[] = {1,2,3,3,4,};
+  double particle_z[] = {1,1,1,2,2,};
 
-  ejungwoo::binning binning_pt{200,0,1500};
-  ejungwoo::binning binning_yyCM{200,-1.5,3.0};
-  ejungwoo::binning binning_keCM{200,0,500};
-  ejungwoo::binning binning_phiCM{200,-180,180};
-  ejungwoo::binning binning_phiLab{200,-180,180};
-  ejungwoo::binning binning_ttaCM{200,0,180};
-  ejungwoo::binning binning_ttaLab{200,0,180};
-  ejungwoo::binning binning_pLab{400,0,3000};
-  ejungwoo::binning binning_dedx{400,0,1500};
+  ejungwoo::variable var_keCM   ("keCM"   ,"(sqrt(CMVector[$$(i)].fElements.Mag2()+$$(m2))-$$(m))"        ,"$$(WCUT)" ,"KE_{CM} (MeV)  "        ,200, 0, 500);
+  ejungwoo::variable var_keoaCM ("keoaCM" ,"(sqrt(CMVector[$$(i)].fElements.Mag2()+$$(m2))-$$(m))/$$(a)"  ,"$$(WCUT)" ,"KE_{CM}/A (MeV)"        ,200, 0, 500);
+  ejungwoo::variable var_keozCM ("keozCM" ,"(sqrt(CMVector[$$(i)].fElements.Mag2()+$$(m2))-$$(m))/$$(z)"  ,"$$(WCUT)" ,"KE_{CM}/Z (MeV)"        ,200, 0, 500);
+  ejungwoo::variable var_ptoaCM ("ptoaCM" ,"CMVector[$$(i)].fElements.Perp()/$$(a)"                       ,"$$(WCUT)" ,"p_{T}/A (MeV/c)"        ,200, 0, 1500);
+  ejungwoo::variable var_yyCM   ("yyCM"   ,"FragRapidity[$$(i)].fElements/$$(ybeam)"                      ,"$$(WCUT)" ,"y_{CM}/y_{beam,CM}"     ,200, -1.5, 3.0);
+  ejungwoo::variable var_ttaCM  ("ttaCM"  ,"CMVector[$$(i)].fElements.Theta()*$$(rd)"                     ,"$$(WCUT)" ,"#theta_{CM} (Deg.)"     ,200, 0, 180);
+  ejungwoo::variable var_phiCM  ("phiCM"  ,"CMVector[$$(i)].fElements.Phi()*$$(rd)"                       ,"$$(WCUT)" ,"#phi_{CM} (Deg.)"       ,200, -180, 180);
+  ejungwoo::variable var_ttaLab ("ttaLab" ,"LabVector[$$(i)].fElements.Theta()*$$(rd)"                    ,"$$(WCUT)" ,"#theta_{Lab} (Deg.)"    ,200, 0, 180);
+  ejungwoo::variable var_phiLab ("phiLab" ,"LabVector[$$(i)].fElements.Phi()*$$(rd)"                      ,"$$(WCUT)" ,"#phi_{Lab} (Deg.)"      ,200, -180, 180);
+  ejungwoo::variable var_eff    ("eff"    ,"Eff[$$(i)].fElements"                                         ,"$$(WCUT)" ,"efficiency"             ,200, 0, 1);
+  ejungwoo::variable var_prob   ("prob"   ,"Prob[$$(i)].fElements"                                        ,"$$(WCUT)" ,"probability"            ,200, 0, 1);
+  ejungwoo::variable var_pLab   ("pLab"   ,"LabVector[$$(i)].fElements.Mag()"                             ,"$$(WCUT)" ,"p_{Lab} (MeV/c^{2})"    ,400, 0, 3000);
+  ejungwoo::variable var_pozLab ("pozLab" ,"LabVector[$$(i)].fElements.Mag()/$$(z)"                       ,"$$(WCUT)" ,"p_{Lab}/Z (MeV/c^{2})"  ,400, 0, 3000);
+  ejungwoo::variable var_dedx   ("dedx"   ,"dEdx[0].fElements"                                            ,"$$(WCUT)" ,"dE/dx"                  ,400, 0, 2000);
 
-  ejungwoo::titles ttl_yypt{"","y_{CM}/y_{beam,CM}","p_{T} (MeV/c)",""};
-  ejungwoo::titles ttl_keCM{"","KE_{CM}/A (MeV)","",""};
-  ejungwoo::titles ttl_phiCM{"","#phi (Deg.)","",""};
-  ejungwoo::titles ttl_ttaCM{"","#theta (Deg.)","",""};
-  ejungwoo::titles ttl_phiLab{"","#phi (Deg.)","",""};
-  ejungwoo::titles ttl_ttaLab{"","#theta (Deg.)","",""};
-  ejungwoo::titles ttl_pLab{"","p/A (MeV/c)","",""};
-  ejungwoo::titles ttl_dedx{"","dE/dx","",""};
+  ejungwoo::variable variables1[] = {
+    var_keoaCM,
+    var_ptoaCM,
+    var_yyCM,
+    var_yyCM + var_ptoaCM,
+    var_phiCM + var_keoaCM,
+    var_ttaCM + var_keoaCM,
+    var_phiCM + var_ttaCM,
+    var_phiLab + var_ttaLab,
+    var_keoaCM + var_pozLab,
+    var_eff + "y",
+    var_prob + "y",
+    var_pozLab + var_dedx + "z",
+    var_keoaCM + var_dedx + "z",
 
-  TString ttl_x = " ";
-  TString ttl_p = " (prob. cor.) ";
-  TString ttl_a = " (prob., eff. cor.) ";
-  TString ttl_r = " (raw) ";
-  TString ttl_t = " (prob., eff. cut) ";
-
-  auto www_p = [](int idx) { return TCut(Form("Prob[%d].fElements",idx)); };
-  auto www_a = [](int idx) { return TCut(Form("Prob[%d].fElements/Eff[%d].fElements",idx,idx)); };
-  auto cut_a = [probCut,effCut](int idx) { return TCut(Form("(Prob[%d].fElements > %f && Eff[%d].fElements > %f)",idx,probCut,idx,effCut)); };
+    //var_keCM,
+    //var_keozCM,
+    //var_keCM + var_pozLab,
+    //var_pLab + var_dedx + "z",
+    //var_keCM + var_dedx + "z",
+    //var_keozCM + var_dedx + "z",
+  };
 
   auto tree = new TChain("cbmsim");
   tree -> Add(file_name_in);
+  auto num_events = tree -> GetEntries();
+  cout << "number of events: " << num_events << endl;
+  ejungwoo::setpar("n",num_events);
+
   TFile *file_hist = new TFile(file_name_out,"recreate");
+  (new TParameter<int>("num_events",num_events)) -> Write();
 
-  for (auto idx=0; idx<5; ++idx)
+  auto www_x = TCut("x1",      "1./$$(n)");
+  auto www_p = TCut("xP",      "$$(prob)/$$(n)");
+  auto www_a = TCut("xPoE",    "$$(prob)/$$(eff)/$$(n)");
+  auto cut_a = TCut("cPE",     Form("$$(prob)>%f&&$$(eff)>%f",probCut,effCut));
+  auto to_70 = TCut("to70",    "$$(ttaCM)>70");
+  auto fm_70 = TCut("70to110", "$$(ttaCM)>70&&$$(ttaCM)<110");
+
+  for (auto idx : {0,1,2,3,4})
   {
-    TString pname = particle_name[idx];
-    TString mttl = pname + " sn" + system;
-    auto mass = particle_mass[idx];
-
     ejungwoo::gheader(particle_name[idx]+"_");
+    ejungwoo::setpar("i",idx);
+    ejungwoo::setpar("m",particle_mass[idx]);
+    ejungwoo::setpar("m2",particle_mass[idx]*particle_mass[idx]);
+    ejungwoo::setpar("a",particle_a[idx]);
+    ejungwoo::setpar("z",particle_z[idx]);
 
-    TString val_pt     = Form("%f*CMVector[%d].fElements.Perp()",1./particle_a[idx],idx);
-    TString val_yyCM   = Form("FragRapidity[%d].fElements/%f",idx,yBeamCM);
-    TString val_keCM   = Form("(sqrt(CMVector[%d].fElements.Mag2()+%f)-%f)/%f",idx,mass*mass,mass,particle_a[idx]);
-    TString val_phiCM  = Form("CMVector[%d].fElements.Phi()*TMath::RadToDeg()",idx);
-    TString val_ttaCM  = Form("CMVector[%d].fElements.Theta()*TMath::RadToDeg()",idx);
-    TString val_phiLab = Form("LabVector[%d].fElements.Phi()*TMath::RadToDeg()",idx);
-    TString val_ttaLab = Form("LabVector[%d].fElements.Theta()*TMath::RadToDeg()",idx);
-    TString val_pLab   = Form("LabVector[%d].fElements.Mag()",idx);
-    TString val_dedx   = "dEdx[0].fElements";
-
-    vector<TH1 *> hists;
-
-    TH1 *hist1 = ejungwoo::tp("yypt"    , tree, val_pt+":"+val_yyCM,            cut_a(idx), mttl+ttl_x + ttl_yypt.xyz(), binning_yyCM, binning_pt); hists.push_back(hist1);
-    TH1 *hist2 = ejungwoo::tp("yypt_cP" , tree, val_pt+":"+val_yyCM, www_p(idx)*cut_a(idx), mttl+ttl_p + ttl_yypt.xyz(), binning_yyCM, binning_pt); hists.push_back(hist2);
-    TH1 *hist3 = ejungwoo::tp("yypt_cPE", tree, val_pt+":"+val_yyCM, www_a(idx)*cut_a(idx), mttl+ttl_a + ttl_yypt.xyz(), binning_yyCM, binning_pt); hists.push_back(hist3);
-    TH1 *hist4 = (TH1 *) hist2 -> Clone(ejungwoo::makename("yypt_effi")); hist4 -> Divide(hist3); hist4 -> SetTitle(mttl+" efficiency " +ttl_yypt.xyz());   hists.push_back(hist4);
-    TH1 *hist5 = (TH1 *) hist2 -> Clone(ejungwoo::makename("yypt_prob")); hist5 -> Divide(hist1); hist5 -> SetTitle(mttl+" probability "+ttl_yypt.xyz());   hists.push_back(hist5);
-
-    TH1 *hist6 = ejungwoo::tp("keCM"    , tree, val_keCM,            cut_a(idx), mttl+ttl_x + ttl_keCM.xyz(), binning_keCM);                      hists.push_back(hist6);
-    TH1 *hist7 = ejungwoo::tp("keCM_cP" , tree, val_keCM, www_p(idx)*cut_a(idx), mttl+ttl_p + ttl_keCM.xyz(), binning_keCM);                      hists.push_back(hist7);
-    TH1 *hist8 = ejungwoo::tp("keCM_cPE", tree, val_keCM, www_a(idx)*cut_a(idx), mttl+ttl_a + ttl_keCM.xyz(), binning_keCM);                      hists.push_back(hist8);
-    TH1 *hist9 = (TH1 *) hist7 -> Clone(ejungwoo::makename("keCM_effi")); hist9 -> Divide(hist8); hist9 -> SetTitle(mttl+" efficiency " +ttl_keCM.xyz()); hists.push_back(hist9);
-    TH1 *hista = (TH1 *) hist7 -> Clone(ejungwoo::makename("keCM_prob")); hista -> Divide(hist6); hista -> SetTitle(mttl+" probability "+ttl_keCM.xyz()); hists.push_back(hista);
-
-    TH1 *histb = ejungwoo::tp("phikeCM"    , tree, val_keCM+":"+val_phiCM,            cut_a(idx), mttl+ttl_x + ttl_phiCM.tx()+ttl_keCM.tx(), binning_phiCM, binning_keCM); hists.push_back(histb);
-    TH1 *histc = ejungwoo::tp("phikeCM_cPE", tree, val_keCM+":"+val_phiCM, www_a(idx)*cut_a(idx), mttl+ttl_a + ttl_phiCM.tx()+ttl_keCM.tx(), binning_phiCM, binning_keCM); hists.push_back(histc);
-    TH1 *histd = ejungwoo::tp("ttakeCM"    , tree, val_keCM+":"+val_ttaCM,            cut_a(idx), mttl+ttl_x + ttl_ttaCM.tx()+ttl_keCM.tx(), binning_ttaCM, binning_keCM); hists.push_back(histd);
-    TH1 *histe = ejungwoo::tp("ttakeCM_cPE", tree, val_keCM+":"+val_ttaCM, www_a(idx)*cut_a(idx), mttl+ttl_a + ttl_ttaCM.tx()+ttl_keCM.tx(), binning_ttaCM, binning_keCM); hists.push_back(histe);
-
-    TH1 *histh = ejungwoo::tp("phittaCM"     , tree, val_ttaCM +":"+val_phiCM,             cut_a(idx), mttl+ttl_x + ttl_phiCM.tx()+ttl_ttaCM.tx(),   binning_phiCM,  binning_ttaCM);  hists.push_back(histh);
-    TH1 *histi = ejungwoo::tp("phittaCM_cP"  , tree, val_ttaCM +":"+val_phiCM,  www_p(idx)*cut_a(idx), mttl+ttl_p + ttl_phiCM.tx()+ttl_ttaCM.tx(),   binning_phiCM,  binning_ttaCM);  hists.push_back(histi);
-    TH1 *histj = ejungwoo::tp("phittaCM_cPE" , tree, val_ttaCM +":"+val_phiCM,  www_a(idx)*cut_a(idx), mttl+ttl_a + ttl_phiCM.tx()+ttl_ttaCM.tx(),   binning_phiCM,  binning_ttaCM);  hists.push_back(histj);
-    TH1 *histk = ejungwoo::tp("phittaLab"    , tree, val_ttaLab+":"+val_phiLab,            cut_a(idx), mttl+ttl_x + ttl_phiLab.tx()+ttl_ttaLab.tx(), binning_phiLab, binning_ttaLab); hists.push_back(histk);
-    TH1 *histl = ejungwoo::tp("phittaLab_cP" , tree, val_ttaLab+":"+val_phiLab, www_p(idx)*cut_a(idx), mttl+ttl_p + ttl_phiLab.tx()+ttl_ttaLab.tx(), binning_phiLab, binning_ttaLab); hists.push_back(histl);
-    TH1 *histm = ejungwoo::tp("phittaLab_cPE", tree, val_ttaLab+":"+val_phiLab, www_a(idx)*cut_a(idx), mttl+ttl_a + ttl_phiLab.tx()+ttl_ttaLab.tx(), binning_phiLab, binning_ttaLab); hists.push_back(histm);
-
-    TH1 *histf = ejungwoo::tp("pdedx_raw", tree, val_dedx+":"+val_pLab,     TCut(), mttl+ttl_r + ttl_pLab.tx() +ttl_dedx.tx(), binning_pLab, binning_dedx); hists.push_back(histf);
-    TH1 *histg = ejungwoo::tp("pdedx_cut", tree, val_dedx+":"+val_pLab, cut_a(idx), mttl+ttl_t + ttl_pLab.tx() +ttl_dedx.tx(), binning_pLab, binning_dedx); hists.push_back(histg);
-
-    file_hist -> cd();
-    for (auto hist : hists)
-      hist -> Write();
+    for (auto weight : {www_x,www_p,www_a}) {
+      for (auto cut_ttl : {to_70,fm_70}) {
+        TCut wcut = weight * (cut_ttl+cut_a);
+        wcut.SetName(Form("%s_%s",weight.GetName(),cut_ttl.GetName()));
+        ejungwoo::gwcut(wcut);
+        int count_testmode = 0;
+        for (auto var : variables1) {
+          auto chist = ejungwoo::drawv(var,tree);
+          file_hist -> cd();
+          chist.hist -> Write();
+          if (testmode && count_testmode++>5)
+            break;
+        }
+        if (testmode) break;
+      }
+      if (testmode) break;
+    }
+    if (testmode) break;
   }
 
-  file_hist -> Print();
-}
+  file_hist -> ls();
 
+  cout << file_name_out << endl;
+}
