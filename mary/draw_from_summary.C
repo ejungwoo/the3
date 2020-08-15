@@ -1,30 +1,9 @@
 #include "init_variables.h"
 
-using ejungwoo::variable;
-using ejungwoo::binning;
-using ejungwoo::titles;
-using ejungwoo::setpar;
-
-const int iversions[] = {-1};
-const int ipids[] = {0,1,2,3,4};
-const int isyss[] = {0};
-const int numProtons[6]  = {1,1,1,2,2,2};
-const int numNeutrons[6] = {0,1,2,1,2,4};
-
-TString spversion;
-TString vshort;
-TString vout;
-double phiLL;
-double phiHL;
-double ttaLL;
-double ttaHL;
-double dsdinpi;
-double dsd;
-int trackMultHL;
-double probLL;
-double effLL;
-double ptoaLL;
-double ptoaHL;
+const int fIVersions[] = {-1};
+const int fIPIDs[] = {0,1,2,3,4};
+//const int fIPIDs[] = {0};
+const int fISystems[] = {0,1,2,3};
 
 TObjArray draw_is(int idx_particle, TH1 *hist132, TH1 *hist108, double num_tracks_cut=0); 
 TObjArray draw_ci(vector<TH1 *>hists, double ds, int isys);
@@ -35,9 +14,9 @@ void draw_from_summary()
   ejungwoo::gcvspos(700);
   ejungwoo::gstat(0);
   ejungwoo::gsave(0);
-  //ejungwoo::gdummytp();
   ejungwoo::gfast();
   ejungwoo::gsetvmark(0);
+  //ejungwoo::gdummytp();
 
   bool withTestCuts = 0;
   int overlabTestCuts = 2;
@@ -45,116 +24,18 @@ void draw_from_summary()
   bool anaIS = 1;
   bool anaCI = 1;
   bool anaMain = 1;
-  bool anaAngle = 1;
-  bool anaSingle = 1;
-  bool anaMult = 1;
-  bool anaPid = 1;
-  bool anaAll = 1;
+  bool anaAngle = 0;
+  bool anaSingle = 0;
+  bool anaMult = 0;
+  bool anaPid = 0;
+  bool anaAll = 0;
   bool anaAlltta = false;
 
-  //double num_tracks_per_event_cut = 0.02;
+  if (0) { anaIS = 1; anaCI = 1; anaMain = 1; anaAngle = 1; anaSingle = 1; anaMult = 1; anaPid = 1; anaAll = 1; anaAlltta = 1; ejungwoo::gdummytp(); }
+
   double num_tracks_per_event_cut = 0.01;
   int nbinsIS = 20;
   double dKECI = 5.;
-
-  auto setversion = [](int iversion) {
-    if (iversion==-1) {
-      spversion = "NewAna.2070.0231288"; 
-      vshort = TString((ejungwoo::tok(spversion,".",0))[0])+ejungwoo::tok(spversion,".",1);
-      vout = vshort+".raw"; 
-      trackMultHL = 50;
-      probLL = 0.1;
-      effLL = 0.01;
-      ptoaLL = 0;
-      ptoaHL = 10000;
-      phiLL = 160;
-      phiHL = 200;
-      ttaLL = 0;
-      ttaHL = 180;
-      fvar_ny_cm.binn = binning(100,-.5,.5);
-      dsdinpi = 2 * (phiHL-phiLL)/360 * (new TF1("satta","sin(x)",0,TMath::Pi())) -> Integral(ttaLL*TMath::DegToRad(),ttaHL*TMath::DegToRad());
-      dsd = dsdinpi * TMath::Pi();
-      setpar("cut0", "$$(cut_pe)");
-      setpar("cutn", "");
-    }
-    if (iversion==0) {
-      spversion = "NewAna.2070.0231288"; 
-      vshort = TString((ejungwoo::tok(spversion,".",0))[0])+ejungwoo::tok(spversion,".",1);
-      vout = vshort+".tta711"; 
-      trackMultHL = 50;
-      probLL = 0.2;
-      effLL = 0.08;
-      ptoaLL = 0;
-      ptoaHL = 10000;
-      phiLL = 160;
-      phiHL = 200;
-      ttaLL = 70;
-      ttaHL = 110;
-      fvar_ny_cm.binn = binning(100,-.5,.5);
-      dsdinpi = 2 * (phiHL-phiLL)/360 * (new TF1("satta","sin(x)",0,TMath::Pi())) -> Integral(ttaLL*TMath::DegToRad(),ttaHL*TMath::DegToRad());
-      dsd = dsdinpi * TMath::Pi();
-      setpar("cut0", "$$(cut_pe)");
-      setpar("cutn", "");
-    }
-    else if (iversion==1) {
-      spversion = "NewAna.2070.0231288"; 
-      vshort = TString((ejungwoo::tok(spversion,".",0))[0])+ejungwoo::tok(spversion,".",1);
-      vout = vshort+".nocut"; 
-      trackMultHL = 50;
-      probLL = 0.2;
-      effLL = 0.08;
-      ptoaLL = 0;
-      ptoaHL = 10000;
-      phiLL = 160;
-      phiHL = 200;
-      ttaLL = 0;
-      ttaHL = 180;
-      dsdinpi = 2 * (phiHL-phiLL)/360 * (new TF1("satta","sin(x)",0,TMath::Pi())) -> Integral(ttaLL*TMath::DegToRad(),ttaHL*TMath::DegToRad());
-      dsd = dsdinpi * TMath::Pi();
-      setpar("cut0", "$$(cut_pe)");
-      setpar("cutn", "");
-    }
-    else if (iversion==2) {
-      spversion = "NewAna.2070.0231288"; 
-      vshort = TString((ejungwoo::tok(spversion,".",0))[0])+ejungwoo::tok(spversion,".",1);
-      vout = vshort+".corrp_xe"; 
-      trackMultHL = 50;
-      probLL = 0.2;
-      effLL = 0.05;
-      ptoaLL = 0;
-      ptoaHL = 10000;
-      phiLL = 160;
-      phiHL = 200;
-      ttaLL = 0;
-      ttaHL = 180;
-      dsdinpi = 2 * (phiHL-phiLL)/360 * (new TF1("satta","sin(x)",0,TMath::Pi())) -> Integral(ttaLL*TMath::DegToRad(),ttaHL*TMath::DegToRad());
-      dsd = dsdinpi * TMath::Pi();
-      setpar("cut0", "$$(cut_p)");
-      setpar("cutn", "");
-    }
-
-    vector<TString> entry_array;
-    entry_array.push_back(Form("version=%s",spversion.Data()));
-    entry_array.push_back(Form("N_{track}>%d",trackMultHL));
-    entry_array.push_back(Form("probability>%.2f",probLL));
-    entry_array.push_back(Form("efficiency>%.2f",effLL));
-    if (ptoaLL<=0&&ptoaHL>=5000) entry_array.push_back("p_{T} cut: X");
-    else                         entry_array.push_back(Form("%.2f<#p{T}/A_{CM}<%.2f",ptoaLL,ptoaHL));
-    entry_array.push_back(Form("%.f<#phi_{CM}<%.f",phiLL,phiHL));
-    entry_array.push_back(Form("%.f<#theta_{CM}<%.f",ttaLL,ttaHL));
-    entry_array.push_back(Form("#Delta#Omega=%.3f#pi",dsdinpi));
-
-    setpar("angle_cut",Form("($$(tta_cm)>%f&&$$(tta_cm)<%f)",ttaLL,ttaHL));
-    setpar("poz_cut", "1");
-    setpar("pes_cut",Form("$$(eff)>%f",effLL));
-
-    ejungwoo::gversionin(spversion);
-    ejungwoo::gversionout(vout);
-
-    for (auto entry : entry_array) {
-      cout << entry << endl;
-    }
-  };
 
   int systems[] = {132   , 108   , 112   , 124   };
   int targetA[] = {124   , 112   , 124   , 112   };
@@ -163,16 +44,16 @@ void draw_from_summary()
   Long64_t num_events[4] = {0};
   TString particleTreeNames[6] = {"p","d","t","he3","he4","he6"};
   TString particleNames[6] = {"p","d","t","he3","he4","he6"};
+  const double particlePozCut[6] = {100,300,300,100,200,200};
   double particleMass[6] = {938.272, 1871.06, 2809.41, 2809.41, 3728.4, 5606.55};
-  double particlePozCut[6] = {100,300,300,100,200,200};
   int particlePDGs[6] = {2212, 1000010030, 1000010020, 1000020040, 1000020030,};
   int particleA[6] = {1,2,3,3,4,6};
   int particleZ[6] = {1,1,1,2,2,2};
 
   int numpids = 0;
   int numsyss = 0;
-  for (auto i : ipids) numpids++;
-  for (auto i : isyss) numsyss++;
+  for (auto i : fIPIDs) numpids++;
+  for (auto i : fISystems) numsyss++;
 
   auto setpar_syspid = [
     &systems, &yAAs, &yNNs, &num_events, 
@@ -190,8 +71,8 @@ void draw_from_summary()
     setpar("m",particleMass[ipid]);
     setpar("a",particleA[ipid]);
     setpar("z",particleZ[ipid]);
-    setpar("nump",numProtons[ipid]);
-    setpar("numn",numNeutrons[ipid]);
+    setpar("nump",fNumProtons[ipid]);
+    setpar("numn",fNumNeutrons[ipid]);
   };
 
   ejungwoo::cutg("/Users/ejungwoo/spirit/the3/mary/data__NewAna.2070.0231288/p_ypt_test_cutg.NewAna.2070.0231288.root","p_ypt_test_cutg","$$(ny_cm)","pt_cm");
@@ -232,31 +113,15 @@ void draw_from_summary()
 
   //setpar("cut0", "$$(cut_compare)");
 
-  vector<variable> varListAll = {
-    fvar_prob, fvar_eff, fvar_sd,
-    fvar_ptoa_cm, fvar_pt_cm, fvar_fy_cm, fvar_p_cm, fvar_ke_cm,
-    fvar_p_lab, fvar_dedx,
-    fvar_dpoca, fvar_nr, fvar_nl,
-    fvar_tta_cm, fvar_phi_cm,
-    //fvar_tta_lab, fvar_phi_lab,
-    //fvar_p_kab+fvar_dedx,
+  vector<variable*> varListAll = {
+    &fvar_prob, &fvar_eff, &fvar_sd,
+    &fvar_ptoa_cm, &fvar_pt_cm, &fvar_fy_cm, &fvar_p_cm, &fvar_ke_cm,
+    &fvar_p_lab, &fvar_dedx,
+    &fvar_dpoca, &fvar_nr, &fvar_nl,
+    &fvar_tta_cm, &fvar_phi_cm,
+    //&fvar_tta_lab, &fvar_phi_lab,
+    //&fvar_p_kab+&fvar_dedx,
   };
-
-  vector<variable> varListSingle = { fvar_keoa_cm+fvar_ny_cm };
-  vector<variable> varListAngle  = { fvar_phi_lab+fvar_tta_lab, fvar_phi_cm+fvar_tta_cm, fvar_phi_lab+fvar_phi_cm, fvar_tta_lab+fvar_tta_cm, };
-  vector<variable> varListMain   = { fvar_ny_cm+fvar_ptoa_cm, fvar_ny_cm+fvar_eff, fvar_tta_cm+fvar_eff, };
-  vector<variable> varListIS     = { fvar_ny_cm };
-  vector<variable> varListCI     = { fvar_keoa_cm };
-  vector<variable> varListN1     = { fvar_np, fvar_nd, fvar_nt, fvar_nhe3, fvar_nhe4, };
-  vector<variable> varListN2     = { fvar_ngp, fvar_ngd, fvar_ngt, fvar_nghe3, fvar_nghe4, };
-  vector<variable> varListN      = { fvar_n+fvar_ng, fvar_np+fvar_ngp, fvar_nd+fvar_ngd, fvar_nt+fvar_ngt, fvar_nhe3+fvar_nghe3, fvar_nhe4+fvar_nghe4, };
-
-  vector<variable> varListAlltta;
-  for (auto var : varListAll)
-    if (var.name==fvar_tta_cm.name)
-      varListAlltta.push_back(fvar_tta_cm);
-    else
-      varListAlltta.push_back(fvar_tta_cm+var);
 
   auto fvar_pid = fvar_p_lab+fvar_dedx+"z";
   fvar_pid.cut = ejungwoo::getpar("cut_prob6");
@@ -266,7 +131,7 @@ void draw_from_summary()
   auto filem = new TFile("data/particle_cutg_s20_p2.pidcut.root");
   TCutG *cutgs[6];
   TF1 *means[6];
-  for (auto ipid : ipids) {
+  for (auto ipid : fIPIDs) {
     cutgs[ipid] = (TCutG *) filem -> Get(Form("CUTG%d",particlePDGs[ipid]));
     cutgs[ipid] -> SetLineColor(kRed);
     means[ipid] = (TF1 *) filem -> Get(Form("BEE%d",particlePDGs[ipid]));
@@ -277,63 +142,79 @@ void draw_from_summary()
 
   /******************************************************************************************/
 
-  for (auto iversion : iversions)
+  for (auto iversion : fIVersions)
   {
     setversion(iversion);
-    setpar("vshort", vshort);
+
+    vector<variable*> varListSingle = { fvar_keoa_cm.add(fvar_ny_cm) };
+    vector<variable*> varListAngle  = { fvar_phi_lab.add(fvar_tta_lab), fvar_phi_cm.add(fvar_tta_cm), fvar_phi_lab.add(fvar_phi_cm), fvar_tta_lab.add(fvar_tta_cm), };
+    vector<variable*> varListMain   = { fvar_ny_cm.add(fvar_ptoa_cm), fvar_ny_cm.add(fvar_eff), fvar_tta_cm.add(fvar_eff), };
+    vector<variable*> varListIS     = { &fvar_ny_cm };
+    vector<variable*> varListCI     = { &fvar_keoa_cm };
+    vector<variable*> varListN1     = { &fvar_np, &fvar_nd, &fvar_nt, &fvar_nhe3, &fvar_nhe4, };
+    vector<variable*> varListN2     = { &fvar_ngp, &fvar_ngd, &fvar_ngt, &fvar_nghe3, &fvar_nghe4, };
+    vector<variable*> varListN      = { fvar_n.add(fvar_ng), fvar_np.add(fvar_ngp), fvar_nd.add(fvar_ngd), fvar_nt.add(fvar_ngt), fvar_nhe3.add(fvar_nghe3), fvar_nhe4.add(fvar_nghe4), };
+
+    vector<variable*> varListAlltta;
+    for (auto var : varListAll) {
+      if (var->name==fvar_tta_cm.name)
+        varListAlltta.push_back(&fvar_tta_cm);
+      else
+        varListAlltta.push_back(fvar_tta_cm.add(var));
+    }
 
     TTree *tree_pid[4][5] = {0};
     TTree *tree_mult[4] = {0};
     for (auto isys : {0,1,2,3}) {
       auto sys = systems[isys];
-      //TString fileName = Form("data__%s/sys%d.%s.ana.particle.root",ejungwoo::versioncc(),sys,ejungwoo::versioncc());
       TString fileName = Form("data__%s/sys%d.%s.ana.particle.root",ejungwoo::versioncc(),sys,ejungwoo::versioncc());
       auto file = new TFile(fileName);
       tree_mult[isys] = (TTree *) file -> Get("mult");
-      for (int ipid : ipids) {
+      for (int ipid : fIPIDAll)
         tree_pid[isys][ipid] = (TTree *) file -> Get(particleTreeNames[ipid]);
-      }
       num_events[isys] = tree_mult[isys] -> GetEntries();
       cout << fileName << " " << sys << " " << num_events[isys] << endl;
     }
 
-    for (auto isys : isyss)
+    for (auto isys : fISystems)
     {
       auto sys = systems[isys];
 
       TTree *tree = tree_mult[isys];
       if (anaMult) {
+        cout << "============ anaMult " << endl;
         setpar_syspid(isys);
-        for (auto var : varListN)  { var.print(); var.drawaddnext(tree,ejungwoo::fHeader+"nn"+sys); }
-        for (auto var : varListN1) { var.print(); var.drawadd(tree,TString("no")+sys,0,"hist"); }
-        for (auto var : varListN2) { var.print(); var.drawadd(tree,TString("ng")+sys,0,"hist"); }
+        for (auto var : varListN)  { var->drawaddnext(tree,ejungwoo::fHeader+"nn"+sys); }
+        for (auto var : varListN1) { var->drawadd(tree,TString("no")+sys,0,"hist"); }
+        for (auto var : varListN2) { var->drawadd(tree,TString("ng")+sys,0,"hist"); }
       }
 
       if (anaAll) {
-        for (int ipid : ipids) {
+        cout << "============ anaAll " << endl;
+        for (int ipid : fIPIDs) {
           setpar_syspid(isys,ipid);
           auto tree = tree_pid[isys][ipid];
           for (auto var : varListAll) {
             if (withTestCuts) {
-              auto cut0 = var.cut;
-              TString cutName0 = var.cut.GetName();
-              var.name = var.name + "_all";
+              auto cut0 = var->cut;
+              TString cutName0 = var->cut.GetName();
+              var->name = var->name + "_all";
               auto itest = 0;
               for (auto testCut : testCutArray) {
-                var.cut = cut0*TCut(testCut.Data());
-                var.cut.SetName(cutName0+"_"+testCut);
-                var.drawaddsame(tree,TString("all__")+var.name+ipid,"hist",testCut);
+                var->cut = cut0*TCut(testCut.Data());
+                var->cut.SetName(cutName0+"_"+testCut);
+                var->drawaddsame(tree,TString("all__")+var->name+ipid,"hist",testCut);
                 itest++;
               }
             }
             else{
               TString ename = TString("all__")+particleNames[ipid]+sys;
-              var.cut = "$$(cut_pe)";
-              auto hist1 = ejungwoo::norm_max(var.draw(tree));
+              var->cut = "$$(cut_pe)";
+              auto hist1 = ejungwoo::norm_max(var->draw(tree));
               ejungwoo::addnext(ename, hist1, "hist addx", "pe");
-              //var.name = var.name+2;
-              //var.cut = "$$(cut_p)";
-              //auto hist2 = ejungwoo::norm_max(var.draw(tree));
+              //var->name = var->name+2;
+              //var->cut = "$$(cut_p)";
+              //auto hist2 = ejungwoo::norm_max(var->draw(tree));
               //ejungwoo::addsame(ename, hist2, "hist", "p");
             }
           }
@@ -342,17 +223,18 @@ void draw_from_summary()
       }
 
       if (anaAlltta) {
-        for (int ipid : ipids) {
+        cout << "============ anaAlltta " << endl;
+        for (int ipid : fIPIDs) {
           setpar_syspid(isys,ipid);
           auto tree = tree_pid[isys][ipid];
           for (auto var : varListAlltta) {
             TString ename = TString("alltta__")+particleNames[ipid]+sys;
-            ejungwoo::addnext(ename, var.draw(tree), "colz");
+            ejungwoo::addnext(ename, var->draw(tree), "colz");
           }
         }
       }
 
-      for (int ipid : ipids)
+      for (int ipid : fIPIDs)
       {
         auto tree = tree_pid[isys][ipid];
         setpar_syspid(isys,ipid);
@@ -360,20 +242,20 @@ void draw_from_summary()
         if (anaAngle)
           for (auto var : varListAngle) {
             if (withTestCuts) {
-              auto cut0 = var.cut;
-              TString cutName0 = var.cut.GetName();
-              TString varName0 = var.name;
+              auto cut0 = var->cut;
+              TString cutName0 = var->cut.GetName();
+              TString varName0 = var->name;
               auto itest = 0;
               for (auto testCut : testCutArray) {
-                var.cut = cut0*TCut(testCut.Data());
-                var.cut.SetName(cutName0+"_"+testCut);
-                var.name = TString("witCut_") + varName0;
-                auto histCut = var.draw(tree);
+                var->cut = cut0*TCut(testCut.Data());
+                var->cut.SetName(cutName0+"_"+testCut);
+                var->name = TString("witCut_") + varName0;
+                auto histCut = var->draw(tree);
                 if (overlabTestCuts>0) {
-                  var.cut = cut0;
-                  var.cut.SetName(cutName0+"_for_"+testCut);
-                  var.name = TString("witCut_") + varName0;
-                  auto hist0 = var.draw(tree);
+                  var->cut = cut0;
+                  var->cut.SetName(cutName0+"_for_"+testCut);
+                  var->name = TString("witCut_") + varName0;
+                  auto hist0 = var->draw(tree);
                   if (overlabTestCuts==1)
                     ejungwoo::set_vor0(hist0,histCut->GetMaximum()*0.001);
                   histCut -> Add(hist0);
@@ -384,25 +266,26 @@ void draw_from_summary()
               }
             }
             else
-              var.drawadd(tree,var.name+sys,ipid);
+              var->drawadd(tree,var->name+sys,ipid);
           }
-        if (anaMain)
+        if (anaMain) {
+          cout << "============ anaMain " << endl;
           for (auto var : varListMain) {
             if (withTestCuts) {
-              auto cut0 = var.cut;
-              TString cutName0 = var.cut.GetName();
-              TString varName0 = var.name;
+              auto cut0 = var->cut;
+              TString cutName0 = var->cut.GetName();
+              TString varName0 = var->name;
               auto itest = 0;
               for (auto testCut : testCutArray) {
-                var.cut = cut0*TCut(testCut.Data());
-                var.cut.SetName(cutName0+"_"+testCut);
-                var.name = TString("witCut_") + varName0;
-                auto histCut = var.draw(tree);
+                var->cut = cut0*TCut(testCut.Data());
+                var->cut.SetName(cutName0+"_"+testCut);
+                var->name = TString("witCut_") + varName0;
+                auto histCut = var->draw(tree);
                 if (overlabTestCuts>0) {
-                  var.cut = cut0;
-                  var.cut.SetName(cutName0+"_for_"+testCut);
-                  var.name = TString("witCut_") + varName0;
-                  auto hist0 = var.draw(tree);
+                  var->cut = cut0;
+                  var->cut.SetName(cutName0+"_for_"+testCut);
+                  var->name = TString("witCut_") + varName0;
+                  auto hist0 = var->draw(tree);
                   if (overlabTestCuts==1)
                     ejungwoo::set_vor0(hist0,histCut->GetMaximum()*0.001);
                   histCut -> Add(hist0);
@@ -413,53 +296,57 @@ void draw_from_summary()
               }
             }
             else
-              var.drawadd(tree,var.name+sys,ipid);
+              var->drawadd(tree,var->name+sys,ipid);
           }
+        }
 
-        if (anaSingle)
+        if (anaSingle) {
+          cout << "============ anaSingle " << endl;
           for (auto var : varListSingle) {
             if (withTestCuts) {
-              auto cut0 = var.cut;
-              TString cutName0 = var.cut.GetName();
-              //TString varName0 = var.name;
-              var.name = var.name + "_single";
+              auto cut0 = var->cut;
+              TString cutName0 = var->cut.GetName();
+              //TString varName0 = var->name;
+              var->name = var->name + "_single";
               auto itest = 0;
               for (auto testCut : testCutArray) {
-                var.cut = cut0*TCut(testCut.Data());
-                var.cut.SetName(cutName0+"_"+testCut);
-                var.drawadd(tree,TString("single_")+var.name+ipid,itest);
+                var->cut = cut0*TCut(testCut.Data());
+                var->cut.SetName(cutName0+"_"+testCut);
+                var->drawadd(tree,TString("single_")+var->name+ipid,itest);
                 itest++;
               }
             }
             else {
-              var.drawadd(tree,TString("single_")+var.name + ipid);
+              var->drawadd(tree,TString("single_")+var->name + ipid);
             }
           }
+        }
 
         if (anaPid) {
-          auto var = fvar_pid;
+          cout << "============ anaPid " << endl;
+          auto var = &fvar_pid;
 
-          var.cut = ejungwoo::getpar("cut_prob6");
-          auto hist_pid = var.draw(tree);
+          var->cut = ejungwoo::getpar("cut_prob6");
+          auto hist_pid = var->draw(tree);
           ejungwoo::set_vor0(hist_pid,ipid+1);
           ejungwoo::addhist(TString("pid")+sys, hist_pid, "");
           ejungwoo::add(TString("pid")+sys, cutgs[ipid],"addx colorx samel");
           ejungwoo::add(TString("pid")+sys, means[ipid],"addx colorx samel");
 
-          var.cut = ejungwoo::getpar("cut_pe");
-          hist_pid = var.draw(tree);
+          var->cut = ejungwoo::getpar("cut_pe");
+          hist_pid = var->draw(tree);
           ejungwoo::addhist(TString("pid_pe_")+sys, hist_pid, "logz");
           ejungwoo::add(TString("pid_pe_")+sys, cutgs[ipid],"addx colorx samel");
           ejungwoo::add(TString("pid_pe_")+sys, means[ipid],"addx colorx samel");
 
-          var.cut = ejungwoo::getpar("cut_compare");
-          hist_pid = var.draw(tree);
+          var->cut = ejungwoo::getpar("cut_compare");
+          hist_pid = var->draw(tree);
           ejungwoo::addhist(TString("pid_compare_")+sys, hist_pid, "logz");
           ejungwoo::add(TString("pid_compare_")+sys, cutgs[ipid],"addx colorx samel");
           ejungwoo::add(TString("pid_compare_")+sys, means[ipid],"addx colorx samel");
 
-          var.cut = ejungwoo::getpar("cut_p");
-          hist_pid = var.draw(tree);
+          var->cut = ejungwoo::getpar("cut_p");
+          hist_pid = var->draw(tree);
           ejungwoo::addhist(TString("pid_p_")+sys, hist_pid, "logz");
           ejungwoo::add(TString("pid_p_")+sys, cutgs[ipid],"addx colorx samel");
           ejungwoo::add(TString("pid_p_")+sys, means[ipid],"addx colorx samel");
@@ -469,48 +356,61 @@ void draw_from_summary()
 
     if (anaIS)
     {
-      for (auto var : varListIS) {
-        setpar("pname","all");
-        TString cname_nn = TString("NN_")+var.name+"__"+vshort;
-        TString cname_is = TString("IS_")+var.name+"__"+vshort;
+      cout << "============ anaIS " << endl;
+      for (auto ii : {0,1})
+      {
+        int isys1, isys2;
+        if (ii==0) { isys1=0; isys2=1; }
+        else       { isys1=3; isys2=2; }
 
-        var.binn.n=nbinsIS;
-        var.title.main = "$$(pname) multiplicity 132 vs 108";
-        ejungwoo::add(cname_is,0,new_h(var.histname,titles("isoscaling plot 132/108",var.title.x,"p(132+124)/p(108+112)"),var.binn,binning(100,0,2)),"addx");
-        double ymax1 = 0, ymax2 = 0;
-        for (int ipid : ipids) {
-          setpar_syspid(0,ipid); auto hist1 = var.draw(tree_pid[0][ipid]);
-          setpar_syspid(1,ipid); auto hist2 = var.draw(tree_pid[1][ipid]);
-          ejungwoo::add(cname_nn,ipid,hist1,"hist","132");
-          ejungwoo::add(cname_nn,ipid,hist2,"hist","108");
-          auto graphs = draw_is(ipid, hist1, hist2, num_tracks_per_event_cut);
-          ejungwoo::add(cname_is, 0, graphs.At(0), "pl", particleNames[ipid]);
-          ejungwoo::add(cname_is, 1, graphs.At(1), "pl", particleNames[ipid]);
-          ejungwoo::add(cname_is, 2, graphs.At(2), "pl", particleNames[ipid]);
-          double ymax1_ = ejungwoo::y2_g((TGraph *) graphs.At(1)); if (ymax1 < ymax1_) ymax1 = ymax1_;
-          double ymax2_ = ejungwoo::y2_g((TGraph *) graphs.At(2)); if (ymax2 < ymax2_) ymax2 = ymax2_;
-        }
+        auto systgA1 = Form("%d+%d",systems[isys1],targetA[isys1]);
+        auto systgA2 = Form("%d+%d",systems[isys2],targetA[isys2]);
 
-        auto line1 = new TLine(var.binn.min,num_tracks_per_event_cut,var.binn.max,num_tracks_per_event_cut); line1 -> SetLineStyle(2);
-        auto line2 = new TLine(var.binn.min,num_tracks_per_event_cut,var.binn.max,num_tracks_per_event_cut); line2 -> SetLineStyle(2);
-        ejungwoo::add(cname_is,1,line1);
-        ejungwoo::add(cname_is,2,line1);
+        for (auto var : varListIS) {
+          setpar("pname","all");
+          TString cname_nn = Form("NN%d_",ii)+var->name+"__"+fVShort;
+          TString cname_is = Form("IS%d_",ii)+var->name+"__"+fVShort;
 
-        titles ttlIS132("132+124",var.title.x,fttly_ntne);
-        titles ttlIS108("108+112",var.title.x,fttly_ntne);
+          var->binn.n=nbinsIS;
+          var->title.main = Form("$$(pname) multiplicity %d vs %d",systems[isys1],systems[isys2]);
+          auto name00 = var->histname;
+          auto title00 = titles(Form("isoscaling plot %d/%d",systems[isys1],systems[isys2]),var->title.x,Form("p(%s)/p(%s)",systgA1,systgA2));
+          ejungwoo::add(cname_is,0,new_h(name00,title00,var->binn,binning(100,0,2)),"addx");
+          double ymax1 = 0, ymax2 = 0;
+          for (int ipid : fIPIDs) {
+            setpar_syspid(isys1,ipid); auto hist1 = var->draw(tree_pid[isys1][ipid]);
+            setpar_syspid(isys2,ipid); auto hist2 = var->draw(tree_pid[isys2][ipid]);
+            ejungwoo::add(cname_nn,ipid,hist1,"hist",Form("%d",systems[isys1]));
+            ejungwoo::add(cname_nn,ipid,hist2,"hist",Form("%d",systems[isys2]));
+            auto graphs = draw_is(ipid, hist1, hist2, num_tracks_per_event_cut);
+            ejungwoo::add(cname_is, 0, graphs.At(0), "pl", particleNames[ipid]);
+            ejungwoo::add(cname_is, 1, graphs.At(1), "pl", particleNames[ipid]);
+            ejungwoo::add(cname_is, 2, graphs.At(2), "pl", particleNames[ipid]);
+            double ymax1_ = ejungwoo::y2_g((TGraph *) graphs.At(1)); if (ymax1 < ymax1_) ymax1 = ymax1_;
+            double ymax2_ = ejungwoo::y2_g((TGraph *) graphs.At(2)); if (ymax2 < ymax2_) ymax2 = ymax2_;
+          }
 
-        if (0) {
-          ejungwoo::add(cname_is,1,new_h(var.histname+"_frame132",ttlIS132,var.binn,binning(100,ymax1*0.0001,ymax1*5)),"addx rangex logy");
-          ejungwoo::add(cname_is,2,new_h(var.histname+"_frame108",ttlIS108,var.binn,binning(100,ymax2*0.0001,ymax2*5)),"addx rangex logy");
-        } else {
-          ejungwoo::add(cname_is,1,new_h(var.histname+"frame132",ttlIS132,var.binn,binning(100,0,ymax1*1.05)),"addx rangex");
-          ejungwoo::add(cname_is,2,new_h(var.histname+"frame108",ttlIS108,var.binn,binning(100,0,ymax2*1.05)),"addx rangex");
+          auto line1 = new TLine(var->binn.min,num_tracks_per_event_cut,var->binn.max,num_tracks_per_event_cut); line1 -> SetLineStyle(2);
+          auto line2 = new TLine(var->binn.min,num_tracks_per_event_cut,var->binn.max,num_tracks_per_event_cut); line2 -> SetLineStyle(2);
+          ejungwoo::add(cname_is,1,line1);
+          ejungwoo::add(cname_is,2,line1);
+
+          titles ttlIS132(systgA1,var->title.x,fttly_ntne);
+          titles ttlIS108(systgA2,var->title.x,fttly_ntne);
+          if (0) {
+            ejungwoo::add(cname_is,1,new_h(var->histname+Form("_frame%d",systems[isys1]),ttlIS132,var->binn,binning(100,ymax1*0.0001,ymax1*5)),"addx rangex logy");
+            ejungwoo::add(cname_is,2,new_h(var->histname+Form("_frame%d",systems[isys2]),ttlIS108,var->binn,binning(100,ymax2*0.0001,ymax2*5)),"addx rangex logy");
+          } else {
+            ejungwoo::add(cname_is,1,new_h(var->histname+Form("_frame%d",systems[isys1]),ttlIS132,var->binn,binning(100,0,ymax1*1.05)),"addx rangex");
+            ejungwoo::add(cname_is,2,new_h(var->histname+Form("_frame%d",systems[isys2]),ttlIS108,var->binn,binning(100,0,ymax2*1.05)),"addx rangex");
+          }
         }
       }
     }
 
     if (anaCI)
     {
+      cout << "============ anaCI " << endl;
       titles ttlCIM("","KE_{CM} (MeV)","#frac{dM_{n,CI}}{dKE_{CM} #Delta#Omega_{CM}}");
       titles ttlCIR("","KE_{CM} (MeV)","R = #frac{dM_{n,CI}}{dKE_{CM} #Delta#Omega_{CM}} / #frac{dM_{p,CI}}{dKE_{CM} #Delta#Omega_{CM}}");
       binning binnCIx(40,0,200);
@@ -520,41 +420,41 @@ void draw_from_summary()
       binning binnCIdr(100,0,2);
 
       for (auto var : varListCI) {
-        var.binn.setw(dKECI);
-        var.name = TString("ci_")+var.name; 
-        var.title.main = "";
-        TString cname_ci = var.name+"__"+vshort;
-        ejungwoo::add(cname_ci, 0, new_h(var.histname+"_cin_allframe", ttlCIM, binnCIx, binnCIy2), "addx rangex logy ");
-        ejungwoo::add(cname_ci, 1, new_h(var.histname+"_cip_allframe", ttlCIM, binnCIx, binnCIy2), "addx rangex logy ");
-        ejungwoo::add(cname_ci, 2, new_h(var.histname+"_cir_allframe", ttlCIR, binnCIx, binnCIr), "addx rangex ");
+        var->binn.setw(dKECI);
+        var->name = TString("ci_")+var->name; 
+        var->title.main = "";
+        TString cname_ci = var->name+"__"+fVShort;
+        ejungwoo::add(cname_ci, 0, new_h(var->histname+"_cin_allframe", ttlCIM, binnCIx, binnCIy2), "addx rangex logy ");
+        ejungwoo::add(cname_ci, 1, new_h(var->histname+"_cip_allframe", ttlCIM, binnCIx, binnCIy2), "addx rangex logy ");
+        ejungwoo::add(cname_ci, 2, new_h(var->histname+"_cir_allframe", ttlCIR, binnCIx, binnCIr), "addx rangex ");
 
         TGraphErrors *graphs_rnp[4];
         for (auto isys : {0,1,2,3}) {
           auto sys = systems[isys];
           auto tga = targetA[isys];
-          var.title.main = "($$(sys)) particle multiplicity";
+          var->title.main = "($$(sys)) particle multiplicity";
           titles ttlCIMN("($$(sys)) CI neutrons","KE_{CM} (MeV)",Form("#frac{dM(%d)_{n,CI}}{dKE_{CM} #Delta#Omega_{CM}}",sys));
           titles ttlCIMP("($$(sys)) CI protons","KE_{CM} (MeV)",Form("#frac{dM(%d)_{p,CI}}{dKE_{CM} #Delta#Omega_{CM}}",sys));
           titles ttlCIRs("($$(sys)) CI n/p","KE_{CM} (MeV)",Form("R(%d) = #frac{dM(%d)_{n,CI}}{dKE_{CM} #Delta#Omega_{CM}} / #frac{dM(%d)_{p,CI}}{dKE_{CM} #Delta#Omega_{CM}}",sys,sys,sys));
           vector<TH1*> hists;
-          TString cname_ci_sys = var.name+"_"+sys+"__"+vshort;
-          for (auto ipid : ipids) {
+          TString cname_ci_sys = var->name+"_"+sys+"__"+fVShort;
+          for (auto ipid : fIPIDAll) {
             setpar_syspid(isys,ipid);
-            auto hist = var.draw(tree_pid[isys][ipid]);
+            auto hist = var->draw(tree_pid[isys][ipid]);
             hists.push_back(hist);
             ejungwoo::add(cname_ci_sys, 1, hist, "histl logy grid", particleNames[ipid]);
           /****************************************************************************************************************/
           }
           setpar("pname","CI");
-          auto graphs = draw_ci(hists, dsd, isys);
+          auto graphs = draw_ci(hists, fSolidAngle, isys);
           /****************************************************************************************************************/
-          ejungwoo::add(cname_ci_sys, 0, new_h(var.histname+"_cin_frame", ttlCIMN, binnCIx, binnCIy), "addx rangex logy gridy");
+          ejungwoo::add(cname_ci_sys, 0, new_h(var->histname+"_cin_frame", ttlCIMN, binnCIx, binnCIy), "addx rangex logy gridy");
           ejungwoo::add(cname_ci_sys, 0, graphs.At(0), "colorx p", "CI neutrons");
           /****************************************************************************************************************/
-          ejungwoo::add(cname_ci_sys, 2, new_h(var.histname+"_cip_frame", ttlCIMP, binnCIx, binnCIy), "addx rangex logy gridy");
+          ejungwoo::add(cname_ci_sys, 2, new_h(var->histname+"_cip_frame", ttlCIMP, binnCIx, binnCIy), "addx rangex logy gridy");
           ejungwoo::add(cname_ci_sys, 2, graphs.At(1), "colorx p", "CI protons");
           /****************************************************************************************************************/
-          ejungwoo::add(cname_ci_sys, 3, new_h(var.histname+"_cir_frame", ttlCIRs, binnCIx, binnCIr), "addx rangex gridy");
+          ejungwoo::add(cname_ci_sys, 3, new_h(var->histname+"_cir_frame", ttlCIRs, binnCIx, binnCIr), "addx rangex gridy");
           ejungwoo::add(cname_ci_sys, 3, graphs.At(2), "colorx p", "CI n/p");
           /****************************************************************************************************************/
 
@@ -566,8 +466,8 @@ void draw_from_summary()
         }
 
         titles ttlCID("Double ratio","KE_{CM} (MeV)","DR(n/p)_{#frac{132}{108}} = #frac{R(132)}{R(108)}");
-        ejungwoo::add(var.name+"_r132o108__"+vshort, new_h(var.histname+"_cidr_allframe", ttlCID, binnCIx, binnCIdr), "addx rangex gridx");
-        ejungwoo::add(var.name+"_r132o108__"+vshort, draw_ratio(graphs_rnp[0], graphs_rnp[1], binnCIx.max), "p addx");
+        ejungwoo::add(var->name+"_r132o108__"+fVShort, new_h(var->histname+"_cidr_allframe", ttlCID, binnCIx, binnCIdr), "addx rangex gridx");
+        ejungwoo::add(var->name+"_r132o108__"+fVShort, draw_ratio(graphs_rnp[0], graphs_rnp[1], binnCIx.max), "p addx");
       }
     }
   }
@@ -575,93 +475,4 @@ void draw_from_summary()
   /******************************************************************************************/
 
   ejungwoo::drawsaveall("cvsl","png");
-}
-
-TObjArray draw_is(int idx_particle, TH1 *hist132, TH1 *hist108, double num_tracks_cut)
-{
-  auto graph_is = new TGraphErrors();
-  auto graph_v132 = new TGraphErrors();
-  auto graph_v108 = new TGraphErrors();
-  binning binn(hist132);
-
-  for (auto bin=1; bin<=binn.n; ++bin)
-  {
-    auto binc = binn.getc(bin);
-    auto v132 = hist132 -> GetBinContent(bin);
-    auto v108 = hist108 -> GetBinContent(bin);
-    auto idxvv = graph_v132 -> GetN();
-    graph_v132 -> SetPoint(idxvv, binc, v132);
-    graph_v108 -> SetPoint(idxvv, binc, v108);
-    if (v132 < num_tracks_cut || v108 < num_tracks_cut)
-      continue;
-    auto idxis = graph_is -> GetN();
-    graph_is -> SetPoint(idxis, binc, v132/v108);
-  }
-
-  TObjArray array;
-  for (auto graph : {graph_is, graph_v132, graph_v108}) {
-    graph -> SetMarkerStyle(ejungwoo::markeri(idx_particle));
-    graph -> SetLineColor(ejungwoo::colori(idx_particle));
-    graph -> SetLineWidth(2);
-    array.Add(graph);
-  }
-
-  return array;
-}
-
-TObjArray draw_ci(vector<TH1 *>hists, double ds, int isys)
-{
-  auto graph_np = new TGraphErrors();
-  auto graph_nn = new TGraphErrors();
-  auto graph_rr = new TGraphErrors();
-
-  binning binn(hists[0]);
-  binn.resetb();
-  while (binn.nextb()) {
-    binn.idx;
-    double vpsum = 0;
-    double vnsum = 0;
-    for (auto ipid : ipids) {
-      double ntracks = hists[ipid] -> GetBinContent(binn.idx);
-      auto np = numProtons[ipid];
-      auto nn = numNeutrons[ipid];
-      vpsum += numProtons[ipid] * ntracks;
-      vnsum += numNeutrons[ipid] * ntracks;
-    }
-    graph_np -> SetPoint(graph_np->GetN(), binn.value, vpsum/binn.w/ds);
-    graph_nn -> SetPoint(graph_nn->GetN(), binn.value, vnsum/binn.w/ds);
-    graph_rr -> SetPoint(graph_rr->GetN(), binn.value, vnsum/vpsum);
-  }
-
-  TObjArray array;
-  int idx = 0;
-  for (auto graph : {graph_nn, graph_np, graph_rr}) {
-    graph -> SetMarkerStyle(ejungwoo::markeri(idx));
-    graph -> SetMarkerColor(ejungwoo::colori(idx));
-    graph -> SetLineColor(ejungwoo::colori(isys));
-    graph -> SetLineWidth(2);
-    array.Add(graph);
-    idx++;
-  }
-
-  return array;
-}
-
-TGraphErrors *draw_ratio(TGraphErrors *graph1, TGraphErrors *graph2, double max)
-{
-  auto graph_dr = new TGraphErrors();
-
-  double x1, y1, x2, y2;
-  auto nn = graph1 -> GetN();
-  for (auto i=0; i<nn; ++i) {
-    graph1 -> GetPoint(i,x1,y1);
-    graph2 -> GetPoint(i,x2,y2);
-    if (x1 > max)
-      break;
-    if (y2>0) {
-      graph_dr -> SetPoint(graph_dr->GetN(),x1,y1/y2);
-    }
-  }
-
-  return graph_dr;
 }
