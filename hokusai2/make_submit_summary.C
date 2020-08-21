@@ -17,7 +17,7 @@ void make_submit_summary()
 
   std::ofstream submit_end(endFull);
 
-  for (auto sys : {108,132})
+  for (auto sys : {108,112,124,132})
   {
     TString subName = Form("%s%d",runTag.Data(),sys);
     TString macFull = subDir + subName + ".sh";
