@@ -1,9 +1,9 @@
-void run_analysis_xml(int system, TString fOutName="", bool iter_unfold=false)
+void run_analysis_xml(int system, TString anaName="", TString fOutName="", bool iter_unfold=false)
 {
   //Read xml
   TDOMParser parser;
   parser.SetValidate(false);
-  TString xmlFile = Form("analysisConfig/analysisSn%dCM.xml",system);
+  TString xmlFile = Form("analysisInputFiles/analysisConfig/analysisSn%dCM%s.xml", system, anaName.Data());
   parser.ParseFile(xmlFile.Data());
   auto node = parser.GetXMLDocument()->GetRootNode()->GetChildren();
   TXMLNode *TaskNode = nullptr;
