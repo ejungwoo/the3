@@ -27,7 +27,7 @@ void run_analysis_xml(int system, TString anaName="", TString fOutName="", bool 
   TString fPathToDataOut = Form("/home/ejungwoo/data/ana/%s/Sn%d/",fVersionOut.Data(),system);
   gSystem -> Exec(TString("mkdir -p ")+fPathToDataOut);
   if (fOutName.IsNull())
-    fOutName = TString("sys")+system;
+    fOutName = TString("sys")+system+anaName;
 
   TString par = spiritroot + "parameters/ST.parameters.par";
   TString geo = spiritroot + "geometry/geomSpiRIT.man.root";

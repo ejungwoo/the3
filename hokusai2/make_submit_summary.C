@@ -1,7 +1,7 @@
 void make_submit_summary()
 {
-  TString anaName = "";
-  //TString anaName = ".Kaneko";
+  //TString anaName = "";
+  TString anaName = ".Tommy";
 
   TString runName = "submit_summary";
   TString runTag = "ss";
@@ -21,6 +21,7 @@ void make_submit_summary()
   std::ofstream submit_end(endFull);
 
   for (auto sys : {108,112,124,132})
+  //for (auto sys : {108,132})
   {
     TString subName = Form("%s%d",runTag.Data(),sys);
     TString macFull = subDir + subName + ".sh";
@@ -51,7 +52,7 @@ void make_submit_summary()
     submit_macro << "export OMP_NUM_THREADS=1" << endl;
     submit_macro << "source /home/ejungwoo/environment.spiritroot.bwmpc.sh" << endl;
     submit_macro << "cd " << subDir << endl;
-    submit_macro << "root -q -b -l run_analysis_xml.C\\(" << sys << ",\\\"" << anaName << "\\\"," << "\\)" << "> " << logFull.Data() << " 2>&1 ";
+    submit_macro << "root -q -b -l run_analysis_xml.C\\(" << sys << ",\\\"" << anaName << "\\\"" << "\\)" << " > " << logFull.Data() << " 2>&1 " << endl;
     submit_macro << "echo '"<< sys << " ' " << tailLog4 << " >> " << endFull << endl;
     submit_macro << "echo '"<< sys << " ' " << tailLog3 << " >> " << endFull << endl;
     submit_macro << "echo '"<< sys << " ' " << tailLog2 << " >> " << endFull << endl;

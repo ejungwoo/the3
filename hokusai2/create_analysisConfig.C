@@ -1,15 +1,40 @@
 void create_analysisConfig()
 {
+  /*
   TString anaName = ".Kaneko";
-  const int numParameters = 5;
+  const int numParameters = 6;
   TString parameters[numParameters][5] = { // 108, 132, 112, 124
+    {"DataDir"          , "/home/ejungwoo/data/trim/NewAna.2070.0231288/Sn108/"
+                        , "/home/ejungwoo/data/trim/NewAna.2070.0231288/Sn132/"
+                        , "/home/ejungwoo/data/trim/NewAna.2070.0231288/Sn112/"
+                        , "/home/ejungwoo/data/trim/NewAna.2070.0231288/Sn124/"},
     {"MultiplicityMin"  , "55" ,"56","100","100"},
     {"MultiplicityMax"  , "100"          ,"","",""},
     {"MultiplicityDPOCA", "20"           ,"","",""},
     {"NClus"            , "15"           ,"","",""},
     {"Phi"              , "0-20,330-360" ,"","",""},
   };
+  */
 
+  TString anaName = ".Tommy";
+  const int numParameters = 6;
+  TString parameters[numParameters][5] = { // 108, 132, 112, 124
+    {"DataDir"          , "/home/ejungwoo/data/trim/NewAna.2070.0231288/Sn108/"
+                        , "/home/ejungwoo/data/trim/NewAna.2070.0231288/Sn132/"
+                        , "/home/ejungwoo/data/trim/NewAna.2070.0231288/Sn112/"
+                        , "/home/ejungwoo/data/trim/NewAna.2070.0231288/Sn124/"},
+    {"MultiplicityMin"  , "50"   ,"","",""},
+    {"MultiplicityMax"  , "100"          ,"","",""},
+    {"MultiplicityDPOCA", "20"           ,"","",""},
+    {"NClus"            , "15"           ,"","",""},
+    {"Phi"              , "160-220" ,"","",""},
+  };
+
+
+
+  /////////////////////
+  /////////////////////
+  /////////////////////
 
 
   int systems[] = {108, 132, 112, 124};
