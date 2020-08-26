@@ -1,29 +1,25 @@
 void run_analysis_xml(int system, TString anaName="", TString fOutName="", bool iter_unfold=false)
 {
-  //Read xml
+  std::srand(std::time(0));
+
+  /***************************************************************
+  * Read xml
+  ****************************************************************/
   TDOMParser parser;
   parser.SetValidate(false);
   TString xmlFile = Form("analysisInputFiles/analysisConfig/analysisSn%dCM%s.xml", system, anaName.Data());
   parser.ParseFile(xmlFile.Data());
   auto node = parser.GetXMLDocument()->GetRootNode()->GetChildren();
-  TXMLNode *TaskNode = nullptr;
-  TXMLNode *IONode = nullptr;
+  STAnalysisFactory factory(node);
 
-  for(auto child = node; child; child = child -> GetNextNode()) {
-    TString nodename = child -> GetNodeName();
-    if(child -> GetNodeType() == TXMLNode::kXMLElementNode)
-    {
-      if(std::strcmp(child -> GetNodeName(), "TaskList") == 0) TaskNode = child;
-      if(std::strcmp(child -> GetNodeName(), "IOInfo") == 0) IONode = child;
-    }
-  }
-
-  // FairRoot setup
-  auto reader = new STConcReaderTask();
-  TString fPathToData = reader -> LoadFromXMLNode(IONode).c_str();
+  /***************************************************************
+  *  FairRoot setup
+  ****************************************************************/
+  auto reader = factory.GetReaderTask();
+  int nentries = reader -> GetNEntries();
+  TString fPathToData = reader -> GetPathToData();
   TString spiritroot = TString(gSystem -> Getenv("VMCWORKDIR"))+"/";
-  TString fVersionOut;
-  std::ifstream(spiritroot+"VERSION.compiled") >> fVersionOut;
+  TString fVersionOut; std::ifstream(spiritroot+"VERSION.compiled") >> fVersionOut;
   TString fPathToDataOut = Form("/home/ejungwoo/data/ana/%s/Sn%d/",fVersionOut.Data(),system);
   gSystem -> Exec(TString("mkdir -p ")+fPathToDataOut);
   if (fOutName.IsNull())
@@ -45,23 +41,27 @@ void run_analysis_xml(int system, TString anaName="", TString fOutName="", bool 
   run -> SetOutputFile(out);
   run -> GetRuntimeDb() -> setSecondInput(parReader);
 
-  // Add tasks
-  STAnalysisFactory factory(TaskNode);
-  int nentries = reader -> GetNEntries();
+  /*************************************************************
+  * Add tasks
+  **************************************************************/
 
   std::vector<FairTask*> tasks;
   tasks.push_back(reader);
   tasks.push_back(factory.GetFilterEventTask());
+//tasks.push_back(factory.GetDivideEventTask());
   tasks.push_back(factory.GetPIDTask());
+//tasks.push_back(factory.GetPiProbTask());
   tasks.push_back(factory.GetTransformFrameTask());
-  auto eff = static_cast<STEfficiencyTask*>(factory.GetEfficiencyTask());
+  auto eff = factory.GetEfficiencyTask();
   if(eff) eff -> UpdateUnfoldingFile(iter_unfold);
   tasks.push_back(eff);
-  tasks.push_back(factory.GetSimpleGraphsTask());
   tasks.push_back(factory.GetERATTask());
+  tasks.push_back(factory.GetReactionPlaneTask());
+  tasks.push_back(factory.GetSimpleGraphsTask());
 
   for(auto task : tasks)
     if(task) run -> AddTask(task);
+
   auto pst = new STParticleSummaryTask();
   pst -> SetCuts(0.2,0.05,5);
   run -> AddTask(pst);
