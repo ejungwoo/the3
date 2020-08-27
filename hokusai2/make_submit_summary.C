@@ -1,7 +1,12 @@
 void make_submit_summary()
 {
+  int syss[] = {108,112,124,132};
   //TString anaName = "";
   TString anaName = ".Tommy";
+  //TString anaName = ".Kaneko";
+
+  //int syss[] = {108,132};
+  //TString anaName = ".KanekoPID";
 
   TString runName = "submit_summary";
   TString runTag = "ss";
@@ -10,8 +15,8 @@ void make_submit_summary()
   TString subDir = pwdDir + runName + "/";
   TString outDir = subDir + "job_out/";
   TString logDir = subDir + "job_log/";
-  TString allFull = pwdDir + runName+".sh";
-  TString endFull = pwdDir + runName+".end";
+  TString allFull = pwdDir + runName+anaName+".sh";
+  TString endFull = pwdDir + runName+anaName+".end";
 
   std::ofstream submit_all(allFull);
   submit_all << "set +x" << endl;
@@ -20,10 +25,9 @@ void make_submit_summary()
 
   std::ofstream submit_end(endFull);
 
-  for (auto sys : {108,112,124,132})
-  //for (auto sys : {108,132})
+  for (auto sys : syss)
   {
-    TString subName = Form("%s%d",runTag.Data(),sys);
+    TString subName = Form("%s%d%s",runTag.Data(),sys,anaName.Data());
     TString macFull = subDir + subName + ".sh";
     TString outFull = outDir + subName + ".out";
     TString logFull = logDir + subName + ".log";
@@ -36,7 +40,7 @@ void make_submit_summary()
     cout << macFull << " " << logFull << endl;
 
     std::ofstream submit_macro(macFull);
-    submit_all << "pjsub --bulk --sparam 0-0 " << macFull << endl;
+    submit_all << "pjsub --bulk --sparam 0-0 " << macFull << "  # " << logFull << endl;
 
     submit_macro << "#!/bin/bash" << endl;
     submit_macro << "#------ pjsub option -------- #" << endl;

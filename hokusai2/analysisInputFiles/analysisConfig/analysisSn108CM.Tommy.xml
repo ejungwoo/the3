@@ -10,7 +10,7 @@
     </IOInfo>
     <TaskList>
         <EventFilterTask>
-            <MultiplicityMin>55</MultiplicityMin>
+            <MultiplicityMin>50</MultiplicityMin>
             <MultiplicityMax>100</MultiplicityMax>
             <MultiplicityDPOCA>20</MultiplicityDPOCA>
         </EventFilterTask>
@@ -29,7 +29,7 @@
         <EfficiencyTask Type="CM">
              <NClus>15</NClus>
              <DPoca>15</DPoca> 
-             <Phi>0-20,330-360</Phi>
+             <Phi>160-220,0-20,320-360</Phi>
              <UpscaleFactor>10</UpscaleFactor>
              <PtBins>15</PtBins>
              <CMzBins>15</CMzBins>

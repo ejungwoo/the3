@@ -15,7 +15,7 @@
             <MultiplicityDPOCA>20</MultiplicityDPOCA>
         </EventFilterTask>
     
-        <PIDProbTask Type="Kenako">
+        <PIDProbTask Type="Kaneko">
             <BeamA>132</BeamA>
         </PIDProbTask>
 

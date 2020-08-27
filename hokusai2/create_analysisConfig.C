@@ -27,7 +27,7 @@ void create_analysisConfig()
     {"MultiplicityMax"  , "100"          ,"","",""},
     {"MultiplicityDPOCA", "20"           ,"","",""},
     {"NClus"            , "15"           ,"","",""},
-    {"Phi"              , "160-220" ,"","",""},
+    {"Phi"              , "160-220,0-20,320-360" ,"","",""},
   };
 
 
