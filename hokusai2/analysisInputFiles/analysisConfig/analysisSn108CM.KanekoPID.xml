@@ -4,7 +4,7 @@
 -->
 <AnalysisConfig>
     <IOInfo Type="Real">
-        <DataDir>/home/ejungwoo/data/trim/NewAna.2034.45b9400/Sn108/</DataDir>
+        <DataDir>/home/ejungwoo/data/trim/NewAna.2070.0231288/Sn108/</DataDir>
         <RunFirst>2272</RunFirst>
         <RunLast>2500</RunLast>
     </IOInfo>

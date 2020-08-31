@@ -10,7 +10,7 @@
     </IOInfo>
     <TaskList>
         <EventFilterTask>
-            <MultiplicityMin>50</MultiplicityMin>
+            <MultiplicityMin>100</MultiplicityMin>
             <MultiplicityMax>100</MultiplicityMax>
             <MultiplicityDPOCA>20</MultiplicityDPOCA>
         </EventFilterTask>

@@ -4,24 +4,24 @@
 -->
 <AnalysisConfig>
     <IOInfo Type="Real">
-        <DataDir>/home/ejungwoo/data/trim/NewAna.2070.0231288/Sn124/</DataDir>
-        <RunFirst>3059</RunFirst>
-        <RunLast>3184</RunLast>
+        <DataDir>/home/ejungwoo/data/trim/NewAna.2070.0231288/Sn112/</DataDir>
+        <RunFirst>2542</RunFirst>
+        <RunLast>2623</RunLast>
     </IOInfo>
     <TaskList>
         <EventFilterTask>
-            <MultiplicityMin>50</MultiplicityMin>
+            <MultiplicityMin>100</MultiplicityMin>
             <MultiplicityMax>100</MultiplicityMax>
             <MultiplicityDPOCA>20</MultiplicityDPOCA>
         </EventFilterTask>
     
         <PIDProbTask Type="Bay">
-            <MetaFile>analysisInputFiles/Prior/Meta_Sn124KanekoMult50.root</MetaFile>
-            <PIDFit>analysisInputFiles/PIDFit/PIDSigma_Sn124KanekoMult50.root</PIDFit>
+            <MetaFile>analysisInputFiles/Prior/Meta_Sn112KanekoMult50.root</MetaFile>
+            <PIDFit>analysisInputFiles/PIDFit/PIDSigma_Sn112KanekoMult50.root</PIDFit>
         </PIDProbTask>
     
         <TransformFrameTask>
-             <TargetMass>112</TargetMass>
+             <TargetMass>124</TargetMass>
              <TargetThickness>0.8</TargetThickness>
              <EnergyLossFile>analysisInputFiles/EnergyLoss/Sn112Sn124.txt</EnergyLossFile>
         </TransformFrameTask>
@@ -35,7 +35,7 @@
              <CMzBins>15</CMzBins>
              <UpscaleFactor>10</UpscaleFactor>
              <PhaseSpaceFactor>3</PhaseSpaceFactor>
-             <UpdateUnfolding>analysisInputFiles/Unfolding/Sn124Unfold.root</UpdateUnfolding>
+             <UpdateUnfolding>analysisInputFiles/Unfolding/Sn112Unfold.root</UpdateUnfolding>
              <Particle Name="p">
                 <EffFile>analysisInputFiles/embed_dump/MarchCM/Run2899Kaneko_CMProton.root</EffFile>
                 <PtMin>0</PtMin>

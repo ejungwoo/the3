@@ -29,7 +29,7 @@
         <EfficiencyTask Type="CM">
              <NClus>15</NClus>
              <DPoca>15</DPoca> 
-             <Phi>0-20,330-360</Phi>
+             <Phi>160-220</Phi>
              <UpscaleFactor>10</UpscaleFactor>
              <PtBins>15</PtBins>
              <CMzBins>15</CMzBins>

@@ -4,30 +4,30 @@
 -->
 <AnalysisConfig>
     <IOInfo Type="Real">
-        <DataDir>/home/ejungwoo/data/trim/NewAna.2070.0231288/Sn124/</DataDir>
-        <RunFirst>3059</RunFirst>
-        <RunLast>3184</RunLast>
+        <DataDir>/home/ejungwoo/data/trim/NewAna.2070.0231288/Sn132/</DataDir>
+        <RunFirst>2841</RunFirst>
+        <RunLast>3000</RunLast>
     </IOInfo>
     <TaskList>
         <EventFilterTask>
-            <MultiplicityMin>50</MultiplicityMin>
+            <MultiplicityMin>56</MultiplicityMin>
             <MultiplicityMax>100</MultiplicityMax>
             <MultiplicityDPOCA>20</MultiplicityDPOCA>
         </EventFilterTask>
     
         <PIDProbTask Type="Bay">
-            <MetaFile>analysisInputFiles/Prior/Meta_Sn124KanekoMult50.root</MetaFile>
-            <PIDFit>analysisInputFiles/PIDFit/PIDSigma_Sn124KanekoMult50.root</PIDFit>
+            <MetaFile>analysisInputFiles/Prior/Meta_Sn132KanekoMult50.root</MetaFile>
+            <PIDFit>analysisInputFiles/PIDFit/PIDSigma_Sn132KanekoMult50.root</PIDFit>
         </PIDProbTask>
     
         <TransformFrameTask>
-             <TargetMass>112</TargetMass>
+             <TargetMass>124</TargetMass>
              <TargetThickness>0.8</TargetThickness>
-             <EnergyLossFile>analysisInputFiles/EnergyLoss/Sn112Sn124.txt</EnergyLossFile>
+             <EnergyLossFile>analysisInputFiles/EnergyLoss/Sn132Sn124.txt</EnergyLossFile>
         </TransformFrameTask>
     
         <EfficiencyTask Type="CM">
-             <NClus>15</NClus>
+             <NClus>20</NClus>
              <DPoca>15</DPoca> 
              <Phi>0-20,330-360</Phi>
              <UpscaleFactor>10</UpscaleFactor>
@@ -35,7 +35,7 @@
              <CMzBins>15</CMzBins>
              <UpscaleFactor>10</UpscaleFactor>
              <PhaseSpaceFactor>3</PhaseSpaceFactor>
-             <UpdateUnfolding>analysisInputFiles/Unfolding/Sn124Unfold.root</UpdateUnfolding>
+             <UpdateUnfolding>analysisInputFiles/Unfolding/Sn132Unfold.root</UpdateUnfolding>
              <Particle Name="p">
                 <EffFile>analysisInputFiles/embed_dump/MarchCM/Run2899Kaneko_CMProton.root</EffFile>
                 <PtMin>0</PtMin>
@@ -84,5 +84,6 @@
         <SimpleGraphsTask>
             <RapidityPlots></RapidityPlots>
         </SimpleGraphsTask>
+
     </TaskList>
 </AnalysisConfig>
