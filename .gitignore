@@ -3,6 +3,8 @@ log*/
 figures*/
 mac*.sh
 mac*.sh.o*
+m_*.sh
+m_*.sh.o*
 
 zz*
 temp*/
@@ -10,7 +12,11 @@ temp*/
 *.root
 
 core-root.exe*
-*png
-*pdf
+*.png
+*.pdf
+*.log
+*.out
 
 .d*
+
+submit*

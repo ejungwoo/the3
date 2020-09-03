@@ -63,7 +63,7 @@ void run_analysis_xml(int system, TString anaName="", TString fOutName="", bool 
     if(task) run -> AddTask(task);
 
   auto pst = new STParticleSummaryTask();
-  pst -> SetCuts(0.2,0.05,5);
+  pst -> SetCuts(0.01,0.01,5);
   run -> AddTask(pst);
 
   run -> Init();
