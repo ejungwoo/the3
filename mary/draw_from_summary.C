@@ -2,8 +2,9 @@
 #include "init_variables.h"
 #include "functions.h"
 
-//TString fVersions[] = {"kleft"};
-TString fVersions[] = {"tleftmid"};
+TString fVersions[] = {"kleft"};
+//TString fVersions[] = {"tright"};
+//TString fVersions[] = {"tleftmid"};
 
 const int fIPIDs[] = {0,1,2,3,4};
 //const int fIPIDs[] = {0,1};
@@ -31,7 +32,8 @@ void draw_from_summary()
   bool anaCorr = 0;
   bool anaAngle = 0;
   bool anaMult = 0;
-  bool anaPid = 0;
+  bool anaPid = 1;
+  bool anadEdx = 0;
 
   if (0) { anaIS = 1; anaCI = 1; anaCorr = 1; anaAngle = 1; anaMult = 1; anaPid = 1; anaAll = 1; ejungwoo::gdummytp(); }
 
@@ -44,25 +46,14 @@ void draw_from_summary()
   setpar("cut_e",       "1./$$(eff)/$$(num_events)*($$(mult_cut))*($$(rap_cut))*($$(pes_cut))*($$(poz_cut))*($$(angle_cut))");
   setpar("cut_pe","$$(prob)/$$(eff)/$$(num_events)*($$(mult_cut))*($$(rap_cut))*($$(pes_cut))*($$(poz_cut))*($$(angle_cut))");
 
-  //vector<variable*> varListAll = { &fvar_foby_cm, };
-  vector<variable*> varListAll = {
-    //&(fvar_prob+"y"),
-    &fvar_eff, &fvar_sd,
-    //&fvar_ptoa_cm,
-    // &fvar_pt_cm, &fvar_fy_cm, &fvar_p_cm, &fvar_ke_cm,
-    //&fvar_p_lab, &fvar_dedx,
-    //&fvar_dpoca, &fvar_nr, &fvar_nl,
-    &fvar_tta_cm, &fvar_phi_cm,
-    //&fvar_tta_lab, &fvar_phi_lab,
-    //&fvar_p_kab+&fvar_dedx,
-    //&fvar_ny_cm,
-    &fvar_foby_cm,
-    &fvar_fy_cm,
-    //fvar_foby_cm.add(fvar_eff),
-    //fvar_poz_lab.add(fvar_eff),
-  };
+  vector<variable*> varListAll    = { &fvar_eff, &fvar_sd, &fvar_tta_cm, &fvar_phi_cm, &fvar_foby_cm, &fvar_fy_cm, };
+  vector<variable*> varListAngle  = { fvar_phi_lab.add(fvar_tta_lab), fvar_phi_cm.add(fvar_tta_cm), fvar_phi_lab.add(fvar_phi_cm), fvar_tta_lab.add(fvar_tta_cm), };
+  vector<variable*> varListCorr   = { fvar_foby_cm.add(fvar_ptoa_cm), fvar_foby_cm.add(fvar_poz_lab), };
+  vector<variable*> varListIS     = { &fvar_foby_cm };
+  vector<variable*> varListCI     = { &fvar_keoa_cm };
+  vector<variable*> varListN1     = { &fvar_n, &fvar_np, &fvar_nd, &fvar_nt, &fvar_nhe3, &fvar_nhe4, };
 
-  auto fvar_pid = fvar_poz_lab+fvar_dedx+"z";
+  auto fvar_pid = fvar_poz_lab+fvar_dedx;//+"z";
 
   /******************************************************************************************/
 
@@ -95,13 +86,6 @@ void draw_from_summary()
   for (auto aversion : fVersions)
   {
     auto condition_array = setversion(aversion);
-    //vector<variable*> varListDndv   = { &fvar_foby_cm };
-    vector<variable*> varListAngle  = { fvar_phi_lab.add(fvar_tta_lab), fvar_phi_cm.add(fvar_tta_cm), fvar_phi_lab.add(fvar_phi_cm), fvar_tta_lab.add(fvar_tta_cm), };
-    vector<variable*> varListCorr   = { fvar_foby_cm.add(fvar_ptoa_cm), fvar_foby_cm.add(fvar_poz_lab), };
-    vector<variable*> varListIS     = { &fvar_foby_cm };
-    vector<variable*> varListCI     = { &fvar_keoa_cm };
-    vector<variable*> varListN1     = { &fvar_n, &fvar_np, &fvar_nd, &fvar_nt, &fvar_nhe3, &fvar_nhe4, };
-
     TTree *tree_pid[4][5] = {0};
     TTree *tree_mult[4] = {0};
     
@@ -215,29 +199,49 @@ void draw_from_summary()
         for (int ipid : fIPIDs) {
           auto tree = tree_pid[isys][ipid];
           setpar_syspid(isys,ipid);
-
           auto var = &fvar_pid;
-
           //var -> setCut(""); var -> drawaddhist(tree, TString("pid_raw_all")+sys, "logz");
           //var -> setCut(""); var -> drawaddnext(tree, TString("pid_raw_each")+sys, "logz");
-
           //var -> setCut("$$(cut_x)"); var -> drawaddhist(tree, TString("pid_cut_all")+sys, "logz");
-          var -> setCut("$$(cut_x)"); var -> drawaddnext(tree, TString("pid_cut_all")+sys, "logz");
-
-          //var -> setCut("$$(cut_pe"); var -> drawaddhist(tree, TString("pid_pecut_all")+sys, "logz");
-          var -> setCut("$$(cut_pe)"); var -> drawaddnext(tree, TString("pid_pecut_all")+sys, "logz");
+          //var -> setCut("$$(cut_x)"); var -> drawaddnext(tree, TString("pid_cut_all")+sys);
+          var -> setCut("$$(cut_pe)"); var -> drawaddhist(tree, TString("pid_pecut_all")+sys, "logz");
+          //var -> setCut("$$(cut_pe)"); var -> drawaddnext(tree, TString("pid_pecut_all")+sys);
         }
       }
+
+      if (anadEdx) {
+        for (auto mom : {1000.})
+        {
+          TString ename1 = TString("dedx_raw_mom")+mom+"_"+sys;
+          TString ename2 = TString("dedx_mom")+mom+"_"+sys;
+          for (int ipid : fIPIDs) {
+            auto tree = tree_pid[isys][ipid];
+            setpar_syspid(isys,ipid);
+            auto var = &fvar_dedx;
+
+            var -> setCut("($$(poz_lab)>900)*($$(poz_lab)<1100)");
+            var -> drawaddsame(tree, ename1, "hist", fParticleNames[ipid]);
+
+            var -> setCut("($$(cut_pe))*($$(poz_lab)>900)*($$(poz_lab)<1100)");
+            var -> drawaddsame(tree, ename2, "hist", fParticleNames[ipid]);
+          }
+        }
+      }
+
     }
 
     if (anaIS)
     {
       cout << "===================================== anaIS " << endl;
-      for (auto ii : {0})
+      for (auto ii : {0,1,2,3})
       {
         int isys1, isys2;
-        if (ii==0) { isys1=0; isys2=1; }
-        else       { isys1=3; isys2=2; }
+             if (ii==0) { isys1=0; isys2=1; }
+        else if (ii==1) { isys1=3; isys2=2; }
+        else if (ii==2) { isys1=0; isys2=2; }
+        else if (ii==3) { isys1=3; isys2=1; }
+
+        //{132   , 108   , 112   , 124   };
 
         auto systgA1 = Form("%d+%d",fSystems[isys1],fTargetA[isys1]);
         auto systgA2 = Form("%d+%d",fSystems[isys2],fTargetA[isys2]);
@@ -256,32 +260,11 @@ void draw_from_summary()
           for (int ipid : fIPIDs) {
             setpar_syspid(isys1,ipid); auto hist1 = var -> draw(tree_pid[isys1][ipid]);
             setpar_syspid(isys2,ipid); auto hist2 = var -> draw(tree_pid[isys2][ipid]);
-            //ejungwoo::add(cname_nn,ipid,hist1,"hist",Form("%d",fSystems[isys1]));
-            //ejungwoo::add(cname_nn,ipid,hist2,"hist",Form("%d",fSystems[isys2]));
             auto graphs = draw_is(ipid, hist1, hist2, num_tracks_per_event_cut);
             ejungwoo::add(cname_is, 0, graphs.At(0), "pl", fParticleNames[ipid]);
-            //ejungwoo::add(cname_is, 1, graphs.At(1), "pl", fParticleNames[ipid]);
-            //ejungwoo::add(cname_is, 2, graphs.At(2), "pl", fParticleNames[ipid]);
             double ymax1_ = ejungwoo::y2_g((TGraph *) graphs.At(1)); if (ymax1 < ymax1_) ymax1 = ymax1_;
             double ymax2_ = ejungwoo::y2_g((TGraph *) graphs.At(2)); if (ymax2 < ymax2_) ymax2 = ymax2_;
           }
-
-          /*
-          auto line1 = new TLine(var->getBinn().min,num_tracks_per_event_cut,var->getBinn().max,num_tracks_per_event_cut); line1 -> SetLineStyle(2);
-          auto line2 = new TLine(var->getBinn().min,num_tracks_per_event_cut,var->getBinn().max,num_tracks_per_event_cut); line2 -> SetLineStyle(2);
-          ejungwoo::add(cname_is,1,line1);
-          ejungwoo::add(cname_is,2,line1);
-
-          titles ttlIS132(systgA1,var->getTitle().x,fttly_ntne);
-          titles ttlIS108(systgA2,var->getTitle().x,fttly_ntne);
-          if (0) {
-            ejungwoo::add(cname_is,1,new_h(var->getHistName()+Form("_frame%d",fSystems[isys1]),ttlIS132,var->getBinn(),binning(100,ymax1*0.0001,ymax1*5)),"addx rangex logy");
-            ejungwoo::add(cname_is,2,new_h(var->getHistName()+Form("_frame%d",fSystems[isys2]),ttlIS108,var->getBinn(),binning(100,ymax2*0.0001,ymax2*5)),"addx rangex logy");
-          } else {
-            ejungwoo::add(cname_is,1,new_h(var->getHistName()+Form("_frame%d",fSystems[isys1]),ttlIS132,var->getBinn(),binning(100,0,ymax1*1.05)),"addx rangex");
-            ejungwoo::add(cname_is,2,new_h(var->getHistName()+Form("_frame%d",fSystems[isys2]),ttlIS108,var->getBinn(),binning(100,0,ymax2*1.05)),"addx rangex");
-          }
-          */
         }
       }
     }
