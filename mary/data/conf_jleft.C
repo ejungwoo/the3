@@ -1,7 +1,7 @@
-void conf_kleft()
+void conf_jleft()
 {
-  fSTVersion     = "kleft.NewAna.2100.de29163";
-  fVOutShort     = "kleft";
+  fSTVersion     = "jrightm50.NewAna.2100.de29163";
+  fVOutShort     = "jrightm50";
   fTrackMultHL   = "$$(multll)";
   fCut0String    = "$$(cut_pe)";
   fPhiLL         = 0;
@@ -16,11 +16,4 @@ void conf_kleft()
   fPtoaLL        = 0;
   fPtoaHL        = 10000;
   fNyLL          = -1;
-
-  //fSDHLCut[0] = 2.2;
-  //fSDHLCut[1] = 2.0;
-  //fSDHLCut[2] = 1.8;
-  //fSDHLCut[3] = 1.8;
-  //fSDHLCut[4] = 1.8;
-  //fSDHLCut[5] = 1.8;
 }
