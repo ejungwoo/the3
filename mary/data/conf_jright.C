@@ -1,6 +1,9 @@
 void conf_jright()
 {
   fSTVersion     = "jrightm50.NewAna.2100.de29163";
+  fFileVersion   = "jrightm50.NewAna.2100.de29163";
+  //fFileVersion2  = "jleftm50.NewAna.2100.de29163";
+  //fFileVersion2  = "";
   fVOutShort     = "jrightm50";
   fTrackMultHL   = "$$(multll)";
   fCut0String    = "$$(cut_pe)";
@@ -16,4 +19,9 @@ void conf_jright()
   fPtoaLL        = 0;
   fPtoaHL        = 10000;
   fNyLL          = -1;
+
+  fMultLLCut[0] = 51;
+  fMultLLCut[1] = 50;
+  fMultLLCut[2] = 50;
+  fMultLLCut[3] = 50;
 }

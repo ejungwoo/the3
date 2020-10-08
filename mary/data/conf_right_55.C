@@ -1,7 +1,9 @@
-void conf_kright132()
+void conf_right_55()
 {
-  fSTVersion     = "kright.pid132.NewAna.2100.de29163";
-  fVOutShort     = "kright132";
+  fSTVersion     = "right_55.NewAna.2100.de29163";
+  fFileVersion   = "right_55.NewAna.2100.de29163";
+  //fFileVersion2  = "left_55.NewAna.2100.de29163";
+  fVOutShort     = "right_55";
   fTrackMultHL   = "$$(multll)";
   fCut0String    = "$$(cut_pe)";
   fPhiLL         = 160;
@@ -16,4 +18,9 @@ void conf_kright132()
   fPtoaLL        = 0;
   fPtoaHL        = 10000;
   fNyLL          = -1;
+
+  fMultLLCut[0] = 56;
+  fMultLLCut[1] = 55;
+  fMultLLCut[2] = 55;
+  fMultLLCut[3] = 56;
 }
