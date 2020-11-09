@@ -38,7 +38,7 @@ void draw_all(
   int drawPYTTBoundary = 1;
   int drawPYDist1 = 0;
   int drawPtoA = 0;
-  int drawAB = 2;
+  int drawAB = 0;
   int drawR21NZ = 2;
   int drawTemperature = 1;
 
@@ -377,14 +377,13 @@ void draw_all(
         }
       } if (drawPYDist1==2) continue;
 
-      if (drawAB) {
-        TString groupName = sysNames0[iSys] + "_ab";
-        for (auto iPID : iPIDs) {
-          histAB[iSys][iPID] = (TH2D *) histPY[iSys][iPID] -> Clone();
-          histAB[iSys][iPID] -> Rebin2D(10,10);
+      TString groupName = sysNames0[iSys] + "_ab";
+      for (auto iPID : iPIDs) {
+        histAB[iSys][iPID] = (TH2D *) histPY[iSys][iPID] -> Clone();
+        histAB[iSys][iPID] -> Rebin2D(10,10);
+        if (drawAB)
           ejungwoo::addnext(groupName, histAB[iSys][iPID]);
-        }
-      } //if (drawAB==2) continue;
+      }
 
       //================================================================================================================================================
       for (auto iPID : iPIDs) {
@@ -408,26 +407,33 @@ void draw_all(
         //TString groupNameN = TString("combiN") + icomb + "_R21";
         TString groupName1 = TString("combiN") + icomb + "_R21";
 
-        const int countGroup = 2;
+        //const int countGroup = 2;
+        //const int indexNext = 1;
+        const int countGroup = 1;
+        const int indexNext = 0;
+        int offsetZ = -3;
         int indexGroup = 0;
 
-        auto vR21n = new variable("histN","","",";Z;R21",100,-1,3,100,0,2);
-        auto vR21z = new variable("histZ","","",";N;R21",100,-1,3,100,0,2);
+        auto vR21N = new variable("histN","","",";Z;R21",100,-1,3,100,0,2);
+        auto vR21Z = new variable("histZ","","",";N;R21",100,-1,3,100,0,2);
+        auto vR21A = new variable("histA","","",";N;R21",100,-4,3,100,0,2);
 
-        //for (auto binx : {4,5,6}) {
-          //for (auto biny : {2,3,4}) {
-        for (auto binx : {4,5}) {
-          for (auto biny : {2,3}) {
+        //for (auto binx : {4,5,6}) { for (auto biny : {2,3,4}) {
+        for (auto binx : {4,5}) { for (auto biny : {2,3}) {
+        //for (auto binx : {5}) { for (auto biny : {3}) {
             auto graphN0 = ejungwoo::new_g(); graphN0 -> SetMarkerStyle(ejungwoo::markeri(0)); //graphN0 -> SetMarkerSize(1.5);
             auto graphN1 = ejungwoo::new_g(); graphN1 -> SetMarkerStyle(ejungwoo::markeri(1)); //graphN1 -> SetMarkerSize(1.5);
             auto graphN2 = ejungwoo::new_g(); graphN2 -> SetMarkerStyle(ejungwoo::markeri(2)); //graphN2 -> SetMarkerSize(1.5);
-            auto graphZ1 = ejungwoo::new_g(); graphZ1 -> SetMarkerStyle(ejungwoo::markeri(0)); //graphZ1 -> SetMarkerSize(1.5);
-            auto graphZ2 = ejungwoo::new_g(); graphZ2 -> SetMarkerStyle(ejungwoo::markeri(0)); //graphZ2 -> SetMarkerSize(1.5);
+            auto graphZ1 = ejungwoo::new_g(); graphZ1 -> SetMarkerStyle(ejungwoo::markeri(3)); //graphZ1 -> SetMarkerSize(1.5);
+            auto graphZ2 = ejungwoo::new_g(); graphZ2 -> SetMarkerStyle(ejungwoo::markeri(4)); //graphZ2 -> SetMarkerSize(1.5);
 
-            auto histR21N = vR21n -> draw(); histR21N -> SetTitle(Form("%d,%d;Z;R21",binx,biny));
-            auto histR21Z = vR21z -> draw(); histR21Z -> SetTitle(Form("%d,%d;N;R21",binx,biny));
-            ejungwoo::add(groupName1, countGroup*indexGroup+1, histR21N, "pl colorx") -> legendlt();
-            ejungwoo::add(groupName1, countGroup*indexGroup+0, histR21Z, "pl colorx") -> legendlt();
+            auto histR21N = vR21N -> draw(); histR21N -> SetTitle(Form("%d,%d;Z;R21",binx,biny));
+            auto histR21Z = vR21Z -> draw(); histR21Z -> SetTitle(Form("%d,%d;N;R21",binx,biny));
+            auto histR21A = vR21A -> draw(); histR21A -> SetTitle(Form("%d,%d;N;R21",binx,biny));
+
+            ejungwoo::add(groupName1, countGroup*indexGroup+indexNext, histR21A, "pl colorx") -> legendlt();
+            //ejungwoo::add(groupName1, countGroup*indexGroup+indexNext, histR21N, "pl colorx") -> legendlt();
+            //ejungwoo::add(groupName1, countGroup*indexGroup+0, histR21Z, "pl colorx") -> legendlt();
 
             for (auto iPID : iPIDs) {
               auto val2 = histAB[iSys1][iPID] -> GetBinContent(binx,biny);
@@ -437,36 +443,37 @@ void draw_all(
               if (particleN[iPID]==0) graphN0 -> SetPoint(graphN0 -> GetN(), particleZ[iPID], r21);
               if (particleN[iPID]==1) graphN1 -> SetPoint(graphN1 -> GetN(), particleZ[iPID], r21);
               if (particleN[iPID]==2) graphN2 -> SetPoint(graphN2 -> GetN(), particleZ[iPID], r21);
-              if (particleZ[iPID]==1) graphZ1 -> SetPoint(graphZ1 -> GetN(), particleN[iPID], r21);
-              if (particleZ[iPID]==2) graphZ2 -> SetPoint(graphZ2 -> GetN(), particleN[iPID], r21);
+              if (particleZ[iPID]==1) graphZ1 -> SetPoint(graphZ1 -> GetN(), particleN[iPID]+offsetZ , r21);
+              if (particleZ[iPID]==2) graphZ2 -> SetPoint(graphZ2 -> GetN(), particleN[iPID]+offsetZ , r21);
 
               double xN = particleN[iPID]; double yN = r21;
               double xZ = particleZ[iPID]; double yZ = r21;
-              if (iPID==0) { yN = yN + 0.2; xZ = xZ - 0.4; }
-              if (iPID==1) { yN = yN + 0.2; xZ = xZ - 0.4; }
-              if (iPID==2) { yN = yN + 0.2; xZ = xZ - 0.4; }
-              if (iPID==3) { yN = yN - 0.2; xZ = xZ + 0.4; }
-              if (iPID==4) { yN = yN - 0.2; xZ = xZ + 0.4; }
+              if (iPID==0) { yN = yN + 0.2; xZ = xZ - 0.4; xN = xN + offsetZ; }
+              if (iPID==1) { yN = yN + 0.2; xZ = xZ - 0.4; xN = xN + offsetZ; }
+              if (iPID==2) { yN = yN + 0.2; xZ = xZ - 0.4; xN = xN + offsetZ; }
+              if (iPID==3) { yN = yN - 0.2; xZ = xZ + 0.4; xN = xN + offsetZ; }
+              if (iPID==4) { yN = yN - 0.2; xZ = xZ + 0.4; xN = xN + offsetZ; }
 
               auto ttN = new TText(xN, yN, particleNames[iPID]); ttN -> SetTextAlign(22); ttN -> SetTextColor(kBlue);
               auto ttZ = new TText(xZ, yZ, particleNames[iPID]); ttZ -> SetTextAlign(22); ttZ -> SetTextColor(kBlue);
 
-              ejungwoo::add(groupName1, 2*indexGroup+0, ttN, "addx same");
-              ejungwoo::add(groupName1, 2*indexGroup+1, ttZ, "addx same");
+              ejungwoo::add(groupName1, countGroup*indexGroup+0, ttN, "addx same");
+              ejungwoo::add(groupName1, countGroup*indexGroup+indexNext, ttZ, "addx same");
             }
             auto fitN1 = ejungwoo::fitgraph(graphN1,"pol1");
             auto beta = fitN1 -> GetParameter(1);
             auto fitZ1 = ejungwoo::fitgraph(graphZ1,"pol1");
+            fitZ1 -> SetLineColor(kGreen+3);
             auto alpha = fitZ1 -> GetParameter(1);
 
-            ejungwoo::add(groupName1, 2*indexGroup+1, fitN1, "pl colorx", Form("#beta=%.2f",beta));
-            ejungwoo::add(groupName1, 2*indexGroup+1, graphN0, "pl colorx", "N=0");
-            ejungwoo::add(groupName1, 2*indexGroup+1, graphN1, "pl colorx", "N=1");
-            ejungwoo::add(groupName1, 2*indexGroup+1, graphN2, "pl colorx", "N=2");
+            ejungwoo::add(groupName1, countGroup*indexGroup+indexNext, fitN1, "pl colorx", Form("#beta=%.2f",beta));
+            ejungwoo::add(groupName1, countGroup*indexGroup+indexNext, graphN0, "pl colorx", "N=0");
+            ejungwoo::add(groupName1, countGroup*indexGroup+indexNext, graphN1, "pl colorx", "N=1");
+            ejungwoo::add(groupName1, countGroup*indexGroup+indexNext, graphN2, "pl colorx", "N=2");
 
-            ejungwoo::add(groupName1, 2*indexGroup+0, fitZ1, "pl colorx", Form("#alpha=%.2f",alpha));
-            ejungwoo::add(groupName1, 2*indexGroup+0, graphZ1, "pl colorx", "Z=1");
-            ejungwoo::add(groupName1, 2*indexGroup+0, graphZ2, "pl colorx", "Z=2");
+            ejungwoo::add(groupName1, countGroup*indexGroup+0, fitZ1, "pl colorx", Form("#alpha=%.2f",alpha));
+            ejungwoo::add(groupName1, countGroup*indexGroup+0, graphZ1, "pl colorx", "Z=1");
+            ejungwoo::add(groupName1, countGroup*indexGroup+0, graphZ2, "pl colorx", "Z=2");
 
             indexGroup++;
           }
