@@ -1,4 +1,4 @@
-void run_analysis_xml(int system, TString anaName="", TString fOutName="", bool iter_unfold=false)
+void run_analysis_xml(int system, TString anaName="", TString confName="", TString tag="", TString fOutName="", bool iter_unfold=false)
 {
   std::srand(std::time(0));
 
@@ -7,7 +7,9 @@ void run_analysis_xml(int system, TString anaName="", TString fOutName="", bool 
   ****************************************************************/
   TDOMParser parser;
   parser.SetValidate(false);
-  TString xmlFile = Form("analysisInputFiles/analysisConfig/analysisSn%dCM%s.xml", system, anaName.Data());
+  //TString xmlFile = Form("analysisInputFiles/analysisConfig/analysisSn%dCM%s.xml", system, confName.Data());
+  TString xmlFile = Form("analysisInputFiles/analysisConfig/analysis.%s.Sn%dCM.xml", confName.Data(), system);
+  cout << xmlFile << endl;
   parser.ParseFile(xmlFile.Data());
   auto node = parser.GetXMLDocument()->GetRootNode()->GetChildren();
   STAnalysisFactory factory(node);
@@ -20,10 +22,14 @@ void run_analysis_xml(int system, TString anaName="", TString fOutName="", bool 
   TString fPathToData = reader -> GetPathToData();
   TString spiritroot = TString(gSystem -> Getenv("VMCWORKDIR"))+"/";
   TString fVersionOut; std::ifstream(spiritroot+"VERSION.compiled") >> fVersionOut;
-  TString fPathToDataOut = Form("/home/ejungwoo/data/ana/%s/Sn%d/",fVersionOut.Data(),system);
+  //TString fPathToDataOut = Form("/home/ejungwoo/data/ana/%s/Sn%d/",fVersionOut.Data(),system);
+  TString fPathToDataOut = Form("/home/ejungwoo/data/ana/%s/Sn%d/",anaName.Data(),system);
   gSystem -> Exec(TString("mkdir -p ")+fPathToDataOut);
   if (fOutName.IsNull())
-    fOutName = TString("sys")+system+anaName;
+    fOutName = TString("sys")+system+"_"+confName+tag;
+
+  cout << fPathToDataOut << endl;
+  cout << fOutName << endl;
 
   TString par = spiritroot + "parameters/ST.parameters.par";
   TString geo = spiritroot + "geometry/geomSpiRIT.man.root";

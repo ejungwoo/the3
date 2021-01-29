@@ -3,12 +3,16 @@ void run_trim_data
   int fRunNo = 2272,
   int fSplitNo1 = 99,
   int fNumSplits = 1,
-  int fRecoDate = 20191214,
-  //int fRecoDate = 20200529,
-  TString pathToInSys = ""
+  const char *fAnaName = "20191214",
+  TString fPathIn = "/home/ejungwoo/data/reco/fix3/",
+  TString fPathOut = "/home/ejungwoo/data/trim/fix3/"
 )
 {
-  TString pathToOut = "/home/ejungwoo/data/trim";
+  bool usingSingleSplit = false;
+  if (fSplitNo1>=10000) {
+    fSplitNo1 = fSplitNo1-10000;
+    usingSingleSplit = true;
+  }
 
   TString spiritroot = TString(gSystem -> Getenv("VMCWORKDIR"))+"/";
   TString pathToParameters = spiritroot + "parameters/";
@@ -30,14 +34,41 @@ void run_trim_data
   TString beamCut = "analysisInputFiles/beamCut/beamGate.root";
   TString beamCutName = Form("sigma30_%dSn", fSystem1);
 
-  if (pathToInSys.IsNull())
-    pathToInSys  = Form("/data/Q20393/production/%d/data/Sn%d/",fRecoDate,fSystem1);
-  TString pathToOutSys = Form("%s/%s/Sn%d/"    ,pathToOut.Data(),versionOut.Data(),fSystem1); gSystem -> Exec(TString("mkdir -p ")+pathToOutSys);
-  TString pathToLogSys = Form("%s/%s/Sn%d/log/",pathToOut.Data(),versionOut.Data(),fSystem1); gSystem -> Exec(TString("mkdir -p ")+pathToLogSys);
+  if (fPathIn.IsNull())
+    fPathIn  = Form("/home/ejungwoo/data/reco/%s/Sn%d/",fAnaName,fSystem1);
+
+  TString pathToOutSys;
+  TString pathToLogSys;
+
+  if (fPathOut.EndsWith(Form("Sn%d",fSystem1))) {
+    pathToOutSys = fPathOut + "/";
+    pathToLogSys = fPathOut + "/log/";
+  }
+  else if (fPathOut.EndsWith(Form("Sn%d/",fSystem1))) {
+    pathToOutSys = fPathOut + "";
+    pathToLogSys = fPathOut + "log/";
+  }
+  else if (fPathOut.EndsWith("/")) {
+    pathToOutSys = Form("%s/Sn%d/",fPathOut.Data(),fSystem1);
+    pathToLogSys = Form("%s/Sn%d/log/",fPathOut.Data(),fSystem1);
+  }
+  else if (fPathOut.EndsWith("/")) {
+    pathToOutSys = Form("%s/Sn%d/",fPathOut.Data(),fSystem1);
+    pathToLogSys = Form("%s/Sn%d/log/",fPathOut.Data(),fSystem1);
+  }
+  else if (fPathOut.IsNull()) {
+    pathToOutSys = Form("%s/%s/Sn%d/",spiritroot.Data(),fAnaName,fSystem1);
+    pathToLogSys = Form("%s/%s/Sn%d/log/",spiritroot.Data(),fAnaName,fSystem1);
+  }
+  else {
+    pathToOutSys = Form("/%s/Sn%d/",fAnaName,fSystem1);
+    pathToLogSys = Form("/%s/Sn%d/log/",fAnaName,fSystem1);
+  }
+  gSystem -> Exec(TString("mkdir -p ")+pathToOutSys);
 
   TString par = pathToParameters + "/ST.parameters.par";
   TString geo = spiritroot+"geometry/geomSpiRIT.man.root"; 
-  TString in  = pathToInSys+"run"+fRunNo+"_sSPLITIDX.reco.*.conc.root";
+  TString in  = fPathIn+"run"+fRunNo+"_sSPLITIDX.reco.*.conc.root";
   TString out = pathToOutSys+"run"+fRunNo+"_s"+fSplitNo1+".reco."+versionOut+".conc.trimmed.root";
   TString log = pathToLogSys+"run"+fRunNo+"_s"+fSplitNo1+".reco."+versionOut+".conc.trimmed.log";
 
@@ -51,11 +82,15 @@ void run_trim_data
   // same file is added twice because the conc files may have either of those tree name
   for (auto iSplit=0; iSplit<fNumSplits; ++iSplit) {
     auto split = fSplitNo1*fNumSplits + iSplit;
+    if (usingSingleSplit)
+      split = fSplitNo1;
     TString inSplit = in;
     inSplit.ReplaceAll("SPLITIDX",Form("%d",split));
     cout << inSplit << endl;
     chain.Add(inSplit + "/cbmsim");
     chain.Add(inSplit + "/spirit");
+    if (usingSingleSplit)
+      break;
   }
  
   FairRunAna* run = new FairRunAna();
