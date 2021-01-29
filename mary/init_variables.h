@@ -20,16 +20,21 @@ const int fTargetA[] = {124   , 112   , 124   , 112   };
 const double fYAAs[] = {0.3822, 0.3647, 0.3538, 0.3902};
 const double fYNNs[] = {0.3696, 0.3697, 0.3705, 0.3706};
 int fMultLLCut[6] = {56,55,55,55};
+int fMultHLCut[6] = {100,100,100,100};
 //double fSDHLCut[6] = {5,5,5,5,5,5,};
-//double fSDHLCut[6] = {2.2,2.0,1.8,1.8,1.8,1.8,};
-double fSDHLCut[6] = {2.0,2.0,2.0,2.0,2.0,2.0,};
+double fSDHLCut[6] = {2.2,2.0,1.8,1.8,1.8,1.8,};
+//double fSDHLCut[6] = {2.0,2.0,2.0,2.0,2.0,2.0,};
+//double fSDHLCut[6] = {3.0,3.0,3.0,3.0,3.0,3.0,};
+//double fSDHLCut[6] = {5.0,5.0,5.0,5.0,5.0,5.0,};
 Long64_t fNumEvents[4] = {0};
 TString fParticleTreeNames[6] = {"p","d","t","he3","he4","he6"};
 TString fParticleNames[6] = {"p","d","t","he3","he4","he6"};
+TString fParticleNames2[6] = {"p","d","t","^{3}He","^{4}He","^{6}He"};
 //const double fParticlePozCut[6] = {100,300,300,100,200,200};
-const double fParticlePozCut[6] = {100,100,100,100,100,100};
+//const double fParticlePozCut[6] = {100,500,500,500,500,500};
+const double fParticlePozCut[6] = {100,100,800,400,400,100};
 double fParticleMass[6] = {938.272, 1871.06, 2809.41, 2809.41, 3728.4, 5606.55};
-int fParticlePDGs[6] = {2212, 1000010030, 1000010020, 1000020040, 1000020030,};
+int fParticlePDGs[6] = {2212, 1000010020, 1000010030, 1000020030, 1000020040,};
 int fParticleA[6] = {1,2,3,3,4,6};
 int fParticleZ[6] = {1,1,1,2,2,2};
 
@@ -92,6 +97,7 @@ TString fVOutShort;
 TString fTrackMultHL;
 TString fCut0String;
 TString fSDHLString;
+TString fHeadName;
 double fPhiLL;
 double fPhiHL;
 double fPhiLL2 = 0;
@@ -109,15 +115,16 @@ double fSolidAngle;
 
 void init()
 {
-  setpar("cut_x",                               "1.*($$(mult_cut))*($$(rap_cut))*($$(pes_cut))*($$(poz_cut))*($$(angle_cut))");
-  setpar("cut_p",          "$$(prob)/$$(num_events)*($$(mult_cut))*($$(rap_cut))*($$(pes_cut))*($$(poz_cut))*($$(angle_cut))");
-  setpar("cut_e",        "1./$$(eff)/$$(num_events)*($$(mult_cut))*($$(rap_cut))*($$(pes_cut))*($$(poz_cut))*($$(angle_cut))");
-  setpar("cut_pe", "$$(prob)/$$(eff)/$$(num_events)*($$(mult_cut))*($$(rap_cut))*($$(pes_cut))*($$(poz_cut))*($$(angle_cut))");
+  setpar("cut_x",                               "1.*($$(mult_cut))*($$(pes_cut))*($$(poz_cut))*($$(angle_cut))*($$(rap_cut))");
+  setpar("cut_p",          "$$(prob)/$$(num_events)*($$(mult_cut))*($$(pes_cut))*($$(poz_cut))*($$(angle_cut))*($$(rap_cut))");
+  setpar("cut_e",        "1./$$(eff)/$$(num_events)*($$(mult_cut))*($$(pes_cut))*($$(poz_cut))*($$(angle_cut))*($$(rap_cut))");
+  setpar("cut_pe", "$$(prob)/$$(eff)/$$(num_events)*($$(mult_cut))*($$(pes_cut))*($$(poz_cut))*($$(angle_cut))*($$(rap_cut))");
   setpar("cut_noy","$$(prob)/$$(eff)/$$(num_events)*($$(mult_cut))*($$(pes_cut))*($$(poz_cut))*($$(angle_cut))");
 }
 
 TString fFileVersion = "";
 TString fFileVersion2 = "";
+TString fFileVersion3 = "";
 
 bool tree_is_set = false;
 
@@ -131,34 +138,59 @@ void settrees()
     auto sys = fSystems[isys];
 
     if (fTreeMult[isys]==nullptr) fTreeMult[isys] = new TChain("mult");
-    auto fileName = Form("data/sys%d.%s.ana.particle.root",sys,fFileVersion.Data());
-    //cout << " ++ " << fileName << endl;
+    auto fileName = Form("data/sys%d_%s.ana.particle.root",sys,fFileVersion.Data());
+    cout << " ++ " << fileName << endl;
     fTreeMult[isys] -> Add(fileName);
     if (!fFileVersion2.IsNull()) {
-      auto fileName2 = Form("data/sys%d.%s.ana.particle.root",sys,fFileVersion2.Data());
-      //cout << " ++ " << fileName2 << endl;
+      auto fileName2 = Form("data/sys%d_%s.ana.particle.root",sys,fFileVersion2.Data());
+      cout << " ++2 " << fileName2 << endl;
+      fTreeMult[isys] -> Add(fileName2);
+    }
+    if (!fFileVersion3.IsNull()) {
+      auto fileName2 = Form("data/sys%d_%s.ana.particle.root",sys,fFileVersion3.Data());
+      cout << " ++3 " << fileName2 << endl;
       fTreeMult[isys] -> Add(fileName2);
     }
     fNumEvents[isys] = fTreeMult[isys] -> GetEntries(ejungwoo::getpar("mult_cut2"));
+    cout << isys << " " << fNumEvents[isys] << endl;
 
-    for (int ipid : fIPIDAll) {
-      bool addeffk = ((fAddEffk&&(sys==132||sys==108)&&(ipid==0||ipid==1||ipid==2))?true:false);
-      if (fTreePID[isys][ipid]==nullptr) fTreePID[isys][ipid] = new TChain(fParticleTreeNames[ipid]);
-      auto fileName = Form("data/sys%d.%s.ana.particle.root",sys,fFileVersion.Data());
-      if (ipid==0) cout << " ++ " << fileName << endl;
-      fTreePID[isys][ipid] -> Add(fileName);
-      if (addeffk) {
-        auto fileName1 = Form("data/sys%d.%s.ana.particle.effk_%s.root",sys,fFileVersion.Data(),fParticleNames[ipid].Data());
-        cout << fileName1 << endl;
-        auto file1 = new TFile(fileName1,"read");
-        auto tree1 = (TTree *) file1 -> Get(fParticleTreeNames[ipid]);
-        fTreePID[isys][ipid] -> AddFriend(tree1);
+    if (0) {
+      for (int ipid : fIPIDAll)
+      {
+        if (fTreePID[isys][ipid]==nullptr)
+          fTreePID[isys][ipid] = new TChain("data");
+
+        auto fileName = Form("data/sys%d_prob05.root",fSystems[isys]);
+        if (ipid==0) cout << " ++ " << fileName << endl;
+        fTreePID[isys][ipid] -> Add(fileName);
       }
-      if (!fFileVersion2.IsNull()) {
-        auto fileName2 = Form("data/sys%d.%s.ana.particle.root",sys,fFileVersion2.Data());
-        if (ipid==0) cout << " ++ " << fileName2 << endl;
-        fTreePID[isys][ipid] -> Add(fileName2);
-        //if (addeffk) fTreePID[isys][ipid] -> AddFriend(Form("data/sys%d.%s.ana.particle.effk_%s.root",sys,fFileVersion2.Data(),fParticleNames[ipid].Data()));
+    }
+    else {
+      for (int ipid : fIPIDAll) {
+        bool addeffk = ((fAddEffk&&(sys==132||sys==108)&&(ipid==0||ipid==1||ipid==2))?true:false);
+        if (fTreePID[isys][ipid]==nullptr) fTreePID[isys][ipid] = new TChain(fParticleTreeNames[ipid]);
+        auto fileName = Form("data/sys%d_%s.ana.particle.root",sys,fFileVersion.Data());
+        if (ipid==0) cout << " ## " << fileName << endl;
+        fTreePID[isys][ipid] -> Add(fileName);
+        if (addeffk) {
+          auto fileName1 = Form("data/sys%d_%s.ana.particle.effk_%s.root",sys,fFileVersion.Data(),fParticleNames[ipid].Data());
+          cout << fileName1 << endl;
+          auto file1 = new TFile(fileName1,"read");
+          auto tree1 = (TTree *) file1 -> Get(fParticleTreeNames[ipid]);
+          fTreePID[isys][ipid] -> AddFriend(tree1);
+        }
+        if (!fFileVersion2.IsNull()) {
+          auto fileName2 = Form("data/sys%d_%s.ana.particle.root",sys,fFileVersion2.Data());
+          if (ipid==0) cout << " ## " << fileName2 << endl;
+          fTreePID[isys][ipid] -> Add(fileName2);
+          //if (addeffk) fTreePID[isys][ipid] -> AddFriend(Form("data/sys%d.%s.ana.particle.effk_%s.root",sys,fFileVersion2.Data(),fParticleNames[ipid].Data()));
+        }
+        if (!fFileVersion3.IsNull()) {
+          auto fileName2 = Form("data/sys%d_%s.ana.particle.root",sys,fFileVersion3.Data());
+          if (ipid==0) cout << " ## " << fileName2 << endl;
+          fTreePID[isys][ipid] -> Add(fileName2);
+          //if (addeffk) fTreePID[isys][ipid] -> AddFriend(Form("data/sys%d.%s.ana.particle.effk_%s.root",sys,fFileVersion3.Data(),fParticleNames[ipid].Data()));
+        }
       }
     }
   }
@@ -191,9 +223,12 @@ vector<TString> setversion(TString version)
   ejungwoo::gversionin(fSTVersion);
   ejungwoo::gversionout(fVOutShort);
   setpar("vshort", fVOutShort);
-  setpar("mult_cut",Form("$$(ntk)>=%s",fTrackMultHL.Data()));
-  setpar("mult_cut2",Form("$$(nall)>%s",fTrackMultHL.Data()));
-  setpar("angle_cut",Form("$$(tta_cm)>%s&&$$(tta_cm)<%s",dbstr(fTtaLL).Data(),dbstr(fTtaHL).Data()));
+  //setpar("mult_cut",Form("$$(ntk)>=%s",fTrackMultHL.Data()));
+  setpar("mult_cut","1");
+  //setpar("mult_cut2",Form("$$(nall)>%s",fTrackMultHL.Data()));
+  setpar("mult_cut2","1");
+  //setpar("angle_cut",Form("$$(tta_cm)>%s&&$$(tta_cm)<%s",dbstr(fTtaLL).Data(),dbstr(fTtaHL).Data()));
+  setpar("angle_cut","1");
   setpar("poz_cut", "$$(poz_lab)>$$(pozll)");
   setpar("pes_cut",Form("$$(prob)>%s&&$$(eff)>%s&&$$(asd)<%s",dbstr(fProbLL).Data(),dbstr(fEffLL).Data(),fSDHLString.Data()));
   setpar("rap_cut",Form("$$(foby_cm)>%s",dbstr(fNyLL).Data()));
@@ -207,6 +242,7 @@ vector<TString> setversion(TString version)
 void setpar_syspid(int isys, int ipid=0)
 {
   setpar("sys",fSystems[isys]);
+  setpar("tar",fTargetA[isys]);
   setpar("yaa",fYAAs[isys]);
   setpar("ynn",fYNNs[isys]);
   setpar("num_events",fNumEvents[isys]);
@@ -220,6 +256,7 @@ void setpar_syspid(int isys, int ipid=0)
   setpar("nump",fNumProtons[ipid]);
   setpar("numn",fNumNeutrons[ipid]);
   setpar("asdcut",fSDHLCut[ipid]);
+  setpar("gcutpid",Form("(prob>.5)*gcut%d",ipid));
 };
 
 TObjArray draw_is(int idx_particle, TH1 *hist132, TH1 *hist108, double num_tracks_cut)
@@ -237,8 +274,11 @@ TObjArray draw_is(int idx_particle, TH1 *hist132, TH1 *hist108, double num_track
     auto idxvv = graph_v132 -> GetN();
     graph_v132 -> SetPoint(idxvv, binc, v132);
     graph_v108 -> SetPoint(idxvv, binc, v108);
-    if (v132 < num_tracks_cut || v108 < num_tracks_cut)
+    if (v132 < num_tracks_cut || v108 < num_tracks_cut) {
+      cout << "X  " << idxvv << " " << binc << " 132:" << v132 << " / 108:" << v108 << "  =  " << v132/v108 << endl;
       continue;
+    }
+    cout << "O  " << idxvv << " " << binc << " 132:" << v132 << " / 108:" << v108 << "  =  " << v132/v108 << endl;
     auto idxis = graph_is -> GetN();
     graph_is -> SetPoint(idxis, binc, v132/v108);
   }
