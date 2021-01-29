@@ -1,8 +1,10 @@
-void conf_tright()
+void conf_right_50()
 {
-  fSTVersion     = "tright.NewAna.2100.de29163";
-  fVOutShort     = "tright";
-  fTrackMultHL   = "50";
+  fSTVersion     = "right_50.NewAna.2100.de29163";
+  fFileVersion   = "right_50.NewAna.2100.de29163";
+  //fFileVersion2  = "left_50.NewAna.2100.de29163";
+  fVOutShort     = "right_50";
+  fTrackMultHL   = "$$(multll)";
   fCut0String    = "$$(cut_pe)";
   fPhiLL         = 160;
   fPhiHL         = 220;
@@ -17,10 +19,8 @@ void conf_tright()
   fPtoaHL        = 10000;
   fNyLL          = -1;
 
-  fSDHLCut[0] = 2.2;
-  fSDHLCut[1] = 2.0;
-  fSDHLCut[2] = 1.8;
-  fSDHLCut[3] = 1.8;
-  fSDHLCut[4] = 1.8;
-  fSDHLCut[5] = 1.8;
+  fMultLLCut[0] = 51;
+  fMultLLCut[1] = 50;
+  fMultLLCut[2] = 50;
+  fMultLLCut[3] = 51;
 }
