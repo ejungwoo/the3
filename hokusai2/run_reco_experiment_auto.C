@@ -10,6 +10,9 @@ void run_reco_experiment_auto
   Int_t fSys = 132,
   TString fPathToData = "/home/ejungwoo/data/reco/",
   Bool_t fSelectPiEvent = false,
+  TString fOut = "",
+  TString fLog = "",
+  TString fConc = "",
   std::vector<Int_t> fSkipEventArray = {},
   TString fMCFile = "",
   TString fSupplePath = "/data/Q18393/rawdataSupplement",
@@ -86,8 +89,14 @@ void run_reco_experiment_auto
   TString par = fSpiRITROOTPath+"parameters/"+fParameterFile;
   TString geo = fSpiRITROOTPath+"geometry/geomSpiRIT.man.root";
   TString fRawDataList = TString(gSystem -> Getenv("PWD"))+"/list_run"+sRunNo+".txt";
-  TString out = fPathToData+"run"+sRunNo+"_s"+sSplitNo+".reco."+version+".root";
-  TString log = fPathToData+"run"+sRunNo+"_s"+sSplitNo+"."+version+".log";
+
+  if (fOut.IsNull())  fOut  = fPathToData+"run"+sRunNo+"_s"+sSplitNo+".reco."+version+".root";
+  if (fLog.IsNull())  fLog  = fPathToData+"run"+sRunNo+"_s"+sSplitNo+".reco."+version+".log";
+  if (fConc.IsNull()) fConc = fPathToData+"run"+sRunNo+"_s"+sSplitNo+".reco."+version+".conc.root";
+
+  //TString fOut = fPathToData+"run"+sRunNo+"_s"+sSplitNo+".reco."+version+".root";
+  //TString fLog = fPathToData+"run"+sRunNo+"_s"+sSplitNo+"."+version+".log";
+  //TString fConc = fPathToData+"run"+sRunNo+"_s"+sSplitNo+".reco."+version+".conc.root";
   
   if (TString(gSystem -> Which(".", fRawDataList)).IsNull() && !fUseMeta)
     gSystem -> Exec("./createList.sh "+sRunNo);
@@ -106,7 +115,7 @@ void run_reco_experiment_auto
 
   FairRunAna* run = new FairRunAna();
   run -> SetGeomFile(geo);
-  run -> SetOutputFile(out);
+  run -> SetOutputFile(fOut);
   run -> GetRuntimeDb() -> setSecondInput(parReader);
 
   STDecoderTask *decoder = new STDecoderTask();
@@ -249,7 +258,7 @@ void run_reco_experiment_auto
   embedCorr -> SetPersistence(true);
 
   auto smallOutput = new STSmallOutputTask();
-  smallOutput -> SetOutputFile((fPathToData+"run"+sRunNo+"_s"+sSplitNo+".reco."+version+".conc.root").Data());
+  smallOutput -> SetOutputFile(fConc.Data());
   smallOutput -> SetRun(fRunNo);
 
   run -> AddTask(decoder);
@@ -288,9 +297,9 @@ void run_reco_experiment_auto
   recoHeader -> SetPar("driftVelocity", driftVelocityInParameterFile);
   recoHeader -> Write("RecoHeader");
 
-  cout << "Log    : " << log << endl;
+  cout << "Log    : " << fLog << endl;
   cout << "Input  : " << fRawDataList << endl;
-  cout << "Output : " << out << endl;
+  cout << "Output : " << fOut << endl;
 
   gApplication -> Terminate();
 }

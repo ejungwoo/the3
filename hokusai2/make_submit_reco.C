@@ -2,11 +2,13 @@ void make_submit_reco()
 {
   //TString anaName = "fix4"; TString readme = "with spiritroot install Tommy's hokusai instruction of Tommy";
   //TString anaName = "fix5"; TString readme = "after checking it works fine";
-  TString anaName = "fix6"; TString readme = "vertex fix parameter was not set in fix5";
+  //TString anaName = "fix6"; TString readme = "vertex fix parameter was not set in fix5";
+  TString anaName = "f7"; TString readme = "runs those not included in fix6";
 
   bool useDB = 1;
-  int numEventsMax = 800000;
-  int numEventsInSplit = 5000;
+  //int numEventsMax = 800000;
+  int numEventsMax = 80000000;
+  int numEventsInSplit = 10000;
   //auto fSelectRun = 2962; // set 0 to run all
   auto fSelectRun = 0; // set 0 to run all
   auto formSelectRunEvent = "Pick_PiEvt/Sn%d_KanekoEvt/list_all";
@@ -14,9 +16,15 @@ void make_submit_reco()
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+  TString spversion;
+  TString spiritroot = TString(gSystem -> Getenv("VMCWORKDIR"))+"/";
+  std::ifstream(spiritroot+"VERSION.compiled") >> spversion;
+
   //int iSystemsForAna[] = {0,1,2,3};
   int iSystemsForAna[] = {0,3};
   int systems[] = {108,112,124,132};
+  int sysRunCutL[] = {0,0,0,0};
+  //int sysRunCutL[] = {2311,10000,10000,2857};
 
   TString runName = "submit_reco";
   TString runTag = "sr";
@@ -30,6 +38,7 @@ void make_submit_reco()
   TString endFull = pwdDir + runName + "_" + anaName + ".end";
 
   TString recoDir = Form("/home/ejungwoo/data/reco/%s/",anaName.Data());
+  cout << "reco directory: " << recoDir << endl;
   gSystem -> mkdir(recoDir);
   std::ofstream fileReadme(recoDir+"Readme");
   fileReadme << readme << endl;
@@ -71,6 +80,9 @@ void make_submit_reco()
         }
       }
       else {
+        if (run < sysRunCutL[iSystem])
+          continue;
+
         if (numEventsTotal[iSystem] < numEventsMax) {
           runArray[iSystem].push_back(run);
           numEventsArray[iSystem].push_back(numEvents);
@@ -113,10 +125,12 @@ void make_submit_reco()
   for (auto iSystem : iSystemsForAna)
   {
     auto sys = systems[iSystem];
-    TString recoSysDir = recoDir + Form("Sn%d/",sys);
-    gSystem -> mkdir(recoSysDir);
+    TString pathToData = recoDir + Form("Sn%d/",sys);
+    cout << "path to data: " << pathToData << endl;
+    gSystem -> mkdir(pathToData);
 
-    for (auto iRun=0; iRun<int(runArray[iSystem].size()); ++iRun) {
+    for (auto iRun=0; iRun<int(runArray[iSystem].size()); ++iRun)
+    {
       auto run = runArray[iSystem].at(iRun);
       auto numEvents = numEventsArray[iSystem].at(iRun);
 
@@ -124,19 +138,25 @@ void make_submit_reco()
 
       for (auto split=0; split<numSplits; ++split)
       {
+        //logFull = logDir + subName + "_" + sys + "_" + run + "_s" + split + ".log";
+        //tailLog1 = TString("$(tail -1 ") + logFull + " | head -1)";
+        //tailLog2 = TString("$(tail -2 ") + logFull + " | head -1)";
+        //tailLog3 = TString("$(tail -3 ") + logFull + " | head -1)";
+        //tailLog4 = TString("$(tail -4 ") + logFull + " | head -1)";
+
         TString subName = Form("%s%s_%d",runTag.Data(),anaName.Data(),countSubmit);
-        //TString subName = Form("%s%d%s_%d_%d",runTag.Data(),sys,anaName.Data(),run,split);
         TString macFull = subDir + subName + ".sh";
         TString outFull = outDir + subName + ".out";
-        TString logFull = logDir + subName + "_" + sys + "_" + run + "_" + split + ".log";
-        //TString logFull = logDir + subName + ".log";
+        //TString logFull = logDir + subName + "_" + sys + "_" + run + "_s*.log";
+        TString logFull = logDir + subName + "_" + sys + "_" + run + "_s" + split + ".log";
         TString tailLog1 = TString("$(tail -1 ") + logFull + " | head -1)";
         TString tailLog2 = TString("$(tail -2 ") + logFull + " | head -1)";
         TString tailLog3 = TString("$(tail -3 ") + logFull + " | head -1)";
         TString tailLog4 = TString("$(tail -4 ") + logFull + " | head -1)";
+        TString recoName = pathToData + "run" + run + "_s" + split + ".reco." + spversion + ".root";
 
         submit_end << subName << " " << logFull << endl;
-        cout << macFull << " " << logFull << endl;
+        //cout << macFull << " " << logFull << endl;
 
         std::ofstream submit_macro(macFull);
         submit_all << "pjsub --bulk --sparam 0-0 " << macFull << " # " << logFull << endl;
@@ -146,20 +166,23 @@ void make_submit_reco()
         submit_macro << "#PJM -L rscunit=bwmpc" << endl;
         submit_macro << "#PJM -L rscgrp=batch" << endl;
         submit_macro << "#PJM -L vnode=1" << endl;
-        submit_macro << "#PJM -L vnode-core=6" << endl;
-        submit_macro << "#PJM -L vnode-mem=6Gi" << endl;
+        submit_macro << "#PJM -L vnode-core=10" << endl;
+        submit_macro << "#PJM -L vnode-mem=10Gi" << endl;
         submit_macro << "#PJM -g Q20393" << endl;
         submit_macro << "#PJM -j" << endl;
         submit_macro << "#PJM -o " << outFull << endl;
         submit_macro << "#------- Program execution ------- #" << endl;
         submit_macro << "export OMP_NUM_THREADS=1" << endl;
-        submit_macro << "source /home/ejungwoo/environment.spiritroot.bwmpc.sh" << endl;
+        submit_macro << "source /home/ejungwoo/config/environment.spiritroot.bwmpc.sh" << endl;
         submit_macro << "cd " << subDir << endl;
-        TString commandRun = Form("root -q -b -l run_reco_experiment_auto.C\\(%d,%d,%d,%d,\\\"%s\\\"\\)", run, split, numEventsInSplit, sys, recoSysDir.Data());
+
+        TString commandRun = Form("root -q -b -l run_reco_experiment_auto.C\\(%d,%d,%d,%d,\\\"%s\\\",%d\\)", run, split, numEventsInSplit, sys, pathToData.Data(),int(!useDB));
         TString commandLog = Form(" > %s 2>&1", logFull.Data());
+
         submit_macro << commandRun << commandLog << endl;
         submit_now   << commandRun << endl;
         submit_macro << "echo '"<< sys << " ' " << tailLog4 << " >> " << endFull << endl;
+        submit_macro << "rm -f " << recoName << endl;
 
         countSubmit++;
       }

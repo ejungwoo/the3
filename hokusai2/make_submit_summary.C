@@ -1,9 +1,14 @@
 void make_submit_summary()
 {
+  //TString anaName = "fix5";
   //TString anaName = "fix6";
-  TString anaName = "fix5";
+  //TString anaName = "f7";
+  //TString anaName = "x0";
+  TString anaName = "x0_f6set";
+
   const char *trimPath = "/home/ejungwoo/data/trim";
   int systemSummary[] = {108,132};
+  //int systemSummary[] = {108,112,124,132};
 
   TString runName = "submit_summary";
   TString runTag = "ss";
@@ -122,7 +127,7 @@ void make_submit_summary()
       submit_macro << "#PJM -o " << outFull << endl;
       submit_macro << "#------- Program execution ------- #" << endl;
       submit_macro << "export OMP_NUM_THREADS=1" << endl;
-      submit_macro << "source /home/ejungwoo/environment.spiritroot.bwmpc.sh" << endl;
+      submit_macro << "source /home/ejungwoo/config/environment.spiritroot.bwmpc.sh" << endl;
       submit_macro << "cd " << subDir << endl;
       TString commandRun = Form("root -q -b -l run_analysis_xml.C\\(%d,\\\"%s\\\",\\\"%s\\\"\\)",system,anaName.Data(),anaName1.Data());
       TString commandLog = Form(" > %s 2>&1",logFull.Data());

@@ -159,7 +159,7 @@ void make_submit_embed()
             submit_macro << "#PJM -o " << outFull << endl;
             submit_macro << "#------- Program execution ------- #" << endl;
             submit_macro << "export OMP_NUM_THREADS=1" << endl;
-            submit_macro << "source /home/ejungwoo/environment.spiritroot.bwmpc.sh" << endl;
+            submit_macro << "source /home/ejungwoo/config/environment.spiritroot.bwmpc.sh" << endl;
             submit_macro << "cd " << subDir << endl;
 
             submit_macro << "root -q -b -l run_mc.C\\("

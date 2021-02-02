@@ -1,7 +1,28 @@
+void list_files(const char *dirname="C:/root/folder/", const char *ext=".root")
+{
+  TSystemDirectory dir(dirname, dirname);
+  TList *files = dir.GetListOfFiles();
+  if (files) {
+    TSystemFile *file;
+    TString fname;
+    TIter next(files);
+    while ((file=(TSystemFile*)next())) { fname = file->GetName();
+      if (!file->IsDirectory() && fname.EndsWith(ext)) { cout << fname.Data() << endl;
+      }
+    }
+  }
+}
+
+
 void make_submit_trim()
 {
-  const char *anaName = "fix6";
-  int systems[] = {108,132};
+  const char *anaNameIn = "20200529";
+  const char *anaName = "x0"; TString readme = "redo data with now space charge fixes";
+
+  //const char *anaName = "fix6";
+
+  //int systems[] = {108,132};
+  int systems[] = {108,112,124,132};
   TString runName = "submit_trim";
   TString runTag = "st";
   int numGroup = 10;
@@ -17,15 +38,35 @@ void make_submit_trim()
   TString endFull = pwdDir + runName + "_"+anaName + ".end";
   TString nameRecoEnd = Form("submit_reco_%s.end",anaName);
 
+  if (TString(gSystem -> Which(".",nameRecoEnd.Data())).IsNull())
+  {
+    ofstream fileListReco(nameRecoEnd);
+
+    for (auto sys : systems) {
+      TString pathToReco = Form("/home/ejungwoo/data/reco/%s/Sn%d/",anaNameIn,sys);
+
+      TSystemDirectory dir(pathToReco.Data(),pathToReco.Data());
+      auto fileList = dir.GetListOfFiles();
+      TIter nextFile(fileList);
+      while (auto file = (TSystemFile *) nextFile()) {
+        TString fileName = file -> GetName();
+        if (!file->IsDirectory() && fileName.EndsWith("conc.root")) {
+          fileName = pathToReco + fileName;
+          fileListReco << sys << " " << fileName << endl;
+        }
+      }
+    }
+  }
+
   std::ofstream submit_now(nowFull);
   std::ofstream submit_all(allFull);
   std::ofstream submit_end(endFull);
   submit_all << "set +x" << endl;
 
   int countSubmit = 0;
-  for (auto system : systems)
+  for (auto sys : systems)
   {
-    TString nameListConc = Form("analysisInputFiles/listFiles/list_reco_%s_%d.txt",anaName,system);
+    TString nameListConc = Form("analysisInputFiles/listFiles/list_reco_%s_%d.txt",anaName,sys);
     TString nameListRS = nameListConc;
     nameListRS.ReplaceAll("list_reco","list_run_split");
 
@@ -38,8 +79,8 @@ void make_submit_trim()
       TString line(line0);
       if (line.Index(".conc.root")>0) {
         auto index0 = line.Index("/home/");
-        if (line.Index((TString("Sn")+system).Data())>=0) {
-          cout << line0 << endl;
+        if (line.Index((TString("Sn")+sys).Data())>=0) {
+          //cout << line0 << endl;
           fileListConc << line(index0,line.Sizeof()) << endl;
           countFiles++;
         }
@@ -81,7 +122,6 @@ void make_submit_trim()
     fileListRS.close();
 
     cout << nameRecoEnd << " " << nameListConc << " " << nameListRS << " #(" << countFiles << ")" << endl;
-    cout << endl;
 
     ifstream fileListRS2(nameListRS);
     int run, numSplits;
@@ -89,15 +129,18 @@ void make_submit_trim()
     fileListRS2 >> pathToReco;
 
     TString pathToTrim = pathToReco;
+    pathToTrim.ReplaceAll(anaNameIn,anaName);
     pathToTrim.ReplaceAll("reco","trim");
     gSystem -> Exec(TString("mkdir -p ")+pathToTrim);
+    std::ofstream fileReadme(pathToTrim+"Readme");
+    fileReadme << readme << endl;
 
     while (fileListRS2 >> run >> numSplits)
     {
       TString subName = Form("%s%s_%d",runTag.Data(),anaName,countSubmit);
       TString macFull = subDir + subName + ".sh";
       TString outFull = outDir + subName + ".out";
-      TString logFull = logDir + subName + "_" + system + "_" + run + "_$PJM_BULKNUM.log";
+      TString logFull = logDir + subName + "_" + sys + "_" + run + "_$PJM_BULKNUM.log";
       TString tailLog1 = TString("$(tail -1 ") + logFull + " | head -1)";
       TString tailLog2 = TString("$(tail -2 ") + logFull + " | head -1)";
       TString tailLog3 = TString("$(tail -3 ") + logFull + " | head -1)";
@@ -111,48 +154,56 @@ void make_submit_trim()
         numSplits = -numSplits;
         int splitNo;
         numBulk = 0;
+
+        subName = Form("%s%s_%d",runTag.Data(),anaName,countSubmit);
+        macFull = subDir + subName + ".sh";
+        outFull = outDir + subName + ".out";
+
+        logFull = logDir + subName + "_" + sys + "_" + run + "_s*.log";
+        tailLog1 = TString("$(tail -1 ") + logFull + " | head -1)";
+        tailLog2 = TString("$(tail -2 ") + logFull + " | head -1)";
+        tailLog3 = TString("$(tail -3 ") + logFull + " | head -1)";
+        tailLog4 = TString("$(tail -4 ") + logFull + " | head -1)";
+
+        submit_end << subName << " " << logFull << endl;
+        //cout << macFull << " " << logFull << endl;
+
+        std::ofstream submit_macro(macFull);
+        submit_all << "pjsub --bulk --sparam 0-" << numBulk << " " << macFull << " # " << logFull << endl;
+
+        submit_macro << "#!/bin/bash" << endl;
+        submit_macro << "#------ pjsub option -------- #" << endl;
+        submit_macro << "#PJM -L rscunit=bwmpc" << endl;
+        submit_macro << "#PJM -L rscgrp=batch" << endl;
+        submit_macro << "#PJM -L vnode=1" << endl;
+        submit_macro << "#PJM -L vnode-core=10" << endl;
+        submit_macro << "#PJM -L vnode-mem=10Gi" << endl;
+        submit_macro << "#PJM -g Q20393" << endl;
+        submit_macro << "#PJM -j" << endl;
+        submit_macro << "#PJM -o " << outFull << endl;
+        submit_macro << "#------- Program execution ------- #" << endl;
+        submit_macro << "export OMP_NUM_THREADS=1" << endl;
+        submit_macro << "source /home/ejungwoo/config/environment.spiritroot.bwmpc.sh" << endl;
+        submit_macro << "cd " << subDir << endl;
+
         for (auto iSplit=0; iSplit<numSplits; ++iSplit)
         {
           fileListRS2 >> splitNo;
 
-          subName = Form("%s%s_%d",runTag.Data(),anaName,countSubmit);
-          macFull = subDir + subName + ".sh";
-          outFull = outDir + subName + ".out";
-          logFull = logDir + subName + "_" + system + "_" + run + ".log";
+          logFull = logDir + subName + "_" + sys + "_" + run + "_s" + iSplit+ ".log";
           tailLog1 = TString("$(tail -1 ") + logFull + " | head -1)";
           tailLog2 = TString("$(tail -2 ") + logFull + " | head -1)";
           tailLog3 = TString("$(tail -3 ") + logFull + " | head -1)";
           tailLog4 = TString("$(tail -4 ") + logFull + " | head -1)";
 
-          submit_end << subName << " " << logFull << endl;
-          cout << macFull << " " << logFull << endl;
-
-          std::ofstream submit_macro(macFull);
-          submit_all << "pjsub --bulk --sparam 0-" << numBulk << " " << macFull << " # " << logFull << endl;
-
-          submit_macro << "#!/bin/bash" << endl;
-          submit_macro << "#------ pjsub option -------- #" << endl;
-          submit_macro << "#PJM -L rscunit=bwmpc" << endl;
-          submit_macro << "#PJM -L rscgrp=batch" << endl;
-          submit_macro << "#PJM -L vnode=1" << endl;
-          submit_macro << "#PJM -L vnode-core=10" << endl;
-          submit_macro << "#PJM -L vnode-mem=10Gi" << endl;
-          submit_macro << "#PJM -g Q20393" << endl;
-          submit_macro << "#PJM -j" << endl;
-          submit_macro << "#PJM -o " << outFull << endl;
-          submit_macro << "#------- Program execution ------- #" << endl;
-          submit_macro << "export OMP_NUM_THREADS=1" << endl;
-          submit_macro << "source /home/ejungwoo/environment.spiritroot.bwmpc.sh" << endl;
-          submit_macro << "cd " << subDir << endl;
           TString commandRun = Form("root -q -b -l run_trim_data.C\\(%d,%d,%d,\\\"%s\\\",\\\"%s\\\",\\\"%s\\\"\\)",run,10000+splitNo,numGroup,anaName,pathToReco.Data(),pathToTrim.Data());
           TString commandLog = Form(" > %s 2>&1", logFull.Data());
           submit_macro << commandRun << commandLog << endl;
           submit_macro << "echo '"<< run << " ' " << tailLog3 << " >> " << endFull << endl;
-
           submit_now << commandRun << endl;
-
-          ++countSubmit;
         }
+
+        ++countSubmit;
 
         continue; // continue run scope
       }
@@ -183,7 +234,7 @@ void make_submit_trim()
       submit_macro << "#PJM -o " << outFull << endl;
       submit_macro << "#------- Program execution ------- #" << endl;
       submit_macro << "export OMP_NUM_THREADS=16" << endl;
-      submit_macro << "source /home/ejungwoo/environment.spiritroot.bwmpc.sh" << endl;
+      submit_macro << "source /home/ejungwoo/config/environment.spiritroot.bwmpc.sh" << endl;
       submit_macro << "cd " << subDir << endl;
       TString commandRun = Form("root -q -b -l run_trim_data.C\\(%d,$PJM_BULKNUM,%d,\\\"%s\\\",\\\"%s\\\",\\\"%s\\\"\\)",run,numGroup,anaName,pathToReco.Data(),pathToTrim.Data());
       TString commandLog = Form(" > %s 2>&1", logFull.Data());
