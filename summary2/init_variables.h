@@ -66,7 +66,7 @@ const int      kttaAll = 0, ktta0 = 1, ktta20 = 2, ktta40 = 3, ktta60 = 4, kttaS
 const int      fNumCutTTAs = 7;
 const int      fCutTTAIdx    [fNumCutTTAs] = {0,1,2,3,4,5,6};
 const TString  fCutTTANames  [fNumCutTTAs] = {"ttaAll","ttaRG0_20","ttaRG20_40","ttaRG40_60","ttaRG60_80","ttaST60","ttaLT60"};
-const TString  fCutTTATitles [fNumCutTTAs] = {"","0<=#theta_{lab}<20","20<=#theta_{lab}<40","40<=#theta_{lab}<60","60<=#theta_{lab}<80","#theta_{lab}<60","#theta_{lab}>=60"};
+const TString  fCutTTATitles [fNumCutTTAs] = {"All #theta_{lab}","0<=#theta_{lab}<20","20<=#theta_{lab}<40","40<=#theta_{lab}<60","60<=#theta_{lab}<80","#theta_{lab}<60","#theta_{lab}>=60"};
 const TCut     fCutTTAValues [fNumCutTTAs] = {
   "",
   "theta_lab>= 0*TMath::DegToRad() && theta_lab<20*TMath::DegToRad()",

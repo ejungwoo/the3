@@ -5,17 +5,13 @@ int cvsXOff = 0; //1300;
 
 void draw_pid()
 {
-  gStyle -> SetOptStat(0);
-
-  //int selAna = kx6;
   int selAna = kf6;
-  //int selAna = kall;
   int selLR = klr;
   int selMult = knAll;
   int selSys = k132;
   int selTTA = kttaAll;
 
-  bool saveFigures = false;
+  ///////////////////////////////////////////////////////////////////////////////////////////////////
 
   bool drawRawPID = true;
   int nbinsPID = 500;
@@ -30,11 +26,21 @@ void draw_pid()
 
   bool drawCorPID = true;
 
+  bool drawR21 = true;
+  int nbinsPtoa = 8;
+  double ptoaMax = 400;
+
+  ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+  bool saveFigures = false;
   TString pathToFigures = "figures/";
+  TString figureFormat = ".png";
 
+  ///////////////////////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
+  gStyle -> SetOptStat(0);
 
   TH1F *histPIDMeta[fNumSystems][fNumParticles] = {0};
   TF1 *f1PIDMean[fNumSystems][fNumParticles] = {0};
@@ -109,6 +115,7 @@ void draw_pid()
         const char *multTitle = fMultTitles[iMult].Data();
 
         int numEventsInAna[fNumSystems] = {0};
+        TH1D *histPtoaArray[fNumSystems][fNumParticles] = {0};
 
         for (auto iSys : fSystemIdx)
         {
@@ -130,7 +137,7 @@ void draw_pid()
               const char *ttaName = fCutTTANames[iTTA];
               const char *ttaTitle = fCutTTATitles[iTTA];
 
-              TCut selection = fCutTTAValues[iTTA];
+              TCut selTTA = fCutTTAValues[iTTA];
 
               const char *namePIDRaw = Form("pidRaw_%s_%s_%s_%d_%s",anaName,lrName,multName,sys,ttaName);
               TString outPIDRaw = Form("pidRaw_%s_%s_%s_%d_%s",anaOName,lrName,multName,sys,ttaName);
@@ -139,7 +146,7 @@ void draw_pid()
               auto histPID = new TH2D(namePIDRaw,title+";p/Z (MeV);dE/dx;",nbinsPID,0,pozMax,nbinsPID,0,dedxMax);
               histPID -> SetMinimum(0.5);
               histPID -> SetMaximum(800);
-              treeAll -> Project(namePIDRaw,"dedx:p_lab",selection);
+              treeAll -> Project(namePIDRaw,"dedx:p_lab",selTTA);
 
               TCanvas *cvsPIDRaw = nullptr;
               if (drawRawPID) {
@@ -150,7 +157,7 @@ void draw_pid()
                   graphPIDMean[iSys][iParticle] -> Draw("samel");
 
                 if (saveFigures)
-                  cvsPIDRaw -> SaveAs(pathToFigures+outPIDRaw+".png"); 
+                  cvsPIDRaw -> SaveAs(pathToFigures+outPIDRaw+figureFormat); 
               }
 
               if (drawRawPIDProjection)
@@ -286,7 +293,7 @@ void draw_pid()
           numEventsInAna[iSys] = treeMult -> GetEntries("1");
           cout_info << "Multiplicity in " << sys << " : " << numEventsInAna[iSys] << endl;
 
-          if (drawCorPID)
+          if (drawCorPID || drawR21)
           {
             for (auto iTTA : fCutTTAIdx)
             {
@@ -294,13 +301,16 @@ void draw_pid()
               const char *ttaName = fCutTTANames[iTTA];
               const char *ttaTitle = fCutTTATitles[iTTA];
 
-              TCut selection = fCutTTAValues[iTTA];
+              TCut selTTA = fCutTTAValues[iTTA];
+
+              const char *nameHere = Form("%s_%s_%s_%d_%s",anaName,lrName,multName,sys,ttaName);
+              TString titleHere = Form("[%s]  (#timesP/E/N)  %s, %s, %s, %s",anaTitle,lrTitle,multTitle,sysTitle,ttaTitle);
 
               TH2D *histPIDCor = nullptr;
-              const char *namePIDCor = Form("pidCor_%s_%s_%s_%d_%s",anaName,lrName,multName,sys,ttaName);
-              TString outPIDCor = Form("pidCor_%s_%s_%s_%d_%s",anaOName,lrName,multName,sys,ttaName);
-              TString titlePIDCor = Form("[%s]  (#timesP/E/N)  %s, %s, %s, %s",anaTitle,lrTitle,multTitle,sysTitle,ttaTitle);
-              titlePIDCor += ";p/Z (MeV);dE/dx;";
+              const char *namePIDCor = Form("pidCor_%s",nameHere);
+              TString outPIDCor = Form("pidCor_%s",nameHere);
+
+              const char *namePtoa = Form("ptoa_%s",nameHere);
 
               for (auto iParticle : fParticleIdx)
               {
@@ -312,37 +322,76 @@ void draw_pid()
                 auto treeParticle = new TChain(nameParticle);
                 treeParticle -> Add(nameFileParticle);
 
-                const char *namePIDCorPart = Form("pidCor_%s_%s_%s_%d_%s_%s",anaName,lrName,multName,sys,ttaName,nameParticle);
-                TString title = Form("[%s]  %s, %s, %s, %s, %s",anaTitle,lrTitle,multTitle,sysTitle,ttaTitle,titleParticle);
+                if (drawCorPID)
+                {
+                  const char *namePIDCorPart = Form("pidCor_%s_%s",nameHere,nameParticle);
+                  TString title = Form("%s, %s",titleHere.Data(),titleParticle);
 
-                auto histPIDCorPart = new TH2D(namePIDCorPart,title+";p/Z (MeV);dE/dx;",nbinsPID,0,pozMax,nbinsPID,0,dedxMax);
-                histPIDCorPart -> SetMinimum(0.5);
-                histPIDCorPart -> SetMaximum(800);
-                TCut selection = Form("prob/eff/%d",numEventsInAna[iSys]);
-                treeParticle -> Project(namePIDCorPart,"dedx:p_lab",selection);
+                  auto histPIDCorPart = new TH2D(namePIDCorPart,title+";p/Z (MeV);dE/dx;",nbinsPID,0,pozMax,nbinsPID,0,dedxMax);
+                  histPIDCorPart -> SetMinimum(0.5);
+                  histPIDCorPart -> SetMaximum(800);
+                  TCut selection = selTTA + TCut(Form("prob/eff/%d",numEventsInAna[iSys]));
+                  treeParticle -> Project(namePIDCorPart,"dedx:p_lab",selection);
 
-                if (iParticle==0) {
-                  histPIDCor = (TH2D *) histPIDCorPart -> Clone(namePIDCor);
-                  histPIDCor -> SetTitle(titlePIDCor);
+                  if (iParticle==0) {
+                    histPIDCor = (TH2D *) histPIDCorPart -> Clone(namePIDCor);
+                    histPIDCor -> SetTitle(titleHere + ";p/Z (MeV);dE/dx;");
+                  }
+                  else
+                    histPIDCor -> Add(histPIDCorPart);
                 }
-                else
-                  histPIDCor -> Add(histPIDCorPart);
+
+                if (drawR21)
+                {
+                  const char *namePtoaPart = Form("ptoa_%s_%s",nameHere,nameParticle);
+                  //TString titlePtoaPart = Form("%s, %s",titleHere.Data(),titleParticle);
+                  TString titlePtoaPart = titleHere + ", " + titleParticle;
+
+                  auto histPtoa = new TH1D(namePtoaPart,titlePtoaPart+";p_{T}/A (MeV/c);",nbinsPtoa,0,ptoaMax);
+                  TCut selection = selTTA + TCut(Form("prob/eff/%d",numEventsInAna[iSys]));
+                  treeParticle -> Project(namePtoaPart,Form("pt_cm/%d",fParticleA[iParticle]),selection);
+
+                  histPtoaArray[iSys][iParticle] = histPtoa;
+                }
               }
 
-              TCanvas *cvsPIDCor = nullptr;
-              if (drawRawPID) {
-                cvsPIDCor = new TCanvas(namePIDCor,namePIDCor,cvsXOff,100,1000,700);
+              if (drawCorPID)
+              {
+                auto cvsPIDCor = new TCanvas(namePIDCor,namePIDCor,cvsXOff,100,1000,700);
                 cvsPIDCor -> SetLogz();
                 histPIDCor -> Draw("colz");
                 for (auto iParticle : fParticleIdx)
                   graphPIDMean[iSys][iParticle] -> Draw("samel");
 
                 if (saveFigures)
-                  cvsPIDCor -> SaveAs(pathToFigures+outPIDCor+".png"); 
+                  cvsPIDCor -> SaveAs(pathToFigures+outPIDCor+figureFormat); 
               }
+
+              if (drawR21)
+              {
+                auto cvsPtoa = new TCanvas(namePtoa,namePtoa,cvsXOff,0,1000,550);
+
+                double histMax = 0;
+                for (auto iParticle : fParticleIdx) {
+                  auto max0 = histPtoaArray[iSys][iParticle] -> GetMaximum();
+                  if (histMax < max0)
+                    histMax = max0;
+                }
+                for (auto iParticle : fParticleIdx) {
+                  auto hist = histPtoaArray[iSys][iParticle];
+                  hist -> SetMaximum(histMax*1.05);
+                  hist -> SetLineColor(iParticle+1);
+                  hist -> SetMarkerColor(iParticle+1);
+                  hist -> SetMarkerStyle(20+iParticle);
+                  if (iParticle==0)
+                    hist -> Draw("pl");
+                  else
+                    hist -> Draw("samepl");
+                }
+              }
+
             }
           }
-
 
         }
       }
