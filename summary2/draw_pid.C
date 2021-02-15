@@ -1,10 +1,17 @@
 #include "KBGlobal.hh"
 #include "init_variables.h"
+#include "binning.h"
 
 int cvsXOff = 1300;
 int giSys = 0;
 int giParticle = 0;
 vector<TCanvas *> cvsArray;
+
+double fTMargin = 0.12;
+double fBMargin = 0.20;
+double fLMargin = 0.19;
+double fRMargin = 0.055;
+double fRMargin1 = 0.055;
 
 TGraph *graphFitPIDMean[fNumSystems][fNumParticles] = {0};
 TGraph *graphFitPIDAmp[fNumSystems][fNumParticles] = {0};
@@ -15,7 +22,26 @@ TCutG *cutgPID[fNumSystems][fNumParticles] = {0};
 TGraph *graphPIDMean[fNumSystems][fNumParticles] = {0};
 TGraph *graphPIDRange[fNumSystems][fNumParticles][2] = {0};
 
-TLegend *makeLegend(TCanvas *cvs, TLegend *legend, double x_offset=0, double y_offset=0, double width_fixed=0, double height_fixed=0);
+void Divide0(TCanvas *cvs, int nx, int ny);
+TLegend *makeLegend(TVirtualPad *cvs, TLegend *legend, TString opt = "", double x_offset=0, double y_offset=0, double width_fixed=0, double height_fixed=0);
+
+int fParIndex1[2] = {0,2};
+int fParIndex2[2] = {1,2};
+struct GlobalChi2 {
+  const ROOT::Math::IMultiGenFunction *fChi21;
+  const ROOT::Math::IMultiGenFunction *fChi22;
+  double operator() (const double *parIn) const {
+    double par1[2] = {parIn[0], parIn[2]};
+    double par2[2] = {parIn[1], parIn[2]};
+    return (*fChi21)(par1) + (*fChi22)(par2);
+  }
+  GlobalChi2(ROOT::Math::IMultiGenFunction &chi21, ROOT::Math::IMultiGenFunction &chi22) : fChi21(&chi21), fChi22(&chi22) {}
+};
+double fPol1Function(double *x, double *par) {
+  double value = TMath::Exp(par[0] + par[1]*x[0]);
+  return value;
+}
+
 
 double calculate_prob(double p_lab, double dedx)
 {
@@ -66,19 +92,19 @@ void writeAll()
     cvs -> SaveAs(TString("data_cvs/")+cvs->GetName()+".root");
 }
 
-bool useHandCut = false;
+bool fUseHandCut = false;
 
 const char *makeName(const char *mainName, int iAna, int iLR, int iMult, int iSys, int iCutTTA, int iY0, int iPart=-1)
 {
-  if (useHandCut)
+  if (fUseHandCut)
     mainName = Form("%s_HPID_",mainName);
 
   const char *systemName;
   if (iSys>=100) {
     iSys = iSys - 100;
-    int iSys1 = int(iSys/10);
-    int iSys2 = iSys - iSys1;
-    systemName = Form("%so%s",fSystemNames[iSys1],fSystemNames[iSys2]);
+    int iSys2 = int(iSys/10);
+    int iSys1 = iSys - iSys2;
+    systemName = Form("%so%s",fSystemNames[iSys2],fSystemNames[iSys1]);
   }
   else
     systemName = Form("%s",fSystemNames[iSys]);
@@ -94,15 +120,15 @@ const char *makeName(const char *mainName, int iAna, int iLR, int iMult, int iSy
 
 const char *makeTitle(const char *mainName, int iAna, int iLR, int iMult, int iSys, int iCutTTA, int iY0, int iPart=5)
 {
-  if (useHandCut)
+  if (fUseHandCut)
     mainName = Form("%s, Hand-Cut-PID",mainName);
 
   const char *systemTitle;
   if (iSys>=100) {
     iSys = iSys - 100;
-    int iSys1 = int(iSys/10);
-    int iSys2 = iSys - iSys1;
-    systemTitle = Form("%d/%d",fSystems[iSys1],fSystems[iSys2]);
+    int iSys2 = int(iSys/10);
+    int iSys1 = iSys - iSys2;
+    systemTitle = Form("%d/%d",fSystems[iSys2],fSystems[iSys1]);
   }
   else
     systemTitle = Form("%d",fSystems[iSys]);
@@ -118,8 +144,8 @@ const char *makeTitle(const char *mainName, int iAna, int iLR, int iMult, int iS
   //const char *title = Form("%s, %s, %s, %s, %s, %s%s%s",mainName,fAnaTitles[iAna],fLRTitles[iLR],fMultTitles[iMult],systemTitle,fCutTTATitles[iCutTTA],y0Title,partTitle);
 
   const char *title = Form("%s",fCutTTATitles[iCutTTA]);
-  if (useHandCut)
-    title = Form("Hand-Cut-PID, %s",mainName, fCutTTATitles[iCutTTA]);
+  if (fUseHandCut)
+    title = Form("Hand-Cut-PID, %s",mainName);
 
   return title;
 }
@@ -131,8 +157,8 @@ void draw_pid()
   int selMult = kn55;
   int selSys = kall;
 
-  //const int selCutTTAIdx[] = {3};
-  const int selCutTTAIdx[] = {1,2,3,4};
+  const int selCutTTAIdx[] = {0};
+  //const int selCutTTAIdx[] = {1,2,3,4};
   int selCutTTA = kall;
 
   //int selCutY0 = ky02;
@@ -141,7 +167,7 @@ void draw_pid()
   int selLRIdx[] = {0};
   //int selLRIdx[] = {1};
 
-  bool saveFigures = true;
+  bool saveFigures = false;
   TString pathToFigures = "figures3/";
   TString figureFormat = ".png";
 
@@ -151,16 +177,7 @@ void draw_pid()
 
   bool drawRawPID = false;
   bool drawGuideLine = true;
-  bool drawHandCut = true;
-  int nbinsPID = 800;
-  double maxdEdx = 2000;
-  double maxPoz = 3000;
-
-  int nbinsY0 = 200;
-  double minY0 = -1;
-  double maxY0 = 2;
-  int nbinsPt = 200;
-  double maxPt = 800;
+  bool drawHandCut = fUseHandCut;
 
   bool anaRawPIDProjection = false;
   bool drawRawPIDProjection = false;
@@ -175,24 +192,33 @@ void draw_pid()
   bool drawCorPIDOXParticle = false;
 
   bool drawCorEKE = false;
-
-  bool drawPY = false;
-  bool drawPYTTA0 = true;
-
+  bool drawYP = true;
+  bool drawYPGrid = true;
+  bool drawYPTTA0 = true;
   bool drawKT = false;
+  bool drawPtoa = false;
+
+  bool drawPtoaR21 = false;
+  bool drawKeoaR21 = false;
+  bool drawNZR21 = true;
+  bool fitNZR21 = true;
+
+  int nbinsPID = 800;
+  double maxdEdx = 2000;
+  double maxPoz = 3000;
+  int nbinsY0 = 200;
+  double minY0 = -1;
+  double maxY0 = 2;
+  int nbinsPt = 200;
+  double maxPt = 800;
   int nbinsKeoa = 100;
   double keoaMax = 400.;
   int nbinsTheta = 100;
   double thetaMax = 90;
-
-  bool drawPtoaR21 = true;
-  useHandCut = false;
-  bool drawPtoa = false;
   int nbinsPtoa = 8;
   double ptoaMax = 400;
-
-  bool drawKeoaR21 = true;
   int nbinsKeoaR21 = 4;
+  int nbinsNZYP = 8;
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -214,7 +240,7 @@ void draw_pid()
     for (auto sys : {0,1})
       selSystemIdxR21.push_back(sys);
 
-  if (drawPYTTA0)
+  if (drawYPTTA0)
   {
     nbinsY0 = 200;
     nbinsPt = 200;
@@ -346,6 +372,7 @@ void draw_pid()
         int numEventsInAna[fNumSystems] = {0};
         TH1D *histPtoaArray[fNumSystems][fNumCutTTAs][fNumParticles] = {0};
         TH1D *histKeoaArray[fNumSystems][fNumCutTTAs][fNumParticles] = {0};
+        TH2D *histYPR21Array[fNumSystems][fNumCutTTAs][fNumParticles] = {0};
 
         //for (auto iSys : fSystemIdx)
         for (auto iSys : selSystemIdxR21)
@@ -398,7 +425,7 @@ void draw_pid()
 
                 if (anaRawPIDProjection)
                 {
-                  auto binn = ebinning(histPID);
+                  auto binn = binning(histPID);
                   int dbin = nbinsPID/numProjections;
 
                   for (auto iParticle : fParticleIdx) {
@@ -584,7 +611,7 @@ void draw_pid()
           numEventsInAna[iSys] = treeMult -> GetEntries("1");
           cout_info << "Multiplicity in " << sys << " : " << numEventsInAna[iSys] << endl;
 
-          if (drawKT || drawPY)
+          if (drawKT || drawYP)
           {
             for (auto iCutY0 : fCutY0Idx)
             {
@@ -629,43 +656,74 @@ void draw_pid()
                   histKTCorPart -> Draw("colz");
                 }
 
-                if (drawPY)
+                if (drawYP)
                 {
-                  auto namePYPart = makeName("py",iAna,iLR,iMult,iSys,iCutTTA,iCutY0,iParticle);
-                  auto titlePYPart = makeTitle("Cor.",iAna,iLR,iMult,iSys,iCutTTA,iCutY0,iParticle);
+                  auto nameYPPart = makeName("yp",iAna,iLR,iMult,iSys,iCutTTA,iCutY0,iParticle);
+                  auto titleYPPart = makeTitle("Cor.",iAna,iLR,iMult,iSys,iCutTTA,iCutY0,iParticle);
 
-                  auto histPYPart = new TH2D(namePYPart,Form("%s;y_{0};p_{T}/A;",titlePYPart),nbinsY0,minY0,maxY0,nbinsPt,0,maxPt);
+                  auto histYPPart = new TH2D(nameYPPart,Form("%s;y_{0};p_{T}/A;",titleYPPart),nbinsY0,minY0,maxY0,nbinsPt,0,maxPt);
                   giSys = iSys;
                   giParticle = iParticle;
                   TCut selection = cut0 * TCut(Form("%s/eff/%d",wProbString,numEventsInAna[iSys])) * cutY0 * cutTTA;
-                  project(treeParticle,namePYPart,Form("pt_cm/%d:fy_cm/(by_cm/2)",fParticleA[iParticle]),selection);
+                  project(treeParticle,nameYPPart,Form("pt_cm/%d:fy_cm/(by_cm/2)",fParticleA[iParticle]),selection);
 
-                  auto cvs = makeCvs2(namePYPart);
-                  histPYPart -> Draw("colz");
+                  auto cvs = makeCvs2(nameYPPart);
+                  histYPPart -> Draw("colz");
                   TLine *line0 = new TLine(0,0,0,maxPt);
                   line0 -> SetLineStyle(9);
-                  line0 -> Draw("samel");
+                  //line0 -> Draw("samel");
 
-                  if (drawPYTTA0) {
+                  if (drawYPGrid) {
+                    auto hist0 = new TH2D(Form("%s_frame",nameYPPart),"",nbinsNZYP,-1,1,nbinsNZYP,0,400);
+                    auto binnx = binning(hist0,1);
+                    auto binny = binning(hist0,2);
+                    for (auto ibinX=1; ibinX<=7; ++ibinX) {
+                      auto binX = ibinX+2;
+                      auto line = new TLine(binnx.lowEdge(binX),0,binnx.lowEdge(binX),400);
+                      line -> Draw("samel");
+                    }
+                    //for (auto ibinY=1; ibinY<=8; ++ibinY) {
+                    for (auto ibinY=1; ibinY<=9; ++ibinY) {
+                      auto binY = ibinY;
+                      auto line = new TLine(-.5,binny.lowEdge(binY),1,binny.lowEdge(binY));
+                      line -> Draw("samel");
+                    }
+
+                    for (auto ibinX=1; ibinX<=6; ++ibinX) {
+                      for (auto ibinY=1; ibinY<=8; ++ibinY) {
+                        auto binX = ibinX+2;
+                        auto binY = ibinY;
+                        auto x = binnx.getCenter(binX);
+                        auto y = binny.getCenter(binY);
+                        auto text = new TText(x,y,Form("%d,%d",binX,binY));
+                        text -> Draw();
+                        text -> SetTextAlign(22);
+                        text -> SetTextSize(0.03);
+                      }
+                    }
+                  }
+
+                  if (drawYPTTA0) {
                     double par0 = 3, par1 = -20;
                     //for (auto iTTA0 : {5,6,7,8})
-                    for (auto iTTA0 : {1,2,3,4,5,6,7,8})
+                    for (auto iTTA0 : {4})
+                    //for (auto iTTA0 : {1,2,3,4,5,6,7,8})
                     {
                       int theta0 = 10*iTTA0;
-                      auto namePYPart2 = makeName(Form("pytta%d",theta0),iAna,iLR,iMult,iSys,iCutTTA,iCutY0,iParticle);
+                      auto nameYPPart2 = makeName(Form("yptta%d",theta0),iAna,iLR,iMult,iSys,iCutTTA,iCutY0,iParticle);
 
-                      auto histPYPart = new TH2D(namePYPart2,Form("%s;y_{0};p_{T}/A;",titlePYPart),nbinsY0,minY0,maxY0,nbinsPt,0,maxPt);
+                      auto histYPPart = new TH2D(nameYPPart2,Form("%s;y_{0};p_{T}/A;",titleYPPart),nbinsY0,minY0,maxY0,nbinsPt,0,maxPt);
                       giSys = iSys;
                       giParticle = iParticle;
                       selection = cut0 * TCut(Form("%s/eff/%d",wProbString,numEventsInAna[iSys])) * cutY0 * cutTTA * fCutTTA0Values[iTTA0];
-                      project(treeParticle,namePYPart2,Form("pt_cm/%d:fy_cm/(by_cm/2)",fParticleA[iParticle]),selection);
+                      project(treeParticle,nameYPPart2,Form("pt_cm/%d:fy_cm/(by_cm/2)",fParticleA[iParticle]),selection);
 
-                      auto namePYPart3 = makeName(Form("fitpytta%d",theta0),iAna,iLR,iMult,iSys,iCutTTA,iCutY0,iParticle);
-                      TF1 *fitPYTT0 = new TF1(namePYPart3,"[0]*(x+1)*(x-[1])",minY0,maxY0);
+                      auto nameYPPart3 = makeName(Form("fityptta%d",theta0),iAna,iLR,iMult,iSys,iCutTTA,iCutY0,iParticle);
+                      TF1 *fitPYTT0 = new TF1(nameYPPart3,"[0]*(x+1)*(x-[1])",minY0,maxY0);
                       fitPYTT0 -> SetParameter(par0, par1);
                       fitPYTT0 -> SetParLimits(0,0,1500);
                       fitPYTT0 -> SetParLimits(1,-30,0);
-                      histPYPart -> Fit(fitPYTT0,"RQ0");
+                      histYPPart -> Fit(fitPYTT0,"RQ0");
                       par0 = fitPYTT0 -> GetParameter(0);
                       par1 = fitPYTT0 -> GetParameter(1);
                       fitPYTT0 -> Draw("samel");
@@ -677,7 +735,7 @@ void draw_pid()
             }
           }
 
-          if (drawKT || drawCorEKE || drawCorPID || drawPtoaR21 || drawKeoaR21)
+          if (drawKT || drawCorEKE || drawCorPID || drawPtoaR21 || drawKeoaR21 || drawNZR21)
           {
             for (auto iCutY0 : fCutY0Idx)
             {
@@ -762,7 +820,7 @@ void draw_pid()
                     giParticle = iParticle;
                     TCut selection = cut0 * TCut(Form("%s/eff/%d",wProbString,numEventsInAna[iSys])) * cutY0 * cutTTA ;
 
-                    if (useHandCut) {
+                    if (fUseHandCut) {
                       const char *nameBound = Form("bound_%d_%d_%d_%d",iSys,iLR,iCutTTA,iParticle);
                       auto selectionBound = nameBound;
 
@@ -826,7 +884,7 @@ void draw_pid()
                     giParticle = iParticle;
                     TCut selection = cut0 * TCut(Form("%s/eff/%d",wProbString,numEventsInAna[iSys])) * cutY0 * cutTTA;
 
-                    if (useHandCut) {
+                    if (fUseHandCut) {
                       const char *nameBound = Form("bound_%d_%d_%d_%d",iSys,iLR,iCutTTA,iParticle);
                       auto selectionBound = nameBound;
 
@@ -884,6 +942,19 @@ void draw_pid()
                     histKeoaArray[iSys][iCutTTA][iParticle] = histKeoa;
                   }
 
+                  if (drawNZR21)
+                  {
+                    auto nameYPR21Part = makeName("ypR21",iAna,iLR,iMult,iSys,iCutTTA,iCutY0,iParticle);
+                    auto titleYPR21Part = makeTitle("Cor.",iAna,iLR,iMult,iSys,iCutTTA,iCutY0,iParticle);
+
+                    auto histYPR21Part = new TH2D(nameYPR21Part,Form("%s;y_{0};p_{T}/A;",titleYPR21Part),nbinsNZYP,-1,1,nbinsNZYP,0,400);
+                    giSys = iSys;
+                    giParticle = iParticle;
+                    TCut selection = cut0 * TCut(Form("%s/eff/%d",wProbString,numEventsInAna[iSys])) * cutY0 * cutTTA;
+                    project(treeParticle,nameYPR21Part,Form("pt_cm/%d:fy_cm/(by_cm/2)",fParticleA[iParticle]),selection);
+
+                    histYPR21Array[iSys][iCutTTA][iParticle] = histYPR21Part;
+                  }
                 }
 
                 if (drawCorPID)
@@ -968,12 +1039,12 @@ void draw_pid()
               {
                 if (selCombR21>=0 && selCombR21!=iComb) continue;
 
-                auto iSys1 = fSysCombIdx[selCombR21][0];
-                auto iSys2 = fSysCombIdx[selCombR21][1];
-                auto iSys = 100 + iSys1*10 + iSys2;
+                auto iSys2 = fSysCombIdx[selCombR21][0];
+                auto iSys1 = fSysCombIdx[selCombR21][1];
+                auto iSysComb = 100 + iSys2*10 + iSys1;
                 
-                const char *nameR21 = makeName("r21_ptoa",iAna,iLR,iMult,iSys,iCutTTA,iCutY0);
-                auto titleR21 = makeTitle("Cor.",iAna,iLR,iMult,iSys,iCutTTA,iCutY0);
+                const char *nameR21 = makeName("r21_ptoa",iAna,iLR,iMult,iSysComb,iCutTTA,iCutY0);
+                auto titleR21 = makeTitle("Cor.",iAna,iLR,iMult,iSysComb,iCutTTA,iCutY0);
 
                 auto cvs = makeCvs(nameR21,680,550);
 
@@ -985,8 +1056,8 @@ void draw_pid()
                 {
                   const char *nameParticle = fParticleNames[iParticle];
 
-                  auto hist1 = histPtoaArray[iSys1][iCutTTA][iParticle];
-                  auto hist2 = histPtoaArray[iSys2][iCutTTA][iParticle];
+                  auto hist1 = histPtoaArray[iSys2][iCutTTA][iParticle];
+                  auto hist2 = histPtoaArray[iSys1][iCutTTA][iParticle];
 
                   const char *nameR21Part = Form("%s_%s",nameR21,nameParticle);
 
@@ -1032,12 +1103,12 @@ void draw_pid()
               {
                 if (selCombR21>=0 && selCombR21!=iComb) continue;
 
-                auto iSys1 = fSysCombIdx[selCombR21][0];
-                auto iSys2 = fSysCombIdx[selCombR21][1];
-                auto iSys = 100 + iSys1*10 + iSys2;
+                auto iSys2 = fSysCombIdx[selCombR21][0];
+                auto iSys1 = fSysCombIdx[selCombR21][1];
+                auto iSysComb = 100 + iSys2*10 + iSys1;
 
-                const char *nameR21 = makeName("r21_keoa",iAna,iLR,iMult,iSys,iCutTTA,iCutY0);
-                auto titleR21 = makeTitle("Cor.",iAna,iLR,iMult,iSys,iCutTTA,iCutY0);
+                const char *nameR21 = makeName("r21_keoa",iAna,iLR,iMult,iSysComb,iCutTTA,iCutY0);
+                auto titleR21 = makeTitle("Cor.",iAna,iLR,iMult,iSysComb,iCutTTA,iCutY0);
 
                 auto cvs = makeCvs(nameR21,680,550);
                 //cvs -> SetGrid(1,1);
@@ -1050,8 +1121,8 @@ void draw_pid()
                 {
                   const char *nameParticle = fParticleNames[iParticle];
 
-                  auto hist1 = histKeoaArray[iSys1][iCutTTA][iParticle];
-                  auto hist2 = histKeoaArray[iSys2][iCutTTA][iParticle];
+                  auto hist1 = histKeoaArray[iSys2][iCutTTA][iParticle];
+                  auto hist2 = histKeoaArray[iSys1][iCutTTA][iParticle];
 
                   const char *nameR21Part = Form("%s_%s",nameR21,nameParticle);
 
@@ -1075,6 +1146,290 @@ void draw_pid()
           }
         }
 
+        if (drawNZR21)
+        {
+          for (auto iCutY0 : fCutY0Idx)
+          {
+            if (selCutY0>=0 && selCutY0!=iCutY0) continue;
+
+            for (auto iCutTTA : selCutTTAIdx)
+            {
+              if (selCutTTA>=0 && selCutTTA!=iCutTTA) continue;
+
+              for (auto iComb : fSysCombIndx)
+              {
+                if (selCombR21>=0 && selCombR21!=iComb) continue;
+
+                auto iSys2 = fSysCombIdx[selCombR21][0];
+                auto iSys1 = fSysCombIdx[selCombR21][1];
+                auto iSysComb = 100 + iSys2*10 + iSys1;
+
+                const char *nameAlpha = makeName("alpha",iAna,iLR,iMult,iSysComb,iCutTTA,iCutY0);
+                const char *nameBeta = makeName("beta",iAna,iLR,iMult,iSysComb,iCutTTA,iCutY0);
+
+                auto cvsAlpha = makeCvs(nameAlpha,2500,2000);
+                auto cvsBeta  = makeCvs(nameBeta,2500,2000);
+                //cvsAlpha -> Divide(6,8);
+                //cvsBeta  -> Divide(6,8);
+                Divide0(cvsAlpha,6,8);// -> Divide(6,8);
+                Divide0(cvsBeta,6,8);//  -> Divide(6,8);
+
+                double alphaArray[10][10];
+                double betaArray[10][10];
+
+                auto binnx = binning(histYPR21Array[iSys2][iCutTTA][0],1);
+                auto binny = binning(histYPR21Array[iSys2][iCutTTA][0],2);
+
+                for (auto ibinX=1; ibinX<=6; ++ibinX)
+                {
+                  for (auto ibinY=1; ibinY<=8; ++ibinY)
+                  {
+                    auto binX = ibinX+2;
+                    auto binY = ibinY;
+
+                    auto graph_z1_inN = new TGraph(); graph_z1_inN -> SetMarkerSize(1.5); graph_z1_inN -> SetMarkerStyle(20); graph_z1_inN -> SetMarkerColor(kBlack);
+                    auto graph_z2_inN = new TGraph(); graph_z2_inN -> SetMarkerSize(1.5); graph_z2_inN -> SetMarkerStyle(25); graph_z2_inN -> SetMarkerColor(kRed  );
+                    auto graph_n0_inZ = new TGraph(); graph_n0_inZ -> SetMarkerSize(1.5); graph_n0_inZ -> SetMarkerStyle(20); graph_n0_inZ -> SetMarkerColor(kBlack);
+                    auto graph_n1_inZ = new TGraph(); graph_n1_inZ -> SetMarkerSize(1.5); graph_n1_inZ -> SetMarkerStyle(25); graph_n1_inZ -> SetMarkerColor(kRed  );
+                    auto graph_n2_inZ = new TGraph(); graph_n2_inZ -> SetMarkerSize(1.5); graph_n2_inZ -> SetMarkerStyle(22); graph_n2_inZ -> SetMarkerColor(kBlue );
+
+                    for (auto iParticle : fParticleIdx)
+                    {
+                      auto value2 = histYPR21Array[iSys2][iCutTTA][iParticle] -> GetBinContent(binX, binY);
+                      auto value1 = histYPR21Array[iSys1][iCutTTA][iParticle] -> GetBinContent(binX, binY);
+                      auto r21Value = value2/value1;
+
+                      auto zValue = fParticleZ[iParticle];
+                      auto nValue = fParticleN[iParticle];
+
+                      if (zValue==1) graph_z1_inN -> SetPoint(graph_z1_inN -> GetN(), nValue, r21Value);
+                      if (zValue==2) graph_z2_inN -> SetPoint(graph_z2_inN -> GetN(), nValue, r21Value);
+                      if (nValue==0) graph_n0_inZ -> SetPoint(graph_n0_inZ -> GetN(), zValue, r21Value);
+                      if (nValue==1) graph_n1_inZ -> SetPoint(graph_n1_inZ -> GetN(), zValue, r21Value);
+                      if (nValue==2) graph_n2_inZ -> SetPoint(graph_n2_inZ -> GetN(), zValue, r21Value);
+                    }
+
+                    auto idxCvs = (8-ibinY)*6+ibinX;
+
+                    auto cvs = cvsAlpha -> cd(idxCvs);
+                    cvs -> SetLogy();
+                    auto frameAlpha = new TH2D(Form("%s_%d",cvsAlpha->GetName(),idxCvs),";N;R21",100,-1,3,100,0.5,2.0);
+                    frameAlpha -> Draw();
+                    frameAlpha -> GetXaxis() -> SetTitleSize(0.10);
+                    frameAlpha -> GetYaxis() -> SetTitleSize(0.10);
+                    frameAlpha -> GetXaxis() -> SetLabelSize(0.10);
+                    frameAlpha -> GetYaxis() -> SetLabelSize(0.10);
+                    frameAlpha -> GetXaxis() -> SetNdivisions(506);
+                    frameAlpha -> GetYaxis() -> SetNdivisions(506);
+                    frameAlpha -> GetXaxis() -> CenterTitle();
+                    frameAlpha -> GetYaxis() -> CenterTitle();
+                    graph_z1_inN -> Draw("samep");
+                    graph_z2_inN -> Draw("samep");
+                    TLegend *legendAlpha = new TLegend();
+                    legendAlpha -> AddEntry(graph_z2_inN, Form("(%d,%d)",binX,binY),"");
+
+                    if (fitNZR21) {
+                      auto graph1 = graph_z1_inN;
+                      auto graph2 = graph_z2_inN;
+                      TF1 *fit1 = new TF1("fit1",fPol1Function,0,100,2);
+                      TF1 *fit2 = new TF1("fit2",fPol1Function,0,100,2);
+                      double fitRange1 = -.5;
+                      double fitRange2 = 2.5;
+                      ROOT::Math::WrappedMultiTF1 wfit1(*fit1,1);
+                      ROOT::Math::WrappedMultiTF1 wfit2(*fit2,1);
+                      ROOT::Fit::DataOptions option;
+                      ROOT::Fit::DataRange range1(fitRange1,fitRange2);
+                      ROOT::Fit::DataRange range2(fitRange1,fitRange2);
+                      ROOT::Fit::BinData data1(option, range1);
+                      ROOT::Fit::BinData data2(option, range2);
+                      ROOT::Fit::FillData(data1, graph1);
+                      ROOT::Fit::FillData(data2, graph2);
+                      ROOT::Fit::Chi2Function chi21(data1, wfit1);
+                      ROOT::Fit::Chi2Function chi22(data2, wfit2);
+                      GlobalChi2 globalChi2(chi21, chi22);
+                      ROOT::Fit::Fitter fitter;
+                      vector<ROOT::Fit::ParameterSettings> parSetting = {
+                        ROOT::Fit::ParameterSettings("intercepti1", 0, 0.001, -100, 100),
+                        ROOT::Fit::ParameterSettings("intercepti2", 0, 0.001, -100, 100),
+                        ROOT::Fit::ParameterSettings("slope"      , 0, 0.001, -100, 100)};
+                      fitter.Config().SetParamsSettings(parSetting);
+                      fitter.Config().MinimizerOptions().SetPrintLevel(0);
+                      fitter.Config().SetMinimizer("Minuit","Minimize");
+                      fitter.FitFCN(3, globalChi2, 0, data1.Size()+data2.Size(), true);
+                      ROOT::Fit::FitResult result = fitter.Result();
+                      fit1 -> SetFitResult(result, fParIndex1);
+                      fit1 -> SetRange(range1().first, range1().second);
+                      fit1 -> SetLineColor(kGray+1);
+                      graph1 -> GetListOfFunctions() -> Add(fit1);
+                      fit2 -> SetFitResult(result, fParIndex2);
+                      fit2 -> SetRange(range2().first, range2().second);
+                      fit2 -> SetLineColor(kGray+1);
+                      graph2 -> GetListOfFunctions() -> Add(fit2);
+                      fit1 -> Draw("samel");
+                      fit2 -> Draw("samel");
+                      int countPoints = 0;
+                      double rms = 0;
+                      double x0, y0;
+                      for (auto i=0; i<graph1->GetN(); i++) {
+                        graph1 -> GetPoint(i,x0,y0);
+                        auto dy = y0 - fit1 -> Eval(x0);
+                        rms = rms + dy*dy;
+                        countPoints++;
+                      }
+                      for (auto i=0; i<graph2->GetN(); i++) {
+                        graph2 -> GetPoint(i,x0,y0);
+                        auto dy = y0 - fit2 -> Eval(x0);
+                        rms = rms + dy*dy;
+                        countPoints++;
+                      }
+                      rms = rms/countPoints; 
+                      rms = sqrt(rms);
+                      legendAlpha -> AddEntry(fit2, Form("#alpha = %.3f",fit2->GetParameter(1)),"");
+                      legendAlpha -> AddEntry(fit2, Form("rms = %.3f",rms),"");
+                      alphaArray[ibinX][ibinY] = fit2->GetParameter(1);
+                    }
+                    makeLegend(cvs,legendAlpha,"lt",-.1,0,.5,.42) -> Draw();
+
+                    cvs = cvsBeta -> cd(idxCvs);
+                    cvs -> SetLogy();
+                    auto frameBeta = new TH2D(Form("%s_%d",cvsBeta->GetName(),idxCvs),";Z;R21",100,0,3,100,0.5,2.0);
+                    frameBeta -> Draw();
+                    frameBeta -> GetXaxis() -> SetTitleSize(0.10);
+                    frameBeta -> GetYaxis() -> SetTitleSize(0.10);
+                    frameBeta -> GetXaxis() -> SetLabelSize(0.10);
+                    frameBeta -> GetYaxis() -> SetLabelSize(0.10);
+                    frameBeta -> GetXaxis() -> SetNdivisions(506);
+                    frameBeta -> GetYaxis() -> SetNdivisions(506);
+                    frameBeta -> GetXaxis() -> CenterTitle();
+                    frameBeta -> GetYaxis() -> CenterTitle();
+                    graph_n0_inZ -> Draw("samep");
+                    graph_n1_inZ -> Draw("samep");
+                    graph_n2_inZ -> Draw("samep");
+                    TLegend *legendBeta = new TLegend();
+                    legendBeta -> AddEntry(graph_n2_inZ , Form("(%d,%d)",binX,binY),"");
+
+                    if (fitNZR21) {
+                      auto graph3 = graph_n1_inZ;
+                      auto graph4 = graph_n2_inZ;
+                      TF1 *fit3 = new TF1("fit3",fPol1Function,0,100,2);
+                      TF1 *fit4 = new TF1("fit4",fPol1Function,0,100,2);
+                      double fitRange1 = .5;
+                      double fitRange2 = 2.5;
+                      ROOT::Math::WrappedMultiTF1 wfit1(*fit3,1);
+                      ROOT::Math::WrappedMultiTF1 wfit2(*fit4,1);
+                      ROOT::Fit::DataOptions option;
+                      ROOT::Fit::DataRange range1(fitRange1,fitRange2);
+                      ROOT::Fit::DataRange range2(fitRange1,fitRange2);
+                      ROOT::Fit::BinData data1(option, range1);
+                      ROOT::Fit::BinData data2(option, range2);
+                      ROOT::Fit::FillData(data1, graph3);
+                      ROOT::Fit::FillData(data2, graph4);
+                      ROOT::Fit::Chi2Function chi21(data1, wfit1);
+                      ROOT::Fit::Chi2Function chi22(data2, wfit2);
+                      GlobalChi2 globalChi2(chi21, chi22);
+                      ROOT::Fit::Fitter fitter;
+                      vector<ROOT::Fit::ParameterSettings> parSetting = {
+                        ROOT::Fit::ParameterSettings("intercepti1", 0, 0.001, -100, 100),
+                        ROOT::Fit::ParameterSettings("intercepti2", 0, 0.001, -100, 100),
+                        ROOT::Fit::ParameterSettings("slope"      , 0, 0.001, -100, 100)};
+                      fitter.Config().SetParamsSettings(parSetting);
+                      fitter.Config().MinimizerOptions().SetPrintLevel(0);
+                      fitter.Config().SetMinimizer("Minuit","Minimize");
+                      fitter.FitFCN(3, globalChi2, 0, data1.Size()+data2.Size(), true);
+                      ROOT::Fit::FitResult result = fitter.Result();
+                      fit3 -> SetFitResult(result, fParIndex1);
+                      fit3 -> SetRange(range1().first, range1().second);
+                      fit3 -> SetLineColor(kGray+1);
+                      graph3 -> GetListOfFunctions() -> Add(fit3);
+                      fit4 -> SetFitResult(result, fParIndex2);
+                      fit4 -> SetRange(range2().first, range2().second);
+                      fit4 -> SetLineColor(kGray+1);
+                      graph4 -> GetListOfFunctions() -> Add(fit4);
+                      fit3 -> Draw("samel");
+                      fit4 -> Draw("samel");
+                      int countPoints = 0;
+                      double rms = 0;
+                      double x0, y0;
+                      for (auto i=0; i<graph3->GetN(); i++) {
+                        graph3 -> GetPoint(i,x0,y0);
+                        auto dy = y0 - fit3 -> Eval(x0);
+                        rms = rms + dy*dy;
+                        countPoints++;
+                      }
+                      for (auto i=0; i<graph4->GetN(); i++) {
+                        graph4 -> GetPoint(i,x0,y0);
+                        auto dy = y0 - fit4 -> Eval(x0);
+                        rms = rms + dy*dy;
+                        countPoints++;
+                      }
+                      rms = rms/countPoints; 
+                      rms = sqrt(rms);
+                      legendBeta -> AddEntry(fit4, Form("#beta = %.3f",fit4->GetParameter(1)), "");
+                      legendBeta -> AddEntry(fit4, Form("rms = %.3f",rms),"");
+                      betaArray[ibinX][ibinY] = fit4->GetParameter(1);
+                    }
+                    makeLegend(cvs,legendBeta,"rt",0.11,0,.5,.42) -> Draw();
+
+                  }
+                }
+
+                auto nameR21YP = makeName("r21_yp",iAna,iLR,iMult,iSysComb,iCutTTA,iCutY0);
+                const char *nameAlphaBetaOut = Form("data_ab/alpha_beta_%s.txt",nameR21YP);
+                cout << nameAlphaBetaOut << endl;
+                std::ofstream fileR21YP(nameAlphaBetaOut);
+
+                auto nameR21AB = makeName("r21_ab",iAna,iLR,iMult,iSysComb,iCutTTA,iCutY0);
+                auto cvsAB = makeCvs(nameR21AB);
+                (new TH2D(nameR21AB,";#alpha;#beta",100,0,.6,100,-.5,.1)) -> Draw();
+
+                auto legendAB = new TLegend();
+                for (auto ibinY=8; ibinY>=1; --ibinY) {
+                  auto graphAB = new TGraph();
+                  for (auto ibinX=6; ibinX>=1; --ibinX) {
+                    auto alpha = alphaArray[ibinX][ibinY];
+                    auto beta = betaArray[ibinX][ibinY];
+                    graphAB -> SetPoint(graphAB->GetN(),alpha,beta);
+                  }
+                  graphAB -> SetLineColor(ibinY);
+                  graphAB -> SetMarkerColor(ibinY);
+                  graphAB -> SetMarkerStyle(24);
+                  graphAB -> Draw("samep");
+                  legendAB -> AddEntry(graphAB,Form("%d) p_{T}/A = %.0f ~ %.0f MeV/c",ibinY, binny.lowEdge(ibinY),binny.highEdge(ibinY)));
+                }
+                makeLegend(cvsAB,legendAB) -> Draw();
+                auto invf = new TF1(Form("invf_%s",nameR21AB),"-x",0,.5);
+                invf -> SetLineStyle(2);
+                invf -> SetLineColor(kGray);
+                invf -> Draw("samel");
+
+                fileR21YP << "alpha" << endl;
+                cout << "alpha" << endl;
+                for (auto ibinX=6; ibinX>=1; --ibinX) {
+                  for (auto ibinY=8; ibinY>=1; --ibinY) {
+                    fileR21YP << alphaArray[ibinX][ibinY] << ", ";
+                    cout << alphaArray[ibinX][ibinY] << ", ";
+                  }
+                  fileR21YP << endl;
+                  cout << endl;
+                }
+
+                fileR21YP << "beta" << endl;
+                cout << "beta" << endl;
+                for (auto ibinX=6; ibinX>=1; --ibinX) {
+                  for (auto ibinY=8; ibinY>=1; --ibinY) {
+                    fileR21YP << betaArray[ibinX][ibinY] << ", ";
+                    cout << betaArray[ibinX][ibinY] << ", ";
+                  }
+                  fileR21YP << endl;
+                  cout << endl;
+                }
+
+              }
+            }
+          }
+        }
+
+
 
       }
     }
@@ -1087,18 +1442,10 @@ void draw_pid()
     }
 }
 
-TLegend *makeLegend(TCanvas *cvs, TLegend *legend, double x_offset, double y_offset, double width_fixed, double height_fixed) // jumpto_makel
+TLegend *makeLegend(TVirtualPad *cvs, TLegend *legend, TString fLegendDrawStyle="rt", double x_offset, double y_offset, double width_fixed, double height_fixed) // jumpto_makel
 {
-  double fTMargin = 0.12;
-  double fBMargin = 0.17;
-  double fLMargin = 0.19;
-  double fRMargin = 0.055;
-  double fRMargin1 = 0.055;
-  TString fLegendDrawStyle = "rt";
-  //TString fLegendDrawStyle = "lb";
   double fWidthPerLengthLegend = 0.008;
   double fHeightPerEntryLegend = 0.05;
-  //double fWidthDefaultLegend = 0.18;
   double fWidthDefaultLegend = 0.10;
   int fFillStyleLegend = 0;
   int fBorderSizeLegend = 0;
@@ -1280,4 +1627,41 @@ TLegend *makeLegend(TCanvas *cvs, TLegend *legend, double x_offset, double y_off
   legend -> SetBorderSize(fBorderSizeLegend);
 
   return legend;
+}
+
+void Divide0(TCanvas *cvs, int nx, int ny)
+{
+  // TODO
+  auto sMargin = 0;
+  cvs->Divide(nx,ny,0,0);
+  for (auto ix=1; ix<=nx; ++ix) {
+    for (auto iy=1; iy<=ny; ++iy) {
+      auto i = ix + nx*(iy-1);
+      if (iy==1&&iy==ny) {
+        if (ix==1)       cvs->cd(i)->SetMargin(fLMargin,       0,fBMargin,0);
+        else if (ix==nx) cvs->cd(i)->SetMargin(       0,fRMargin,fBMargin,0);
+        else             cvs->cd(i)->SetMargin(       0,       0,fBMargin,0);
+      }
+      else if (iy==1) {
+        if (ix==1&&ix==nx) cvs->cd(i)->SetMargin(fLMargin,fRMargin,sMargin,fTMargin);
+        else if (ix==1)    cvs->cd(i)->SetMargin(fLMargin,       0,sMargin,fTMargin);
+        else if (ix==nx)   cvs->cd(i)->SetMargin(       0,fRMargin,sMargin,fTMargin);
+        else               cvs->cd(i)->SetMargin(       0,       0,sMargin,fTMargin);
+      }
+      else if (iy==ny) {
+        if (ix==1&&ix==nx) cvs->cd(i)->SetMargin(fLMargin,fRMargin,fBMargin,sMargin);
+        else if (ix==1)    cvs->cd(i)->SetMargin(fLMargin,       0,fBMargin,sMargin);
+        else if (ix==nx)   cvs->cd(i)->SetMargin(       0,fRMargin,fBMargin,sMargin);
+        else               cvs->cd(i)->SetMargin(       0,       0,fBMargin,sMargin);
+      }
+      else {
+        if (ix==1&&ix==nx) cvs->cd(i)->SetMargin(fLMargin,fRMargin,sMargin,sMargin);
+        else if (ix==1)    cvs->cd(i)->SetMargin(fLMargin,       0,sMargin,sMargin);
+        else if (ix==nx)   cvs->cd(i)->SetMargin(       0,fRMargin,sMargin,sMargin);
+        else               cvs->cd(i)->SetMargin(       0,       0,sMargin,sMargin);
+        //cvs->cd(i)->SetMargin(fLMargin,fRMargin,fBMargin,fTMargin);
+      }
+    }
+  }
+  //return cvs;
 }

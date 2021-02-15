@@ -4,7 +4,7 @@ const int      kp = 0, kd = 1, kt = 2, khe3 = 3, khe4 = 4;
 const int      fNumParticles = 5;
 const int      fParticleIdx      [fNumParticles] = {kp, kd, kt, khe3, khe4};
 const int      fParticleNumPs    [fNumParticles] = {1, 1, 1, 2, 2};
-const int      fParticleNumNs    [fNumParticles] = {0, 1, 2, 1, 2};
+const int      fParticleN        [fNumParticles] = {0, 1, 2, 1, 2};
 const int      fParticleA        [fNumParticles] = {1, 2, 3, 3, 4};
 const int      fParticleZ        [fNumParticles] = {1, 1, 1, 2, 2};
 const char*    fParticleNames    []              = {"p", "d", "t", "he3", "he4", ""};
