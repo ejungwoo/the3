@@ -7,6 +7,7 @@ const int      fParticleNumPs    [fNumParticles] = {1, 1, 1, 2, 2};
 const int      fParticleN        [fNumParticles] = {0, 1, 2, 1, 2};
 const int      fParticleA        [fNumParticles] = {1, 2, 3, 3, 4};
 const int      fParticleZ        [fNumParticles] = {1, 1, 1, 2, 2};
+const char*    fParticleNames0   []              = {"p", "d", "t", "he3", "he4"};
 const char*    fParticleNames    []              = {"p", "d", "t", "he3", "he4", ""};
 const char*    fParticleTitles   []              = {"p", "d", "t", "^{3}He", "^{4}He", ""};
 const double   fParticlePozLLCut [fNumParticles] = {100, 100, 800, 400, 400};
@@ -36,15 +37,15 @@ const char*    fSysCombNames         [fNumSysComb] = {"comb_132_108", "comb_132_
 const char*    fSysCombNames2        [fNumSysComb] = {"132 / 108", "132 / 112", "124 / 108", "124 / 112"};
 const char*    fSysCombTitles        [fNumSysComb] = {"(132 / 108)", "(132 / 112)", "(124 / 108)", "(124 / 112)"};
 
-const int      kf7 = 0, kf6 = 1, kx6 = 2;
-const int      fNumAna = 3;
-const int      fAnaIdx     [fNumAna] = {kf7, kf6, kx6};
-const char*    fAnaFNames  [fNumAna] = {"f7", "fix6","x0_f6set"};
-const char*    fAnaNames   [fNumAna] = {"f7", "f","x"};
-const char*    fAnaONames  [fNumAna] = {"f7", "after","before"};
-const char*    fAnaShort   [fNumAna] = {"f7", "f6","x6"};
-const char*    fAnaTitles  [fNumAna] = {"After Fix", "After Fix","Before Fix"};
-const char*    fAnaVersion [fNumAna] = {"NewAna.2107.4fd2bca","NewAna.2107.4fd2bca","NewAna.2107.4fd2bca"};
+const int      kf7 = 0, kx0 = 1, kf6 = 2, kx6 = 3;
+const int      fNumAna = 4;
+const int      fAnaIdx     [fNumAna] = {kf7, kx0, kf6, kx6};
+const char*    fAnaFNames  [fNumAna] = {"f7", "x0", "fix6","x0_f6set"};
+const char*    fAnaNames   [fNumAna] = {"f7", "x0", "f","x"};
+const char*    fAnaONames  [fNumAna] = {"f7", "x0", "after","before"};
+const char*    fAnaShort   [fNumAna] = {"f7", "x0", "f6","x6"};
+const char*    fAnaTitles  [fNumAna] = {"After Fix", "Before Fix", "After Fix", "Before Fix"};
+const char*    fAnaVersion [fNumAna] = {"NewAna.2107.4fd2bca", "NewAna.2107.4fd2bca","NewAna.2107.4fd2bca","NewAna.2107.4fd2bca"};
 
 const int      klr = 0, kleft = 1, kright = 2;
 const int      fNumLRs = 3;
@@ -94,14 +95,29 @@ const TCut     fCutTTA0Values [] = {
 };
 
 const int      kya = 0, ky02 = 1, ky0 = 2, ky04 = 3, ky0610 = 4;
+const int      kptoa0 = 5, kptoa50 = 6, kptoa100 = 7, kptoa150 = 8, kptoa200 = 9, kptoa250 = 10, kptoa300 = 11, kptoa350 = 12;
 const int      fNumCutY0s = 5;
-const int      fCutY0Idx[] = {kya, ky02, ky0, ky04, ky0610};
-const char*    fCutY0Names[] = {"yAll","yGT02","yGT0","y0004","y0610"};
-const char*    fCutY0Titles[] = {"", "y_{0}>0.2", "y_{0}>0", "0<y_{0}<.4", ".6<y_{0}<1."};
-const TCut     fCutY0Values[] = {
+const int      fNumCutPtoas = 8;
+const int      fNumCutYPs = fNumCutY0s + fNumCutPtoas;
+const int      fCutYPIdx[] = {kya, ky02, ky0, ky04, ky0610};
+const int      fCutPtoaIdx[] = {kptoa0, kptoa50, kptoa100, kptoa150, kptoa200, kptoa250, kptoa300, kptoa350};
+const int      fCutY0Idx[] = {kya, ky02, ky0, ky04, ky0610, kptoa0, kptoa50, kptoa100, kptoa150, kptoa200, kptoa250, kptoa300, kptoa350};
+const char*    fCutYPNames[] = {"yAll","yGT02","yGT0","y0004","y0610", "ptoa0", "ptoa50", "ptoa100", "ptoa150", "ptoa200", "ptoa250", "ptoa300", "ptoa350"};
+const char*    fCutYPTitles[] = {"", "y_{0}>0.2", "y_{0}>0", "0<y_{0}<.4", ".6<y_{0}<1.",
+  "p_{T}/A=0~50", "p_{T}/A=50~100", "p_{T}/A=100~150", "p_{T}/A=150~200", "p_{T}/A=200~250", "p_{T}/A=250~300", "p_{T}/A=300~350", "p_{T}/A=350~400"};
+const TCut     fCutYPValues[] = {
   "",
   "fy_cm/(by_cm/2)>0.2",
   "fy_cm/(by_cm/2)>0",
   "fy_cm/(by_cm/2)>0&&fy_cm/(by_cm/2)<0.4",
-  "fy_cm/(by_cm/2)>0.6&&fy_cm/(by_cm/2)<1"
+  "fy_cm/(by_cm/2)>0.6&&fy_cm/(by_cm/2)<1",
+
+  "pt_cm/PARTICLEA>=0&&pt_cm/PARTICLEA<50",
+  "pt_cm/PARTICLEA>=50&&pt_cm/PARTICLEA<100",
+  "pt_cm/PARTICLEA>=100&&pt_cm/PARTICLEA<150",
+  "pt_cm/PARTICLEA>=150&&pt_cm/PARTICLEA<200",
+  "pt_cm/PARTICLEA>=200&&pt_cm/PARTICLEA<250",
+  "pt_cm/PARTICLEA>=250&&pt_cm/PARTICLEA<300",
+  "pt_cm/PARTICLEA>=300&&pt_cm/PARTICLEA<350",
+  "pt_cm/PARTICLEA>=350&&pt_cm/PARTICLEA<400",
 };
