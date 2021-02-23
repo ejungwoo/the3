@@ -15,6 +15,13 @@ const double   fParticleMass     [fNumParticles] = {938.272, 1871.06, 2809.41, 2
 const int      fParticlePDGs     [fNumParticles] = {2212, 1000010020, 1000010030, 1000020030, 1000020040};
 const double   fParticleSDHL     [fNumParticles] = {2.2, 2.0, 1.8, 1.8, 1.8};
 const double   fParticleSDLL     [fNumParticles] = {2.2, 2.0, 1.8, 1.8, 1.8};
+const TCut     fParticlePozCut   [fNumParticles] = {
+  "p_lab>100",
+  "p_lab>200",
+  "p_lab>400",
+  "p_lab>400",
+  "p_lab>400",
+};
 
 const int      k132 = 0, k108 = 1, k112 = 2, k124 = 3;
 const int      fNumSystems = 4;
@@ -23,7 +30,7 @@ const int      fSystems           [fNumSystems] = {132, 108, 112, 124};
 const int      fSystemTargets     [fNumSystems] = {124, 112, 124, 112};
 const double   fSystemYAAs        [fNumSystems] = {0.3822, 0.3647, 0.3538, 0.3902};
 const double   fSystemYNNs        [fNumSystems] = {0.3696, 0.3697, 0.3705, 0.3706};
-const char*    fSystemNames       [fNumSystems] = {"132", "108", "124", "112"};
+const char*    fSystemNames       [fNumSystems] = {"132", "108", "112", "124"};
 const char*    fSystemTitles      [fNumSystems] = {"system(132+124)", "system(108+112)", "system(124+112)", "system(112+124)"};
 const char*    fSysEnergyLossFile [fNumSystems] = {"data/Sn132Sn124.txt","data/Sn108Sn112.txt","data/Sn112Sn124.txt","data/Sn112Sn124.txt"};
 int            fSystemNumEvents   [fNumSystems] = {0};
@@ -32,10 +39,10 @@ const int      fNumSysComb = 4;
 const int      fSysCombIdxTest       [] = {0};
 const int      fSysCombIdxSameTarget [] = {1,2};
 const int      fSysCombIndx          [fNumSysComb] = {0,1,2,3};
-const int      fSysCombIdx           [fNumSysComb][2] = {{0,1},{0,3},{2,1},{2,3}};
-const char*    fSysCombNames         [fNumSysComb] = {"comb_132_108", "comb_132_112", "comb_124_108", "comb_124_112"};
-const char*    fSysCombNames2        [fNumSysComb] = {"132 / 108", "132 / 112", "124 / 108", "124 / 112"};
-const char*    fSysCombTitles        [fNumSysComb] = {"(132 / 108)", "(132 / 112)", "(124 / 108)", "(124 / 112)"};
+const int      fSysCombIdx           [fNumSysComb][2] = {{0,1},{0,2},{3,1},{2,3}};
+const char*    fSysCombNames         [fNumSysComb] = {"comb_132_108", "comb_132_112", "comb_124_108",   "comb_124_112"};
+const char*    fSysCombNames2        [fNumSysComb] = {"132 / 108",     "132 / 112",     "124 / 108",     "124 / 112"};
+const char*    fSysCombTitles        [fNumSysComb] = {"(132 / 108)",  "(132 / 112)",   "(124 / 108)",   "(124 / 112)"};
 
 const int      kf7 = 0, kx0 = 1, kf6 = 2, kx6 = 3;
 const int      fNumAna = 4;
@@ -96,15 +103,19 @@ const TCut     fCutTTA0Values [] = {
 
 const int      kya = 0, ky02 = 1, ky0 = 2, ky04 = 3, ky0610 = 4;
 const int      kptoa0 = 5, kptoa50 = 6, kptoa100 = 7, kptoa150 = 8, kptoa200 = 9, kptoa250 = 10, kptoa300 = 11, kptoa350 = 12;
-const int      fNumCutY0s = 5;
+const int      kyF=13, kyH = 14;
+const int      fNumCutY0s = 7;
 const int      fNumCutPtoas = 8;
 const int      fNumCutYPs = fNumCutY0s + fNumCutPtoas;
-const int      fCutYPIdx[] = {kya, ky02, ky0, ky04, ky0610};
+const int      fCutYPIdx[] = {kya, ky02, ky0, ky04, ky0610,kyF, kyH};
 const int      fCutPtoaIdx[] = {kptoa0, kptoa50, kptoa100, kptoa150, kptoa200, kptoa250, kptoa300, kptoa350};
-const int      fCutY0Idx[] = {kya, ky02, ky0, ky04, ky0610, kptoa0, kptoa50, kptoa100, kptoa150, kptoa200, kptoa250, kptoa300, kptoa350};
-const char*    fCutYPNames[] = {"yAll","yGT02","yGT0","y0004","y0610", "ptoa0", "ptoa50", "ptoa100", "ptoa150", "ptoa200", "ptoa250", "ptoa300", "ptoa350"};
+const int      fCutY0Idx[] = {kya, ky02, ky0, ky04, ky0610, kptoa0, kptoa50, kptoa100, kptoa150, kptoa200, kptoa250, kptoa300, kptoa350, kyF, kyH};
+const char*    fCutYPNames[] = {"yAll","yGT02","yGT0","y0004","y0610", "ptoa0", "ptoa50", "ptoa100", "ptoa150", "ptoa200", "ptoa250", "ptoa300", "ptoa350", "yF", "yH"};
 const char*    fCutYPTitles[] = {"", "y_{0}>0.2", "y_{0}>0", "0<y_{0}<.4", ".6<y_{0}<1.",
-  "p_{T}/A=0~50", "p_{T}/A=50~100", "p_{T}/A=100~150", "p_{T}/A=150~200", "p_{T}/A=200~250", "p_{T}/A=250~300", "p_{T}/A=300~350", "p_{T}/A=350~400"};
+  "p_{T}/A=0~50", "p_{T}/A=50~100", "p_{T}/A=100~150", "p_{T}/A=150~200", "p_{T}/A=200~250", "p_{T}/A=250~300", "p_{T}/A=300~350", "p_{T}/A=350~400",
+  //"-.025<y_{0}<1",};
+  "-.025<y_{0}<0.5",
+  ".7<y_{0}<1.5"};
 const TCut     fCutYPValues[] = {
   "",
   "fy_cm/(by_cm/2)>0.2",
@@ -120,4 +131,8 @@ const TCut     fCutYPValues[] = {
   "pt_cm/PARTICLEA>=250&&pt_cm/PARTICLEA<300",
   "pt_cm/PARTICLEA>=300&&pt_cm/PARTICLEA<350",
   "pt_cm/PARTICLEA>=350&&pt_cm/PARTICLEA<400",
+
+  //"fy_cm/(by_cm/2)>-.25&&fy_cm/(by_cm/2)<1",
+  "fy_cm/(by_cm/2)>-.25&&fy_cm/(by_cm/2)<0.5",
+  "fy_cm/(by_cm/2)>.7&&fy_cm/(by_cm/2)<1.5",
 };
