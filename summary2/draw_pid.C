@@ -172,17 +172,17 @@ const char *makeTitle(const char *mainName, int iAna, int iLR, int iMult, int iS
 
 void draw_pid()
 {
-  //int selAna = kf7;
-  int selAna = kx0;
+  int selAna = kf7;
+  //int selAna = kx0;
   int selLR = klr;
   //int selLR = kright;
   int selMult = kn55;
   //int selMult = knAll;
-  //int selSys = kall;
-  int selSys = k132;
+  int selSys = kall;
+  //int selSys = k132;
 
-  const int selCutTTAIdx[] = {0};
-  //const int selCutTTAIdx[] = {1,2,3,4};
+  //const int selCutTTAIdx[] = {0};
+  const int selCutTTAIdx[] = {1,2,3,4};
   int selCutTTA = kall;
 
   //int selCutYP = ky02;
@@ -195,11 +195,12 @@ void draw_pid()
   int selLRIdx[] = {0,1,2};
   //int selLRIdx[] = {1};
 
-  vector<int> selSystemIdxR21 = {0,1,2,3};
-  vector<int> selSysCombIndx = {0,1,2,3};
+  //vector<int> selSystemIdxR21 = {0,1,2,3};
+  //vector<int> selSysCombIndx = {0,1,2,3};
+  vector<int> selSystemIdxR21 = {0,1};
+  vector<int> selSysCombIndx = {0};
 
-  //int selSysR21 = selSys;
-  int selSysR21 = k132;
+  int selSysR21 = selSys;
   int selCombR21 = kall;
 
   bool saveCvsPNG = false;
@@ -240,7 +241,7 @@ void draw_pid()
   bool drawCorPIDOXParticle = false;
 
   bool drawCorEKE = false;
-  bool drawYP = true;
+  bool drawYP = false;
   bool drawYPTTA0 = true;
   bool drawYPKE = true;
   bool drawYPPoz = true;
@@ -254,6 +255,8 @@ void draw_pid()
   bool drawKeoaR21 = false;
   bool drawNZR21 = false;
   bool fitNZR21TG = true;
+
+  bool drawDistKeoa = true;
 
   bool zoomPID = true;
   int nbinsPID = 800;
@@ -279,6 +282,9 @@ void draw_pid()
   int nbinsPtoa = 8;
   double ptoaMax = 400;
   int nbinsKeoaR21 = 4;
+
+  if (drawDistKeoa)
+    nbinsKeoaR21 = 50;
 
   binning bnRY0(8,-1,1);
   binning bnRPt(8,0,400);
@@ -309,6 +315,8 @@ void draw_pid()
       cutgAll[iSys][iLR][iCutTTA][iParticle] = bound;
     }
   };
+
+  auto f1Sinx = new TF1("satta","sin(x)",0,TMath::Pi());
 
   GetCutG(1,1,0,"vAll/rooto/bound_pidRaw_f7_left_45_100_108_ttaRG0_20_yAll.root");
   GetCutG(1,1,1,"vAll/rooto/bound_pidRaw_f7_left_45_100_108_ttaRG0_20_yAll.root");
@@ -1213,7 +1221,7 @@ void draw_pid()
 
           }
 
-          if (drawKT || drawCorEKE || drawCorPID || drawPtoaR21 || drawKeoaR21 || drawNZR21)
+          if (drawKT || drawCorEKE || drawCorPID || drawPtoaR21 || drawDistKeoa || drawKeoaR21 || drawNZR21)
           {
             for (auto iCutYP : fCutY0Idx)
             {
@@ -1356,7 +1364,7 @@ void draw_pid()
                     histPtoaArray[iSys][iCutTTA][iCutYP][iParticle] = histPtoa;
                   }
 
-                  if (drawKeoaR21)
+                  if (drawDistKeoa || drawKeoaR21)
                   {
                     auto nameKeoaPart = makeName("keoa",iAna,iLR,iMult,iSys,iCutTTA,iCutYP,iParticle);
                     auto titleKeoaPart = makeTitle("Cor.",iAna,iLR,iMult,iSys,iCutTTA,iCutYP,iParticle);
@@ -1421,6 +1429,7 @@ void draw_pid()
                     const char *expression = Form("(sqrt((p_lab*%d)*(p_lab*%d)+%f*%f)-%f)/%d",partz,partz,partm,partm,partm,parta);
                     project(treeParticle,nameKeoaPart,expression,selection);
 
+                    //cout << iSys << " " << iCutTTA << " " << iCutYP << " " << iParticle << endl;
                     histKeoaArray[iSys][iCutTTA][iCutYP][iParticle] = histKeoa;
                   }
 
@@ -1691,6 +1700,81 @@ void draw_pid()
           }
         }
 
+
+        if (drawDistKeoa)
+        {
+          for (auto iParticle : fParticleIdx)
+          {
+            const char *nameParticle = fParticleNames[iParticle];
+
+            for (auto iCutYP : fCutY0Idx)
+            {
+              if (selCutYP>=0 && selCutYP!=iCutYP) continue;
+
+              for (auto iComb : selSysCombIndx)
+              {
+                if (selCombR21>=0 && selCombR21!=iComb) continue;
+
+                auto iSys2 = fSysCombIdx[iComb][0];
+                auto iSys1 = fSysCombIdx[iComb][1];
+                auto iSysComb = 100 + iSys2*10 + iSys1;
+
+                auto nameR21 = makeName("dist_keoa",iAna,iLR,iMult,iSysComb,0,iCutYP,iParticle);
+                auto titleR21 = makeTitle("",iAna,iLR,iMult,iSysComb,0,iCutYP,iParticle);
+
+                auto cvs = makeCvs(nameR21,680,550);
+                //auto hist = new TH2D(nameR21,Form("%s;KE_{Lab}/A (MeV);dN/#Delta#Omegad(KE_{Lab}/A)",titleR21),100,0,400,100,0,0.08);
+                auto hist = new TH2D(nameR21,Form("%s;KE_{Lab}/A (MeV);dN/d(KE_{Lab}/A)/#Delta#Omega",titleR21),100,0,400,100,0.001,1);
+                cvs -> SetLogy();
+
+                hist -> Draw();
+
+                TLegend *legend = new TLegend();
+                for (auto iCutTTA : selCutTTAIdx)
+                {
+                  if (selCutTTA>=0 && selCutTTA!=iCutTTA) continue;
+
+                  for (auto iSys : {iSys2, iSys1}) {
+                    auto hist1 = histKeoaArray[iSys][iCutTTA][iCutYP][iParticle];
+
+                    double dPhi = 120;
+                    //double theta1 = TMath::DegToRad()*20*(iCutTTA);
+                    //double theta2 = TMath::DegToRad()*20*(iCutTTA+1);
+                    double theta1 = TMath::DegToRad()*fCutTTARanges[iCutTTA][0];
+                    double theta2 = TMath::DegToRad()*fCutTTARanges[iCutTTA][1];
+                    auto solidAngleInPi = 2 * (dPhi/360) * f1Sinx -> Integral(theta1, theta2);
+                    auto solidAngle = solidAngleInPi * TMath::Pi();
+                    cout << iSys << " " << iCutTTA << " " << solidAngle << endl;
+                    auto nbins = hist1 -> GetXaxis() -> GetNbins();
+                    auto binWidth = hist1 -> GetXaxis() -> GetBinWidth(1);
+                    for (auto bin=1; bin<=nbins; ++bin)
+                      hist1 -> SetBinContent(bin,hist1->GetBinContent(bin)/solidAngle/binWidth);
+
+                    //if (iCutTTA==1) { hist1 -> SetLineColor(kBlue    ); }
+                    //if (iCutTTA==2) { hist1 -> SetLineColor(kSpring-6); }
+                    //if (iCutTTA==3) { hist1 -> SetLineColor(kOrange-3); }
+                    //if (iCutTTA==4) { hist1 -> SetLineColor(kViolet-5); }
+                    if (iCutTTA==1) { hist1 -> SetLineWidth(1); hist1 -> SetLineColor(kBlue-4  ); }
+                    if (iCutTTA==2) { hist1 -> SetLineWidth(1); hist1 -> SetLineColor(kSpring-6); }
+                    if (iCutTTA==3) { hist1 -> SetLineWidth(1); hist1 -> SetLineColor(kOrange-3); }
+                    if (iCutTTA==4) { hist1 -> SetLineWidth(1); hist1 -> SetLineColor(kViolet-5); }
+
+                    if (iSys==iSys2) {
+                      if (iCutTTA==1) { hist1 -> SetLineWidth(2); hist1 -> SetLineColor(kBlue+2  ); }
+                      if (iCutTTA==2) { hist1 -> SetLineWidth(2); hist1 -> SetLineColor(kSpring+3); }
+                      if (iCutTTA==3) { hist1 -> SetLineWidth(2); hist1 -> SetLineColor(kOrange+4); }
+                      if (iCutTTA==4) { hist1 -> SetLineWidth(2); hist1 -> SetLineColor(kViolet-6); }
+                    }
+
+                    hist1 -> Draw("samehist");
+                    legend -> AddEntry(hist1,Form("%d %s",fSystems[iSys],fCutTTATitles[iCutTTA]),"l");
+                  }
+                }
+                makeLegend(cvs,legend,"",0,0,0,0.30) -> Draw();
+              }
+            }
+          }
+        }
 
         if (drawKeoaR21)
         {
