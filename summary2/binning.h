@@ -12,13 +12,14 @@ using namespace std;
 
 class binning
 {
-  private:
+  public:
     int fN = 0; ///< number of bins
     double fMin = 0; ///< lower bound
     double fMax = 0; ///< upper bound
     double fW = 0; ///< binning space width
     double fValue = 0; ///< value will be set after iteration using next(), back(), nextb()
     int fIdx = 0; ///< index for iteration
+    const char *fTitle = "";
 
   public:
     binning(int n=-1, double min=0, double max=0, double w=-1);
@@ -27,47 +28,42 @@ class binning
     binning(TGraph *graph, int i=1);
     ~binning() {}
 
-    TH1D *makeHist(const char *name, const char *title="");
+    void init();
+    void make(TTree *tree, const char* branchName);
 
-     void init();
+    bool   isNull()               const { if (fN<1||(fMin==0&&fMax==0)) return true; return false; }
+    int    getN()                 const { return fN; }
+    double getMin()               const { return fMin; }
+    double getMax()               const { return fMax; }
+    double getW()                 const { return fW; }
+    double getValue()             const { return fValue; }
 
-     bool isNull()               const { if (fN<1||(fMin==0&&fMax==0)) return true; return false; }
+    int    getIdx()               const { return fIdx; }
+    int    getBin (double val)    const { return int((val-fMin)/fW); }
+    int    findBin(double val)    const { return getBin(val); }
 
-      int getN()                 const { return fN; }
-   double getMin()               const { return fMin; }
-   double getMax()               const { return fMax; }
-   double getW()                 const { return fW; }
-   double getValue()             const { return fValue; }
-      int getIdx()               const { return fIdx; }
-      int getBin (double val)    const { return int((val-fMin)/fW); }
-      int findBin(double val)    const { return getBin(val); }
+    //iterator
+    void   reset(bool iOU=0);
+    bool   next (bool iOU=0);
 
-   double getFullWidth()         const { return .5*(fMax + fMin); }
-   double getFullCenter()        const { return (fMax - fMin); }
+    double getFullWidth()         const { return .5*(fMax + fMin); }
+    double getFullCenter()        const { return (fMax - fMin); }
+    double lowEdge  (int bin= 1)  const { return fMin+(bin-1)*(fMax-fMin)/fN; }
+    double highEdge (int bin=-1)  const { if (bin==-1) bin=fN; return fMin+(bin)*(fMax-fMin)/fN; }
+    double getCenter(int bin)     const { return (fMin + (bin-.5)*fW); }
+    bool   isInside(double value) const { if(value>fMin && value<fMax) return true; return false; }
 
-     void set    (double n, double min, double max);
+    void set     (double n, double min, double max, const char *ttl="");
+    void setN    (double n)          { fN = n; fW = (fMax-fMin)/fN; }
+    void setW    (double w)          { fW = w; fN = int((fMax-fMin)/fW); }
+    void setMin  (double min)        { fMin = min; fW = (fMax-fMin)/fN; }
+    void setMax  (double max)        { fMax = max; fW = (fMax-fMin)/fN; }
+    void setTitle(const char *ttl)   { fTitle = ttl; }
 
-     void setN   (double n)            { fN = n; fW = (fMax-fMin)/fN; }
-     void setW   (double w)            { fW = w; fN = int((fMax-fMin)/fW); }
-     void setMin (double min)          { fMin = min; fW = (fMax-fMin)/fN; }
-     void setMax (double max)          { fMax = max; fW = (fMax-fMin)/fN; }
+    TH1D *newHist(const char *name, const char *title="");
 
-     void resetB (bool includeOUFlow)  { fIdx = (includeOUFlow?-1:0); }
-   double nextB  (bool includeOUFlow)  {
-     if ((includeOUFlow && fIdx>fN) || (fIdx>fN-1))
-       return 0;
-     fValue = fMin + (fIdx++) * fW + .5 * fW;
-     return 1;
-   }
-
-   double lowEdge (int bin= 1) const { return fMin+(bin-1)*(fMax-fMin)/fN; }
-   double highEdge(int bin=-1) const { if (bin==-1) bin=fN; return fMin+(bin)*(fMax-fMin)/fN; }
-   double getCenter (int bin)  const { return (fMin + (bin-.5)*fW); }
-
-   TString print(bool pout=1) const;
-   void operator=(const binning binn);
-
-   void make(TTree *tree, const char* branchName);
+    TString print(bool pout=1) const;
+    void operator=(const binning binn);
 };
 
 binning::binning(int n, double min, double max, double w) : fN(n), fMin(min), fMax(max), fW(w) { init(); }
@@ -105,7 +101,20 @@ binning::binning(TGraph *graph, int i)
   fW = (fMax-fMin)/fN;
 }
 
-TH1D *binning::makeHist(const char *name, const char *title) { return (new TH1D(name,title,fN,fMin,fMax)); }
+void binning::reset(bool includeOUFlow)  { fIdx = (includeOUFlow?-1:0); }
+
+bool binning::next(bool includeOUFlow) 
+{
+  if ((includeOUFlow && fIdx>fN) || (fIdx>fN-1))
+    return 0;
+  fValue = fMin + (fIdx++) * fW + .5 * fW;
+  return 1;
+}
+
+TH1D *binning::newHist(const char *name, const char *title) {
+  if (TString(title).IsNull()) title = fTitle;
+  return (new TH1D(name,title,fN,fMin,fMax));
+}
 
 void binning::init()
 {
@@ -114,12 +123,13 @@ void binning::init()
 }
 
 
-void binning::set(double n, double min, double max)
+void binning::set(double n, double min, double max, const char *ttl)
 {
   fN = n;
   fMin = min;
   fMax = max;
   fW = (fMax-fMin)/fN;
+  fTitle = ttl;
 }
 
 TString binning::print(bool pout) const

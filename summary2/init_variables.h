@@ -1,3 +1,4 @@
+const bool     kDraw = true, kHold = false, kSet = true, kUnSet = false;
 const int      kall = -1;
 
 const int      kp = 0, kd = 1, kt = 2, khe3 = 3, khe4 = 4;
@@ -22,6 +23,13 @@ const TCut     fParticlePozCut   [fNumParticles] = {
   "p_lab>400",
   "p_lab>400",
 };
+
+const int      kdop = 0, ktop = 1;
+const int      fNumPR = 2;
+const int      fPRIdx[fNumPR]            = {kdop, ktop};
+const int      fPRParticleIdx[fNumPR][2] = {{1,0},{2,0}};
+const char*    fPRNames[fNumPR]          = {"dop","top"};
+const char*    fPRTitles[fNumPR]         = {"d/p","t/p"};
 
 const int      k132 = 0, k108 = 1, k112 = 2, k124 = 3;
 const int      fNumSystems = 4;
@@ -78,6 +86,7 @@ const int      fNumCutTTAs = 7;
 const int      fCutTTAIdx    [fNumCutTTAs] = {0,1,2,3,4,5,6};
 const char*    fCutTTANames  [fNumCutTTAs] = {"ttaAll","ttaRG0_20","ttaRG20_40","ttaRG40_60","ttaRG60_80","ttaLT60","ttaGT60"};
 const char*    fCutTTATitles [fNumCutTTAs] = {"All-#theta_{lab}","0<=#theta_{lab}<20","20<=#theta_{lab}<40","40<=#theta_{lab}<60","60<=#theta_{lab}<80","#theta_{lab}<60","#theta_{lab}>=60"};
+const double   fCutTTARanges [fNumCutTTAs][2] = {{0,90},{0,20},{20,40},{40,60},{60,80},{0,60},{60,90}};
 const TCut     fCutTTAValues [fNumCutTTAs] = {
   "",
   "theta_lab>= 0*TMath::DegToRad()&&theta_lab<20*TMath::DegToRad()",
@@ -103,19 +112,19 @@ const TCut     fCutTTA0Values [] = {
 
 const int      kya = 0, ky02 = 1, ky0 = 2, ky04 = 3, ky0610 = 4;
 const int      kptoa0 = 5, kptoa50 = 6, kptoa100 = 7, kptoa150 = 8, kptoa200 = 9, kptoa250 = 10, kptoa300 = 11, kptoa350 = 12;
-const int      kyF=13, kyH = 14;
+const int      kyF=13, kpF = 14;
 const int      fNumCutY0s = 7;
 const int      fNumCutPtoas = 8;
 const int      fNumCutYPs = fNumCutY0s + fNumCutPtoas;
-const int      fCutYPIdx[] = {kya, ky02, ky0, ky04, ky0610,kyF, kyH};
+const int      fCutYPIdx[] = {kya, ky02, ky0, ky04, ky0610,kyF, kpF};
 const int      fCutPtoaIdx[] = {kptoa0, kptoa50, kptoa100, kptoa150, kptoa200, kptoa250, kptoa300, kptoa350};
-const int      fCutY0Idx[] = {kya, ky02, ky0, ky04, ky0610, kptoa0, kptoa50, kptoa100, kptoa150, kptoa200, kptoa250, kptoa300, kptoa350, kyF, kyH};
-const char*    fCutYPNames[] = {"yAll","yGT02","yGT0","y0004","y0610", "ptoa0", "ptoa50", "ptoa100", "ptoa150", "ptoa200", "ptoa250", "ptoa300", "ptoa350", "yF", "yH"};
+const int      fCutY0Idx[] = {kya, ky02, ky0, ky04, ky0610, kptoa0, kptoa50, kptoa100, kptoa150, kptoa200, kptoa250, kptoa300, kptoa350, kyF, kpF};
+const char*    fCutYPNames[] = {"yAll","yGT02","yGT0","y0004","y0610", "ptoa0", "ptoa50", "ptoa100", "ptoa150", "ptoa200", "ptoa250", "ptoa300", "ptoa350", "yF", "pF"};
 const char*    fCutYPTitles[] = {"", "y_{0}>0.2", "y_{0}>0", "0<y_{0}<.4", ".6<y_{0}<1.",
   "p_{T}/A=0~50", "p_{T}/A=50~100", "p_{T}/A=100~150", "p_{T}/A=150~200", "p_{T}/A=200~250", "p_{T}/A=250~300", "p_{T}/A=300~350", "p_{T}/A=350~400",
   //"-.025<y_{0}<1",};
-  "-.025<y_{0}<0.5",
-  ".7<y_{0}<1.5"};
+  "-.025<y_{0}<1",
+  "0<p_{T}/A<300"};
 const TCut     fCutYPValues[] = {
   "",
   "fy_cm/(by_cm/2)>0.2",
@@ -133,6 +142,7 @@ const TCut     fCutYPValues[] = {
   "pt_cm/PARTICLEA>=350&&pt_cm/PARTICLEA<400",
 
   //"fy_cm/(by_cm/2)>-.25&&fy_cm/(by_cm/2)<1",
-  "fy_cm/(by_cm/2)>-.25&&fy_cm/(by_cm/2)<0.5",
-  "fy_cm/(by_cm/2)>.7&&fy_cm/(by_cm/2)<1.5",
+  "fy_cm/(by_cm/2)>-.25&&fy_cm/(by_cm/2)<1",
+  //"fy_cm/(by_cm/2)>-.25&&fy_cm/(by_cm/2)<.25",
+  "pt_cm/PARTICLEA>=0&&pt_cm/PARTICLEA<300",
 };
