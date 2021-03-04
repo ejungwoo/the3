@@ -74,7 +74,7 @@ class binning
     TString print(bool pout=1) const;
     void operator=(const binning binn);
 
-    binning2 operator+(const binning binn);
+    binning2 operator*(const binning binn);
 };
 
 
@@ -165,7 +165,8 @@ void binning::set(double n, double min, double max, const char *ttl)
   fMin = min;
   fMax = max;
   fW = (fMax-fMin)/fN;
-  fTitle = ttl;
+  if (TString(ttl).IsNull()==false)
+    fTitle = ttl;
 }
 
 TString binning::print(bool pout) const
@@ -201,7 +202,7 @@ void binning::operator=(const binning binn)
   fW = binn.getW();
 }
 
-binning2 binning::operator+(const binning binn) {
+binning2 binning::operator*(const binning binn) {
   return binning2(fTitle,fN,fMin,fMax,binn.getTitle(),binn.getN(),binn.getMin(),binn.getMax());
 }
 
