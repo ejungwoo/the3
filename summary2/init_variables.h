@@ -20,12 +20,12 @@ const TCut     fParticlePozCut   [fNumParticles] = {"p_lab>100", "p_lab>200", "p
 
 const int      kSDAll = 0, kSD_0_x = 1, kSD_x_0 = 2, kSD_xx_l3 = 3, kSD_xx = 4;
 const char*    fSDNames[]  =  {"sdall", "sd_0_SDVALUE ", "sd_SDVALUE_0", "sd_SDVALUE_1_l3", "asdSDVALUE"};
-const char*    fSDTitles[] =  {"sdall", "sd<SDVALUE,sd>0 ", "sd<0,sd>SDVALUE", "|sd|<SDVALUE_L3", "|sd|<SDVALUE"};
+const char*    fSDTitles[] =  {"sd_{ANATTL2}All", "0<sd_{ANATTL2}<SDVALUE ", "SDVALUE<sd_{ANATTL2}<0", "|sd_{ANATTL2}|<SDVALUE_L3", "|sd_{ANATTL2}|<SDVALUE"};
 const TCut     fSDParticleCut[][fNumParticles] = {
   {"","","","",""},
   {"sd<SDVALUE&&sd>0", "sd<SDVALUE&&sd>0", "sd<SDVALUE&&sd>0", "sd<SDVALUE&&sd>0", "sd<SDVALUE&&sd>0"},
   {"sd<0&&sd>-SDVALUE", "sd<0&&sd>-SDVALUE", "sd<0&&sd>-SDVALUE", "sd<0&&sd>-SDVALUE", "sd<0&&sd>-SDVALUE"},
-  {"sd<SDVALUE&&sd>-3","abs(sd)<SDVALUE",  "abs(sd)<SDVALUE",  "abs(sd)<SDVALUE",  "sd<3&&sd>-SDVALUE"},
+  {"sd<SDVALUE&&sd>-1.5","abs(sd)<SDVALUE",  "abs(sd)<SDVALUE",  "abs(sd)<SDVALUE",  "sd<1.5&&sd>-SDVALUE"},
   {"abs(sd)<SDVALUE",  "abs(sd)<SDVALUE",  "abs(sd)<SDVALUE",  "abs(sd)<SDVALUE",  "abs(sd)<SDVALUE"},
 };
 
@@ -44,7 +44,7 @@ const int      fSysTargets        [fNumSyss] = {124, 112, 124, 112};
 const double   fSysYAAs           [fNumSyss] = {0.3822, 0.3647, 0.3538, 0.3902};
 const double   fSysYNNs           [fNumSyss] = {0.3696, 0.3697, 0.3705, 0.3706};
 const char*    fSysNames          []            = {"132", "108", "112", "124", "sysAll"};
-const char*    fSysTitles         []            = {"system(132+124)", "system(108+112)", "system(124+112)", "system(112+124)", "all-systems"};
+const char*    fSysTitles         []            = {"system(132+124)", "system(108+112)", "system(112+124)", "system(124+112)", "all-systems"};
 const char*    fSysEnergyLossFile [fNumSyss] = {"data/Sn132Sn124.txt","data/Sn108Sn112.txt","data/Sn112Sn124.txt","data/Sn112Sn124.txt"};
 int            fSysNumEvents      [fNumSyss] = {0};
 const int      fSysColor          [fNumSyss] = {kRed, kBlue, kSpring-6, kOrange-3};
@@ -60,14 +60,15 @@ const char*    fSysCombNames         [fNumSysComb]    = {"comb_132_108", "comb_1
 const char*    fSysCombNames2        [fNumSysComb]    = {"132 / 108",     "132 / 112",     "124 / 108",     "124 / 112"};
 const char*    fSysCombTitles        [fNumSysComb]    = {"(132 / 108)",  "(132 / 112)",   "(124 / 108)",   "(124 / 112)"};
 
-const int      kf7 = 0, kx0 = 1, kfp=2;
+const int      kF132 = 0, kB132 = 1, kFSys=2;
 const int      fNumAna = 3;
-const int      fAnaIdx     [fNumAna] = {kf7, kx0, kfp};
+const int      fAnaIdx     [fNumAna] = {kF132, kB132, kFSys};
 const char*    fAnaFNames  [fNumAna] = {"f7", "x0", "fixPID"};
-const char*    fAnaNames   [fNumAna] = {"f7", "x0", "fp"};
-const char*    fAnaONames  [fNumAna] = {"f7", "x0", "fp"};
-const char*    fAnaShort   [fNumAna] = {"f7", "x0", "fp"};
-const char*    fAnaTitles  [fNumAna] = {"After Fix", "Before Fix", "After Fix+1"};
+const char*    fAnaNames   [fNumAna] = {"f132", "x0", "fsys"};
+const char*    fAnaONames  [fNumAna] = {"f132", "x0", "fsys"};
+const char*    fAnaShort   [fNumAna] = {"f132", "x0", "fsys"};
+const char*    fAnaTitles  [fNumAna] = {"After_Fix(132)", "Before_Fix(132)", "After_Fix(Sys)"};
+const char*    fAnaTitles2 [fNumAna] = {"132", "b132", "sys"};
 const char*    fAnaVersion [fNumAna] = {"NewAna.2107.4fd2bca", "NewAna.2107.4fd2bca", "NewAna.2107.4fd2bca"};
 
 const int      kLR = 0, kLeft = 1, kRight = 2;
@@ -104,22 +105,22 @@ const TCut     fCutThetaValues [fNumCutThetas] = {
   "theta_lab>=60*TMath::DegToRad()",
 };
 
-const int      kYPAll = 0, kYGT02 = 1, kYGT0 = 2, kYGT04 = 3, kY0610 = 4;
+const int      kYPAll = 0, kY1 = 1, kY2 = 2, kY3 = 3, kY4 = 4;
 const int      kPtoa0 = 5, kPtoa50 = 6, kPtoa100 = 7, kPtoa150 = 8, kPtoa200 = 9, kPtoa250 = 10, kPtoa300 = 11, kPtoa350 = 12;
-const int      kYF = 13, kPF = 14, kYPF = 15;
-const int      fNumCutYPs = 15;
-const int      fCutY0Idx   [] = {kYPAll, kYGT02, kYGT0, kYGT04, kY0610, kYF, kPF};
+const int      kYF = 13, kPF3 = 14, kYPF3 = 15, kPF4 = 16, kYPF4 = 17;
+const int      fNumCutYPs = 18;
+const int      fCutY0Idx   [] = {kYPAll, kY1, kY2, kY3, kY4, kYF};
 const int      fCutPtoaIdx [] = {kPtoa0, kPtoa50, kPtoa100, kPtoa150, kPtoa200, kPtoa250, kPtoa300, kPtoa350};
-const int      fCutYPIdx   [] = {kYPAll, kYGT02, kYGT0, kYGT04, kY0610, kPtoa0, kPtoa50, kPtoa100, kPtoa150, kPtoa200, kPtoa250, kPtoa300, kPtoa350, kYF, kPF, kYPF};
-const char*    fCutYPNames [] = {"yAll","yGT02","yGT0","y0004","y0610", "ptoa0", "ptoa50", "ptoa100", "ptoa150", "ptoa200", "ptoa250", "ptoa300", "ptoa350", "yF", "pF", "ypF"};
-const char*    fCutYPTitles[] = {"ypAll", "y_{0}>0.2", "y_{0}>0", "0<y_{0}<.4", ".6<y_{0}<1.",
-                                 "p_{T}/A=0~50", "p_{T}/A=50~100", "p_{T}/A=100~150", "p_{T}/A=150~200", "p_{T}/A=200~250", "p_{T}/A=250~300", "p_{T}/A=300~350", "p_{T}/A=350~400", "-.025<y_{0}<1", "0<p_{T}/A<300", "-0.25<y_{0}<1,0<p_{T}/A<300"};
+const int      fCutYPIdx   [] = {kYPAll, kY1, kY2, kY3, kY4, kPtoa0, kPtoa50, kPtoa100, kPtoa150, kPtoa200, kPtoa250, kPtoa300, kPtoa350, kYF, kPF3, kYPF3, kPF4, kYPF4};
+const char*    fCutYPNames [] = {"yAll","y1", "y2", "y3", "y4", "ptoa0", "ptoa50", "ptoa100", "ptoa150", "ptoa200", "ptoa250", "ptoa300", "ptoa350", "yF3", "pF3", "ypF3", "pF4", "ypF4"};
+const char*    fCutYPTitles[] = {"ypAll", "y1", "y_{0}=-.25~.25","y_{0}=.25~.75","y_{0}=.75~1.25",
+                                 "p_{T}/A=0~50", "p_{T}/A=50~100", "p_{T}/A=100~150", "p_{T}/A=150~200", "p_{T}/A=200~250", "p_{T}/A=250~300", "p_{T}/A=300~350", "p_{T}/A=350~400", "y_{0}=-0.25~1", "p_{T}/A=0~300", "y_{0}=-0.25~1, p_{T}/A=0~300", "p_{T}/A=0~400", "y_{0}=-0.25~1, p_{T}/A=0~400"};
 const TCut     fCutYPValues[] = {
   "",
-  "fy_cm/(by_cm/2)>0.2",
   "fy_cm/(by_cm/2)>0",
-  "fy_cm/(by_cm/2)>0&&fy_cm/(by_cm/2)<0.4",
-  "fy_cm/(by_cm/2)>0.6&&fy_cm/(by_cm/2)<1",
+  "fy_cm/(by_cm/2)>=-.25&&fy_cm/(by_cm/2)<0.25",
+  "fy_cm/(by_cm/2)>=0.25&&fy_cm/(by_cm/2)<0.75",
+  "fy_cm/(by_cm/2)>=0.75&&fy_cm/(by_cm/2)<1.25",
 
   "pt_cm/PARTICLEA>=0&&pt_cm/PARTICLEA<50",
   "pt_cm/PARTICLEA>=50&&pt_cm/PARTICLEA<100",
@@ -131,10 +132,11 @@ const TCut     fCutYPValues[] = {
   "pt_cm/PARTICLEA>=350&&pt_cm/PARTICLEA<400",
 
   "fy_cm/(by_cm/2)>-.25&&fy_cm/(by_cm/2)<1",
-  "pt_cm/PARTICLEA>=0&&pt_cm/PARTICLEA<400",
-  "fy_cm/(by_cm/2)>-.25&&fy_cm/(by_cm/2)<1&&pt_cm/PARTICLEA>=0&&pt_cm/PARTICLEA<400",
+
+  "pt_cm/PARTICLEA>=0&&pt_cm/PARTICLEA<300", "fy_cm/(by_cm/2)>-.25&&fy_cm/(by_cm/2)<1&&pt_cm/PARTICLEA>=0&&pt_cm/PARTICLEA<300",
+  "pt_cm/PARTICLEA>=0&&pt_cm/PARTICLEA<400", "fy_cm/(by_cm/2)>-.25&&fy_cm/(by_cm/2)<.75&&pt_cm/PARTICLEA>=0&&pt_cm/PARTICLEA<400",
 };
 
-const int      fDrawColor    [] = {kBlack, kRed, kBlue, kSpring-6, kOrange-3,kViolet-5,kAzure-1,kPink+7};
-const int      fDrawMStyle   [] = {24,25,26,27,28,30,42,46};
-const double   fDrawMSize    [] = {1.3,1.3,1.3,1.3,1.3,1.3,1.5,1.3};
+const int      fDrawColor    [] = {kBlack, kRed, kBlue, kSpring-6, kOrange-3,kViolet-5,kAzure-1,kPink+7, kGray+2};
+const int      fDrawMStyle   [] = {24,25,26,27,28,30,42,46,3};
+const double   fDrawMSize    [] = {1.3,1.3,1.3,1.4,1.3,1.3,1.5,1.3,1.3};

@@ -10,6 +10,9 @@
 #include <iostream>
 using namespace std;
 
+class binning;
+class binning2;
+
 class binning
 {
   public:
@@ -23,6 +26,7 @@ class binning
 
   public:
     binning(int n=-1, double min=0, double max=0, double w=-1);
+    binning(int n, double min, double max, const char *ttl);
     binning(binning const & binn) : fN(binn.fN), fMin(binn.fMin), fMax(binn.fMax), fW((fMax-fMin)/fN) {}
     binning(TH1 *hist, int i=1);
     binning(TGraph *graph, int i=1);
@@ -37,6 +41,7 @@ class binning
     double getMax()               const { return fMax; }
     double getW()                 const { return fW; }
     double getValue()             const { return fValue; }
+    const char *getTitle()        const { return fTitle; }
 
     int    getIdx()               const { return fIdx; }
     int    getBin (double val)    const { return int((val-fMin)/fW); }
@@ -45,6 +50,10 @@ class binning
     //iterator
     void   reset(bool iOU=0);
     bool   next (bool iOU=0);
+    int    cIdx()     const { return fIdx; }
+    double cValue()   const { return fValue; }
+    double cLow()     const { return lowEdge(fIdx); }
+    double cHigh()    const { return highEdge(fIdx); }
 
     double getFullWidth()         const { return .5*(fMax + fMin); }
     double getFullCenter()        const { return (fMax - fMin); }
@@ -64,7 +73,32 @@ class binning
 
     TString print(bool pout=1) const;
     void operator=(const binning binn);
+
+    binning2 operator+(const binning binn);
 };
+
+
+class binning2 {
+  public :
+    const char *fTitleX;
+    int fNX = 0;
+    double fMinX = 0;
+    double fMaxX = 0;
+    const char *fTitleY;
+    int fNY = 0;
+    double fMinY = 0;
+    double fMaxY = 0;
+
+    binning2(const char *titleX,int nX, double minX, double maxX, const char *titleY, int nY, double minY, double maxY)
+    : fTitleX(titleX) ,fNX(nX), fMinX(minX), fMaxX(maxX), fTitleY(titleY) ,fNY(nY), fMinY(minY), fMaxY(maxY) {}
+
+    TH2D *newHist(const char *nameHist, const char *titleHist="") {
+      auto hist = new TH2D(nameHist,Form("%s;%s;%s;",titleHist,fTitleX,fTitleY),fNX,fMinX,fMaxX,fNY,fMinY,fMaxY);
+      return hist;
+    }
+};
+
+
 
 binning::binning(int n, double min, double max, double w) : fN(n), fMin(min), fMax(max), fW(w) { init(); }
 
@@ -101,14 +135,16 @@ binning::binning(TGraph *graph, int i)
   fW = (fMax-fMin)/fN;
 }
 
+binning::binning(int n, double min, double max, const char *ttl) : fN(n), fMin(min), fMax(max), fTitle(ttl) { init(); }
+
 void binning::reset(bool includeOUFlow)  { fIdx = (includeOUFlow?-1:0); }
 
 bool binning::next(bool includeOUFlow) 
 {
   if ((includeOUFlow && fIdx>fN) || (fIdx>fN-1))
-    return 0;
+    return false;
   fValue = fMin + (fIdx++) * fW + .5 * fW;
-  return 1;
+  return true;
 }
 
 TH1D *binning::newHist(const char *name, const char *title) {
@@ -163,6 +199,10 @@ void binning::operator=(const binning binn)
   fMin = binn.getMin();
   fMax = binn.getMax();
   fW = binn.getW();
+}
+
+binning2 binning::operator+(const binning binn) {
+  return binning2(fTitle,fN,fMin,fMax,binn.getTitle(),binn.getN(),binn.getMin(),binn.getMax());
 }
 
 void binning::make(TTree *tree, const char* branchName)
