@@ -23,6 +23,7 @@ class binning
     double fValue = 0; ///< value will be set after iteration using next(), back(), nextb()
     int fIdx = 0; ///< index for iteration
     const char *fTitle = "";
+    const char *fExpression = "";
 
   public:
     binning(int n=-1, double min=0, double max=0, double w=-1);
@@ -42,6 +43,7 @@ class binning
     double getW()                 const { return fW; }
     double getValue()             const { return fValue; }
     const char *getTitle()        const { return fTitle; }
+    const char *getExpression()   const { return fExpression; }
 
     int    getIdx()               const { return fIdx; }
     int    getBin (double val)    const { return int((val-fMin)/fW); }
@@ -68,6 +70,7 @@ class binning
     void setMin  (double min)        { fMin = min; fW = (fMax-fMin)/fN; }
     void setMax  (double max)        { fMax = max; fW = (fMax-fMin)/fN; }
     void setTitle(const char *ttl)   { fTitle = ttl; }
+    void setExpression(const char *expression)   { fExpression = expression; }
 
     TH1D *newHist(const char *name, const char *title="");
 

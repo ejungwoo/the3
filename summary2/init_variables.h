@@ -16,7 +16,7 @@ const int      fParticlePDGs     [fNumParticles] = {2212, 1000010020, 1000010030
 const double   fParticleSDHL     [fNumParticles] = {2.2, 2.0, 1.8, 1.8, 1.8};
 const double   fParticleSDLL     [fNumParticles] = {2.2, 2.0, 1.8, 1.8, 1.8};
 
-const TCut     fParticlePozCut   [fNumParticles] = {"p_lab>100", "p_lab>200", "p_lab>200", "p_lab>400", "p_lab>400"};
+const TCut     fParticlePozCut   [fNumParticles] = {"p_lab>100", "p_lab>200", "p_lab>200", "p_lab>500", "p_lab>400"};
 
 const int      kSDAll = 0, kSD_0_x = 1, kSD_x_0 = 2, kSD_xx_l3 = 3, kSD_xx = 4;
 const char*    fSDNames[]  =  {"sdall", "sd_0_SDVALUE ", "sd_SDVALUE_0", "sd_SDVALUE_1_l3", "asdSDVALUE"};
@@ -50,6 +50,11 @@ int            fSysNumEvents      [fNumSyss] = {0};
 const int      fSysColor          [fNumSyss] = {kRed, kBlue, kSpring-6, kOrange-3};
 const int      fSysMStyle         [fNumSyss] = {25,26,27,28};
 const double   fSysMSize          [fNumSyss] = {1.3,1.3,1.3,1.3};
+
+//const TCut     fSysCut            [fNumSyss] = {"n/z>0.81978&&n/z<0.860337", "n/z>0.711004&&n/z<0.749269", "n/z>0.751898&&n/z<0.790893", "n/z>0.76741&&n/z<0.806511"};
+//const TCut     fSysCut            [fNumSyss] = {"n/z>0.799501&&n/z<0.880615", "n/z>0.691872&&n/z<0.768402", "n/z>0.732401&&n/z<0.81039", "n/z>0.74786&&n/z<0.826061"};
+//const TCut     fSysCut            [fNumSyss] = { "n/z>0.76175&&n/z<0.909377", "n/z>0.657071&&n/z<0.801513", "n/z>0.697387&&n/z<0.845191", "n/z>0.710847&&n/z<0.858042"};
+const TCut     fSysCut            [fNumSyss] = { "","","","" };
 
 const int      fNumSysComb = 4;
 const int      fSysCombIdxTest       [] = {0};
@@ -107,14 +112,21 @@ const TCut     fCutThetaValues [fNumCutThetas] = {
 
 const int      kYPAll = 0, kY1 = 1, kY2 = 2, kY3 = 3, kY4 = 4;
 const int      kPtoa0 = 5, kPtoa50 = 6, kPtoa100 = 7, kPtoa150 = 8, kPtoa200 = 9, kPtoa250 = 10, kPtoa300 = 11, kPtoa350 = 12;
-const int      kYF = 13, kPF3 = 14, kYPF3 = 15, kPF4 = 16, kYPF4 = 17;
-const int      fNumCutYPs = 18;
+const int      kYF = 13, kPF3 = 14, kYPFI = 16, kPF4 = 15, kYPUD = 17;
+const int      kP0 = 18, kP100 = 19, kP200 = 20, kP300 = 21;
+const int      fNumCutYPs = 22;
 const int      fCutY0Idx   [] = {kYPAll, kY1, kY2, kY3, kY4, kYF};
 const int      fCutPtoaIdx [] = {kPtoa0, kPtoa50, kPtoa100, kPtoa150, kPtoa200, kPtoa250, kPtoa300, kPtoa350};
-const int      fCutYPIdx   [] = {kYPAll, kY1, kY2, kY3, kY4, kPtoa0, kPtoa50, kPtoa100, kPtoa150, kPtoa200, kPtoa250, kPtoa300, kPtoa350, kYF, kPF3, kYPF3, kPF4, kYPF4};
-const char*    fCutYPNames [] = {"yAll","y1", "y2", "y3", "y4", "ptoa0", "ptoa50", "ptoa100", "ptoa150", "ptoa200", "ptoa250", "ptoa300", "ptoa350", "yF3", "pF3", "ypF3", "pF4", "ypF4"};
+const int      fCutYPIdx   [] = {kYPAll, kY1, kY2, kY3, kY4, kPtoa0, kPtoa50, kPtoa100, kPtoa150, kPtoa200, kPtoa250, kPtoa300, kPtoa350, kYF, kPF3, kPF4, kYPFI, kYPUD, kP0, kP100, kP200, kP300};
+const int      fCutPtoaIdx2[] = {kP0, kP100, kP200, kP300};
+const char*    fCutYPNames [] = {"yAll","y1", "y2", "y3", "y4",
+                                 "ptoa0", "ptoa50", "ptoa100", "ptoa150", "ptoa200", "ptoa250", "ptoa300", "ptoa350",
+                                 "yF3", "pF3", "pF4", "ypFI", "ypUD",
+                                 "p0", "p100", "p200", "p300"};
 const char*    fCutYPTitles[] = {"ypAll", "y1", "y_{0}=-.25~.25","y_{0}=.25~.75","y_{0}=.75~1.25",
-                                 "p_{T}/A=0~50", "p_{T}/A=50~100", "p_{T}/A=100~150", "p_{T}/A=150~200", "p_{T}/A=200~250", "p_{T}/A=250~300", "p_{T}/A=300~350", "p_{T}/A=350~400", "y_{0}=-0.25~1", "p_{T}/A=0~300", "y_{0}=-0.25~1, p_{T}/A=0~300", "p_{T}/A=0~400", "y_{0}=-0.25~1, p_{T}/A=0~400"};
+                                 "p_{T}/A=0~50", "p_{T}/A=50~100", "p_{T}/A=100~150", "p_{T}/A=150~200", "p_{T}/A=200~250", "p_{T}/A=250~300", "p_{T}/A=300~350", "p_{T}/A=350~400",
+                                 "y_{0}=-0.25~1", "p_{T}/A=0~300", "p_{T}/A=0~400", "yp=UserDefinedFull", "yp=UserDefined",
+                                 "p_{T}/A=0~100", "p_{T}/A=100~200", "p_{T}/A=200~300", "p_{T}/A=300~400"};
 const TCut     fCutYPValues[] = {
   "",
   "fy_cm/(by_cm/2)>0",
@@ -133,8 +145,21 @@ const TCut     fCutYPValues[] = {
 
   "fy_cm/(by_cm/2)>-.25&&fy_cm/(by_cm/2)<1",
 
-  "pt_cm/PARTICLEA>=0&&pt_cm/PARTICLEA<300", "fy_cm/(by_cm/2)>-.25&&fy_cm/(by_cm/2)<1&&pt_cm/PARTICLEA>=0&&pt_cm/PARTICLEA<300",
-  "pt_cm/PARTICLEA>=0&&pt_cm/PARTICLEA<400", "fy_cm/(by_cm/2)>-.25&&fy_cm/(by_cm/2)<.75&&pt_cm/PARTICLEA>=0&&pt_cm/PARTICLEA<400",
+  "pt_cm/PARTICLEA>=0&&pt_cm/PARTICLEA<300",
+  "pt_cm/PARTICLEA>=0&&pt_cm/PARTICLEA<400",
+
+  "fy_cm/(by_cm/2)>0&&fy_cm/(by_cm/2)<2&&pt_cm/PARTICLEA>=0&&pt_cm/PARTICLEA<4000",
+  //"fy_cm/(by_cm/2)>-0.25&&fy_cm/(by_cm/2)<0.25&&pt_cm/PARTICLEA>=0&&pt_cm/PARTICLEA<100",
+
+  "theta_cm>=0*TMath::DegToRad()&&theta_cm<20*TMath::DegToRad() && (sqrt((p_cm*PARTICLEZ)*(p_cm*PARTICLEZ)+PARTICLEM*PARTICLEM)-PARTICLEM)/PARTICLEA>0 && (sqrt((p_cm*PARTICLEZ)*(p_cm*PARTICLEZ)+PARTICLEM*PARTICLEM)-PARTICLEM)/PARTICLEA<50",
+  //"theta_cm>=0*TMath::DegToRad()&&theta_cm<20*TMath::DegToRad()",
+  //"(sqrt((p_cm*PARTICLEZ)*(p_cm*PARTICLEZ)+PARTICLEM*PARTICLEM)-PARTICLEM)/PARTICLEA>50 && (sqrt((p_cm*PARTICLEZ)*(p_cm*PARTICLEZ)+PARTICLEM*PARTICLEM)-PARTICLEM)/PARTICLEA<200",
+  //"(sqrt((p_cm*PARTICLEZ)*(p_cm*PARTICLEZ)+PARTICLEM*PARTICLEM)-PARTICLEM)>50 && (sqrt((p_cm*PARTICLEZ)*(p_cm*PARTICLEZ)+PARTICLEM*PARTICLEM)-PARTICLEM)<200",
+
+  "pt_cm/PARTICLEA>=0&&pt_cm/PARTICLEA<100",
+  "pt_cm/PARTICLEA>=100&&pt_cm/PARTICLEA<200",
+  "pt_cm/PARTICLEA>=200&&pt_cm/PARTICLEA<300",
+  "pt_cm/PARTICLEA>=300&&pt_cm/PARTICLEA<400",
 };
 
 const int      fDrawColor    [] = {kBlack, kRed, kBlue, kSpring-6, kOrange-3,kViolet-5,kAzure-1,kPink+7, kGray+2};
