@@ -16,7 +16,8 @@ const int      fParticlePDGs     [fNumParticles] = {2212, 1000010020, 1000010030
 const double   fParticleSDHL     [fNumParticles] = {2.2, 2.0, 1.8, 1.8, 1.8};
 const double   fParticleSDLL     [fNumParticles] = {2.2, 2.0, 1.8, 1.8, 1.8};
 
-const TCut     fParticlePozCut   [fNumParticles] = {"p_lab>100", "p_lab>200", "p_lab>200", "p_lab>500", "p_lab>400"};
+//const TCut     fParticlePozCut   [fNumParticles] = {"p_lab>100", "p_lab>200", "p_lab>200", "p_lab>500", "p_lab>400"};
+const TCut     fParticlePozCut   [fNumParticles] = {"p_lab>100", "p_lab>200", "p_lab>200", "p_lab>400", "p_lab>400"};
 
 const int      kSDAll = 0, kSD_0_x = 1, kSD_x_0 = 2, kSD_xx_l3 = 3, kSD_xx = 4;
 const char*    fSDNames[]  =  {"sdall", "sd_0_SDVALUE ", "sd_SDVALUE_0", "sd_SDVALUE_1_l3", "asdSDVALUE"};
@@ -163,5 +164,6 @@ const TCut     fCutYPValues[] = {
 };
 
 const int      fDrawColor    [] = {kBlack, kRed, kBlue, kSpring-6, kOrange-3,kViolet-5,kAzure-1,kPink+7, kGray+2};
-const int      fDrawMStyle   [] = {24,25,26,27,28,30,42,46,3};
-const double   fDrawMSize    [] = {1.3,1.3,1.3,1.4,1.3,1.3,1.5,1.3,1.3};
+//const int      fDrawMStyle   [] = {24,25,26,27,28,30,42,46,3};
+const int      fDrawMStyle   [] = {20,21,22,33,28,30,42,46,3};
+const double   fDrawMSize    [] = {1.3,1.3,1.3,1.5,1.3,1.3,1.5,1.3,1.3};
