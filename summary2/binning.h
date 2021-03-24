@@ -26,11 +26,7 @@ class binning
     const char *fExpression = "";
 
   public:
-    binning(int n=-1, double min=0, double max=0, double w=-1);
-    binning(int n, double min, double max, const char *ttl);
-    binning(binning const & binn) : fN(binn.fN), fMin(binn.fMin), fMax(binn.fMax), fW((fMax-fMin)/fN) {}
-    binning(TH1 *hist, int i=1);
-    binning(TGraph *graph, int i=1);
+    binning(int n, double min, double max, const char *ttl="", const char *expr="");
     ~binning() {}
 
     void init();
@@ -44,6 +40,7 @@ class binning
     double getValue()             const { return fValue; }
     const char *getTitle()        const { return fTitle; }
     const char *getExpression()   const { return fExpression; }
+    const char *getE()            const { return fExpression; }
 
     int    getIdx()               const { return fIdx; }
     int    getBin (double val)    const { return int((val-fMin)/fW); }
@@ -64,7 +61,7 @@ class binning
     double getCenter(int bin)     const { return (fMin + (bin-.5)*fW); }
     bool   isInside(double value) const { if(value>fMin && value<fMax) return true; return false; }
 
-    void set     (double n, double min, double max, const char *ttl="");
+    void set     (double n, double min, double max, const char *ttl="", const char *expression="");
     void setN    (double n)          { fN = n; fW = (fMax-fMin)/fN; }
     void setW    (double w)          { fW = w; fN = int((fMax-fMin)/fW); }
     void setMin  (double min)        { fMin = min; fW = (fMax-fMin)/fN; }
@@ -96,49 +93,15 @@ class binning2 {
     : fTitleX(titleX) ,fNX(nX), fMinX(minX), fMaxX(maxX), fTitleY(titleY) ,fNY(nY), fMinY(minY), fMaxY(maxY) {}
 
     TH2D *newHist(const char *nameHist, const char *titleHist="") {
-      auto hist = new TH2D(nameHist,Form("%s;%s;%s;",titleHist,fTitleX,fTitleY),fNX,fMinX,fMaxX,fNY,fMinY,fMaxY);
+      auto titlexy = Form("%s;%s;%s;",titleHist,fTitleX,fTitleY);
+      auto hist = new TH2D(nameHist,titlexy,fNX,fMinX,fMaxX,fNY,fMinY,fMaxY);
       return hist;
     }
 };
 
 
 
-binning::binning(int n, double min, double max, double w) : fN(n), fMin(min), fMax(max), fW(w) { init(); }
-
-binning::binning(TH1 *hist, int i)
-{
-  TAxis *axis;
-       if (i==2) axis = hist -> GetYaxis();
-  else if (i==3) axis = hist -> GetZaxis();
-  else           axis = hist -> GetXaxis();
-
-  fN = axis -> GetNbins();
-  fMin = axis -> GetBinLowEdge(1);
-  fMax = axis -> GetBinUpEdge(fN);
-  fW = (fMax-fMin)/fN;
-}
-
-binning::binning(TGraph *graph, int i)
-{
-  fN = graph -> GetN();
-  double x1,x2,y1,y2;
-  graph -> ComputeRange(x1,y1,x2,y2);
-  double xe1 = (x2-x1)/(fN-1)/2.;
-  double xe2 = (x2-x1)/(fN-1)/2.;
-  double ye1 = (y2-y1)/(fN-1)/2.;
-  double ye2 = (y2-y1)/(fN-1)/2.;
-  if (graph->InheritsFrom(TGraphErrors::Class())) {
-    xe1 = graph -> GetErrorX(0);
-    xe2 = graph -> GetErrorX(fN-1);
-    ye1 = graph -> GetErrorY(0);
-    ye2 = graph -> GetErrorY(fN-1);
-  }
-  if (i==2) { fMin = y1 - ye1; fMax = y2 + ye2; }
-  else      { fMin = x1 - xe1; fMax = x2 + xe2; }
-  fW = (fMax-fMin)/fN;
-}
-
-binning::binning(int n, double min, double max, const char *ttl) : fN(n), fMin(min), fMax(max), fTitle(ttl) { init(); }
+binning::binning(int n, double min, double max, const char *ttl, const char *expression) : fN(n), fMin(min), fMax(max), fTitle(ttl), fExpression(expression) { init(); }
 
 void binning::reset(bool includeOUFlow)  { fIdx = (includeOUFlow?-1:0); }
 
@@ -151,8 +114,8 @@ bool binning::next(bool includeOUFlow)
 }
 
 TH1D *binning::newHist(const char *name, const char *title) {
-  if (TString(title).IsNull()) title = fTitle;
-  return (new TH1D(name,title,fN,fMin,fMax));
+  auto titlexy = Form("%s;%s;",title,fTitle);
+  return (new TH1D(name,titlexy,fN,fMin,fMax));
 }
 
 void binning::init()
@@ -162,14 +125,14 @@ void binning::init()
 }
 
 
-void binning::set(double n, double min, double max, const char *ttl)
+void binning::set(double n, double min, double max, const char *ttl, const char *expression)
 {
   fN = n;
   fMin = min;
   fMax = max;
   fW = (fMax-fMin)/fN;
-  if (TString(ttl).IsNull()==false)
-    fTitle = ttl;
+  if (TString(ttl).IsNull()==false) fTitle = ttl;
+  if (TString(expression).IsNull()==false) fExpression = expression;
 }
 
 TString binning::print(bool pout) const
@@ -206,7 +169,7 @@ void binning::operator=(const binning binn)
 }
 
 binning2 binning::operator*(const binning binn) {
-  return binning2(fTitle,fN,fMin,fMax,binn.getTitle(),binn.getN(),binn.getMin(),binn.getMax());
+  return binning2(fTitle,fN,fMin,fMax, binn.getTitle(),binn.getN(),binn.getMin(),binn.getMax());
 }
 
 void binning::make(TTree *tree, const char* branchName)

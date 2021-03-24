@@ -10,14 +10,13 @@ const int      fParticleA        [fNumParticles] = {1, 2, 3, 3, 4};
 const int      fParticleZ        [fNumParticles] = {1, 1, 1, 2, 2};
 const char*    fParticleNames    []              = {"p", "d", "t", "he3", "he4", ""};
 const char*    fParticleTitles   []              = {"p", "d", "t", "^{3}He", "^{4}He", ""};
-const double   fParticlePozLLCut [fNumParticles] = {100, 100, 800, 400, 400};
 const double   fParticleMass     [fNumParticles] = {938.272, 1871.06, 2809.41, 2809.41, 3728.4};
 const int      fParticlePDGs     [fNumParticles] = {2212, 1000010020, 1000010030, 1000020030, 1000020040};
 const double   fParticleSDHL     [fNumParticles] = {2.2, 2.0, 1.8, 1.8, 1.8};
 const double   fParticleSDLL     [fNumParticles] = {2.2, 2.0, 1.8, 1.8, 1.8};
 
-//const TCut     fParticlePozCut   [fNumParticles] = {"p_lab>100", "p_lab>200", "p_lab>200", "p_lab>500", "p_lab>400"};
-const TCut     fParticlePozCut   [fNumParticles] = {"p_lab>100", "p_lab>200", "p_lab>200", "p_lab>400", "p_lab>400"};
+//const TCut     fParticlePozCut   [fNumParticles] = {"p_lab>100", "p_lab>200", "p_lab>200", "p_lab>400", "p_lab>400"};
+const TCut     fParticlePozCut   [fNumParticles] = {"p_lab>100", "p_lab>200", "p_lab>200", "p_lab>350", "p_lab>400"};
 
 const int      kSDAll = 0, kSD_0_x = 1, kSD_x_0 = 2, kSD_xx_l3 = 3, kSD_xx = 4;
 const char*    fSDNames[]  =  {"sdall", "sd_0_SDVALUE ", "sd_SDVALUE_0", "sd_SDVALUE_1_l3", "asdSDVALUE"};
@@ -45,12 +44,15 @@ const int      fSysTargets        [fNumSyss] = {124, 112, 124, 112};
 const double   fSysYAAs           [fNumSyss] = {0.3822, 0.3647, 0.3538, 0.3902};
 const double   fSysYNNs           [fNumSyss] = {0.3696, 0.3697, 0.3705, 0.3706};
 const char*    fSysNames          []            = {"132", "108", "112", "124", "sysAll"};
-const char*    fSysTitles         []            = {"system(132+124)", "system(108+112)", "system(112+124)", "system(124+112)", "all-systems"};
+const char*    fSysTitles         []            = {"s(132+124)", "s(108+112)", "s(112+124)", "s(124+112)", "all-systems"};
 const char*    fSysEnergyLossFile [fNumSyss] = {"data/Sn132Sn124.txt","data/Sn108Sn112.txt","data/Sn112Sn124.txt","data/Sn112Sn124.txt"};
 int            fSysNumEvents      [fNumSyss] = {0};
 const int      fSysColor          [fNumSyss] = {kRed, kBlue, kSpring-6, kOrange-3};
 const int      fSysMStyle         [fNumSyss] = {25,26,27,28};
 const double   fSysMSize          [fNumSyss] = {1.3,1.3,1.3,1.3};
+
+const int      fSysNEventsAll     []         = {1849598, 1212050, 716286, 266066};
+const int      fSysNEvents55      []         = {355036, 189764, 100080, 56008};
 
 //const TCut     fSysCut            [fNumSyss] = {"n/z>0.81978&&n/z<0.860337", "n/z>0.711004&&n/z<0.749269", "n/z>0.751898&&n/z<0.790893", "n/z>0.76741&&n/z<0.806511"};
 //const TCut     fSysCut            [fNumSyss] = {"n/z>0.799501&&n/z<0.880615", "n/z>0.691872&&n/z<0.768402", "n/z>0.732401&&n/z<0.81039", "n/z>0.74786&&n/z<0.826061"};
@@ -61,7 +63,7 @@ const int      fNumSysComb = 4;
 const int      fSysCombIdxTest       [] = {0};
 const int      fSysCombIdxSameTarget [] = {1,2};
 const int      fSysCombIndx          [fNumSysComb]    = {0,1,2,3};
-const int      fSysCombIdx           [fNumSysComb][2] = {{0,1},{0,2},{3,1},{2,3}};
+const int      fSysCombIdx           [fNumSysComb][2] = {{0,1},{0,2},{3,1},{3,2}};
 const char*    fSysCombNames         [fNumSysComb]    = {"comb_132_108", "comb_132_112", "comb_124_108",   "comb_124_112"};
 const char*    fSysCombNames2        [fNumSysComb]    = {"132 / 108",     "132 / 112",     "124 / 108",     "124 / 112"};
 const char*    fSysCombTitles        [fNumSysComb]    = {"(132 / 108)",  "(132 / 112)",   "(124 / 108)",   "(124 / 112)"};
@@ -152,7 +154,9 @@ const TCut     fCutYPValues[] = {
   "fy_cm/(by_cm/2)>0&&fy_cm/(by_cm/2)<2&&pt_cm/PARTICLEA>=0&&pt_cm/PARTICLEA<4000",
   //"fy_cm/(by_cm/2)>-0.25&&fy_cm/(by_cm/2)<0.25&&pt_cm/PARTICLEA>=0&&pt_cm/PARTICLEA<100",
 
-  "theta_cm>=0*TMath::DegToRad()&&theta_cm<20*TMath::DegToRad() && (sqrt((p_cm*PARTICLEZ)*(p_cm*PARTICLEZ)+PARTICLEM*PARTICLEM)-PARTICLEM)/PARTICLEA>0 && (sqrt((p_cm*PARTICLEZ)*(p_cm*PARTICLEZ)+PARTICLEM*PARTICLEM)-PARTICLEM)/PARTICLEA<50",
+  //"theta_cm>=120*TMath::DegToRad()&&theta_cm<140*TMath::DegToRad() && (sqrt((p_cm)*(p_cm)+PARTICLEM*PARTICLEM)-PARTICLEM)/PARTICLEA>0 && (sqrt((p_cm)*(p_cm)+PARTICLEM*PARTICLEM)-PARTICLEM)/PARTICLEA<80",
+  //"theta_cm>=120*TMath::DegToRad()&&theta_cm<140*TMath::DegToRad()",
+  "",
   //"theta_cm>=0*TMath::DegToRad()&&theta_cm<20*TMath::DegToRad()",
   //"(sqrt((p_cm*PARTICLEZ)*(p_cm*PARTICLEZ)+PARTICLEM*PARTICLEM)-PARTICLEM)/PARTICLEA>50 && (sqrt((p_cm*PARTICLEZ)*(p_cm*PARTICLEZ)+PARTICLEM*PARTICLEM)-PARTICLEM)/PARTICLEA<200",
   //"(sqrt((p_cm*PARTICLEZ)*(p_cm*PARTICLEZ)+PARTICLEM*PARTICLEM)-PARTICLEM)>50 && (sqrt((p_cm*PARTICLEZ)*(p_cm*PARTICLEZ)+PARTICLEM*PARTICLEM)-PARTICLEM)<200",
@@ -163,7 +167,11 @@ const TCut     fCutYPValues[] = {
   "pt_cm/PARTICLEA>=300&&pt_cm/PARTICLEA<400",
 };
 
-const int      fDrawColor    [] = {kBlack, kRed, kBlue, kSpring-6, kOrange-3,kViolet-5,kAzure-1,kPink+7, kGray+2};
-//const int      fDrawMStyle   [] = {24,25,26,27,28,30,42,46,3};
-const int      fDrawMStyle   [] = {20,21,22,33,28,30,42,46,3};
-const double   fDrawMSize    [] = {1.3,1.3,1.3,1.5,1.3,1.3,1.5,1.3,1.3};
+const int      fDrawColor    [] = {kBlack, kRed, kBlue, kSpring-6, kOrange-3,kViolet-5, kGray+2,kPink+7,kAzure-1};
+const int      fDrawColor2   [] = {kGray+1, kRed-8, kBlue-8, kGreen-8, kOrange-8, kViolet-8};
+const int      fDrawColor3   [] = {kGray, kRed-10, kBlue-10, kGreen-10, kOrange-9, kViolet-9};
+const int      fDrawMStyle   [] = {24,25,26,27,28,30,42,46,3};
+const double   fDrawMSize   [] = {1.5,1.5,1.5,1.8,1.8, 1.3,1.3,1.3,1.3};
+//const int      fDrawMStyle2  [] = {20,21,22,34,3,28,26,25,24};
+const int      fDrawMStyle2  [] = {20,21,22,34,33,28, 26,25,24};
+const double   fDrawMSize2   [] = {1.5,1.5,1.5,1.8,1.8, 1.3,1.3,1.3,1.3};
