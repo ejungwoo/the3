@@ -49,7 +49,12 @@ class binning
     //iterator
     void   reset(bool iOU=0);
     bool   next (bool iOU=0);
-    int    cIdx()     const { return fIdx; }
+
+    void   end();
+    bool   prev();
+
+    int    ii()     const { return fIdx-1; }
+    int    bi()     const { return fIdx; }
     double cValue()   const { return fValue; }
     double cLow()     const { return lowEdge(fIdx); }
     double cHigh()    const { return highEdge(fIdx); }
@@ -112,6 +117,18 @@ bool binning::next(bool includeOUFlow)
   fValue = fMin + (fIdx++) * fW + .5 * fW;
   return true;
 }
+
+void binning::end() { fIdx = fN+1; }
+
+bool binning::prev()
+{
+  if (fIdx<2)
+    return false;
+
+  fValue = fMin + (fIdx--) * fW + .5 * fW;
+  return true;
+}
+
 
 TH1D *binning::newHist(const char *name, const char *title) {
   auto titlexy = Form("%s;%s;",title,fTitle);

@@ -64,6 +64,7 @@ const int      fSysCombIdxTest       [] = {0};
 const int      fSysCombIdxSameTarget [] = {1,2};
 const int      fSysCombIndx          [fNumSysComb]    = {0,1,2,3};
 const int      fSysCombIdx           [fNumSysComb][2] = {{0,1},{0,2},{3,1},{3,2}};
+const int      fSysCombBeam          [fNumSysComb][2] = {{132,108},{132,112},{124,108},{124,112}};
 const char*    fSysCombNames         [fNumSysComb]    = {"comb_132_108", "comb_132_112", "comb_124_108",   "comb_124_112"};
 const char*    fSysCombNames2        [fNumSysComb]    = {"132 / 108",     "132 / 112",     "124 / 108",     "124 / 112"};
 const char*    fSysCombTitles        [fNumSysComb]    = {"(132 / 108)",  "(132 / 112)",   "(124 / 108)",   "(124 / 112)"};
@@ -151,15 +152,12 @@ const TCut     fCutYPValues[] = {
   "pt_cm/PARTICLEA>=0&&pt_cm/PARTICLEA<300",
   "pt_cm/PARTICLEA>=0&&pt_cm/PARTICLEA<400",
 
-  "fy_cm/(by_cm/2)>0&&fy_cm/(by_cm/2)<2&&pt_cm/PARTICLEA>=0&&pt_cm/PARTICLEA<4000",
+  // ypfi
+  "(sqrt((p_cm)*(p_cm)+PARTICLEM*PARTICLEM)-PARTICLEM)/PARTICLEA>30&&(sqrt((p_cm)*(p_cm)+PARTICLEM*PARTICLEM)-PARTICLEM)/PARTICLEA<60",
+  //"fy_cm/(by_cm/2)>-.15&&fy_cm/(by_cm/2)<.15&&pt_cm/PARTICLEA>=0&&pt_cm/PARTICLEA<100",
   //"fy_cm/(by_cm/2)>-0.25&&fy_cm/(by_cm/2)<0.25&&pt_cm/PARTICLEA>=0&&pt_cm/PARTICLEA<100",
 
-  //"theta_cm>=120*TMath::DegToRad()&&theta_cm<140*TMath::DegToRad() && (sqrt((p_cm)*(p_cm)+PARTICLEM*PARTICLEM)-PARTICLEM)/PARTICLEA>0 && (sqrt((p_cm)*(p_cm)+PARTICLEM*PARTICLEM)-PARTICLEM)/PARTICLEA<80",
-  //"theta_cm>=120*TMath::DegToRad()&&theta_cm<140*TMath::DegToRad()",
   "",
-  //"theta_cm>=0*TMath::DegToRad()&&theta_cm<20*TMath::DegToRad()",
-  //"(sqrt((p_cm*PARTICLEZ)*(p_cm*PARTICLEZ)+PARTICLEM*PARTICLEM)-PARTICLEM)/PARTICLEA>50 && (sqrt((p_cm*PARTICLEZ)*(p_cm*PARTICLEZ)+PARTICLEM*PARTICLEM)-PARTICLEM)/PARTICLEA<200",
-  //"(sqrt((p_cm*PARTICLEZ)*(p_cm*PARTICLEZ)+PARTICLEM*PARTICLEM)-PARTICLEM)>50 && (sqrt((p_cm*PARTICLEZ)*(p_cm*PARTICLEZ)+PARTICLEM*PARTICLEM)-PARTICLEM)<200",
 
   "pt_cm/PARTICLEA>=0&&pt_cm/PARTICLEA<100",
   "pt_cm/PARTICLEA>=100&&pt_cm/PARTICLEA<200",
@@ -167,11 +165,15 @@ const TCut     fCutYPValues[] = {
   "pt_cm/PARTICLEA>=300&&pt_cm/PARTICLEA<400",
 };
 
-const int      fDrawColor    [] = {kBlack, kRed, kBlue, kSpring-6, kOrange-3,kViolet-5, kGray+2,kPink+7,kAzure-1};
-const int      fDrawColor2   [] = {kGray+1, kRed-8, kBlue-8, kGreen-8, kOrange-8, kViolet-8};
-const int      fDrawColor3   [] = {kGray, kRed-10, kBlue-10, kGreen-10, kOrange-9, kViolet-9};
 const int      fDrawMStyle   [] = {24,25,26,27,28,30,42,46,3};
-const double   fDrawMSize   [] = {1.5,1.5,1.5,1.8,1.8, 1.3,1.3,1.3,1.3};
-//const int      fDrawMStyle2  [] = {20,21,22,34,3,28,26,25,24};
-const int      fDrawMStyle2  [] = {20,21,22,34,33,28, 26,25,24};
-const double   fDrawMSize2   [] = {1.5,1.5,1.5,1.8,1.8, 1.3,1.3,1.3,1.3};
+const double   fDrawMSize    [] = {1.7,1.7,1.7,2.0,2.0, 1.3,1.3,1.3,1.3};
+const int      fDrawColor    [] = {kBlack, kRed, kBlue, kSpring-6, kOrange-3,kViolet-5, kGray+2, kPink+6, kAzure-1};
+
+const int      fDrawMStyle2  [] = {24,25,26,27,28,30, 26,25,24};
+const double   fDrawMSize2   [] = {1.5,1.5,1.5,2.0,1.8,1.9,1.3,1.3,1.3};
+const int      fDrawColor2   [] = {kGray+1, kRed-8, kBlue-8, kGreen-8, kOrange-8, kViolet-8, kGray+1, kPink+2};
+
+const int      fDrawMStyle3  [] = {20,21,22,33,3,28,26,25,24};
+//const int      fDrawMStyle3  [] = {20,21,22,34,3,28,26,25,24};
+const double   fDrawMSize3   [] = {1.7,1.7,1.7,2.0,2.0, 1.3,1.3,1.3,1.3};
+const int      fDrawColor3   [] = {kGray, kRed-10, kBlue-10, kGreen-10, kOrange-9, kViolet-9, kGray, kPink+1};
