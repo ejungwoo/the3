@@ -56,7 +56,8 @@ const char *makeTitle(const char *mainName, int iAna, int iLR, int iMult, int iS
 void draw_pid
 (
     //int selAna = kF132, double selSDValue = 3.0,
-    int selAna = kFSys, double selSDValue = 3.0,
+    //int selAna = kFSys, double selSDValue = 3.0,
+    int selAna = kFNN, double selSDValue = 3.0,
 
     int selSDType = kSD_xx,
     //int selSDType = kSD_xx_l3,
@@ -114,11 +115,11 @@ void draw_pid
 
   bool drawKY = kHold;
 
-  bool drawKT = kHold;
+  bool drawKT = kDraw;
   bool setDrawKTGrid = kSet;
   bool setFitKE = kUnSet;
 
-  bool drawYP = kHold;
+  bool drawYP = kDraw;
   bool setDrawYPTogether = kSet;
   bool setDrawYPTheta0 = kSet;
   bool setDrawYPKE = kSet;
@@ -127,8 +128,8 @@ void draw_pid
   bool setDrawYPGrid = kSet;
   bool setUseCM = kSet;
 
-  bool drawPtoaR21 = kHold;
-  bool drawY0R21 = kHold;
+  bool drawPtoaR21 = kDraw;
+  bool drawY0R21 = kDraw;
   bool setDrawR21 = kSet;
   bool setDrawSR = kUnSet;
   bool setDrawDR = kUnSet;
@@ -138,8 +139,8 @@ void draw_pid
 
   bool drawTLabR21 = kHold;
 
-  bool drawTCMR21 = kHold;
-  bool drawKeoaR21 = kHold;
+  bool drawTCMR21 = kDraw;
+  bool drawKeoaR21 = kDraw;
   bool setDrawYield = kUnSet;
 
   bool drawNZR21 = kDraw;
@@ -151,8 +152,8 @@ void draw_pid
   bool setDrawNZInKT = kSet;
   bool setFitNZR21TG = kSet;
   bool setDrawRefAB = kSet;
-  //bool setFitABSep = kUnSet;
-  bool setFitABSep = kSet;
+  bool setFitABSep = kUnSet;
+  //bool setFitABSep = kSet;
   bool setDrawFit3 = kSet;
   bool setWriteR21ABCvsFile = kSet;
   bool setABErrorToResidual = kSet;
@@ -195,17 +196,19 @@ void draw_pid
   //int selMult = kMultAll;
   int selMult = kMult55;
   //int selMult = kMult45;
+  if (selAna==kFNN50)
+    selMult = kMult50;
 
   int selSys = kAll;
   //int selSys = k132;
-  vector<int> selSysIdx = {k132,k108,k112,k124};
-  //vector<int> selSysIdx = {k132,k108};
+  //vector<int> selSysIdx = {k132,k108,k112,k124};
+  vector<int> selSysIdx = {k132,k108};
   //vector<int> selSysIdx = {k112,k124};
 
   int selSysComb = kAll;
   //int selSysComb = 0;
-  //vector<int> selSysCombIdx = {0};
-  vector<int> selSysCombIdx = {0,1,2,3};
+  vector<int> selSysCombIdx = {0};
+  //vector<int> selSysCombIdx = {0,1,2,3};
   //vector<int> selSysCombIdx = {3};
 
   int selLR = kLR;
@@ -288,7 +291,7 @@ void draw_pid
   //binning bnRKeoaCM(4,0,40,"KE_{CM}/A (MeV)");
 
   binning bnTCM(60,0,180,"#theta_{CM} (deg)");
-  binning bnRTCM(5,0,90,"#theta_{CM} (deg)");
+  binning bnRTCM(4,0,90,"#theta_{CM} (deg)");
 
   int dxCvsAB = 150; int dyCvsAB = 200;
   if (bnRKeoaCM.fN==1 && setDrawNZInKT) {
@@ -328,7 +331,7 @@ void draw_pid
   if (drawKeoaR21) {
     bnRKeoaCM.set(4,0,120);
     bnRTCM.set(1,0,90);
-    bnR21.set(100,0.3,1.6,"R_{21}");
+    //bnR21.set(100,0.3,1.6,"R_{21}");
   }
 
   if (drawDistKeoa) {
@@ -393,25 +396,16 @@ void draw_pid
     selCutThetaIdx.push_back(kThetaAll); 
   }
 
-  if (setDrawNZInKT) {
-    drawYP = kHold;
-    bnRY0.set(bnRKeoaCM.fN,bnRKeoaCM.fMin,bnRKeoaCM.fMax,bnRKeoaCM.fTitle);
-    bnRPtoa.set(bnRTCM.fN,bnRTCM.fMin,bnRTCM.fMax,bnRTCM.fTitle);
-  }
-
   if (drawNZR21 && setDrawNZAll) {
     holdAll();
     drawNZR21 = true;
     if (setDrawNZInKT) {
-      //bnRY0.set(1,0,400); // selected;
-      //bnRPtoa.set(1,0,90);
-      bnRY0.set(1,0,400); // selected;
-      bnRPtoa.set(1,0,90);
+      bnRKeoaCM.setN(1);
+      bnRTCM.setN(1);
     }
     else {
-      //bnRY0.set(1,-0.25,0.75); // selected;
-      bnRY0.set(1,-.15,1.05); // selected;
-      bnRPtoa.set(1,0,400);
+      bnRY0.setN(1);
+      bnRPtoa.setN(1);
     }
   }
 
@@ -422,7 +416,6 @@ void draw_pid
   fVName = Form("v%s_Y0N%d_PtoaN%d",fAnaNames[selAna],bnRY0.fN,bnRPtoa.fN);
   fVName1 = Form("v%s_Y0N%d_PtoaN1",fAnaNames[selAna],bnRY0.fN);
   if (setDrawNZInKT) {
-    //fVName = Form("v%s_KeoaN%d",fAnaNames[selAna],bnRKeoaCM.fN);
     fVName = Form("v%s_KeoaN%d_ThetaN%d",fAnaNames[selAna],bnRKeoaCM.fN,bnRTCM.fN);
     fVName1 = Form("v%s_KeoaN%d_ThetaN1",fAnaNames[selAna],bnRKeoaCM.fN);
   }
@@ -939,8 +932,8 @@ void draw_pid
         TH1D *histY0Array[fNumSyss][fNumCutThetas][fNumCutYPs][fNumParticles] = {0};
         TH1D *histPtoaArray[fNumSyss][fNumCutThetas][fNumCutYPs][fNumParticles] = {0};
         TH1D *histThetaArray[fNumSyss][fNumCutThetas][fNumCutYPs][fNumParticles] = {0};
-        TH2D *histYPR21Array[fNumSyss][fNumCutThetas][fNumCutYPs][fNumParticles] = {0};
-        TH2D *histYPR21Array2[fNumSyss][fNumCutThetas][fNumCutYPs][fNumParticles] = {0};
+        TH2D *histXYR21Array[fNumSyss][fNumCutThetas][fNumCutYPs][fNumParticles] = {0};
+        TH2D *histXYR21Array2[fNumSyss][fNumCutThetas][fNumCutYPs][fNumParticles] = {0};
 
         for (auto iSys : selSysIdx)
         {
@@ -1864,49 +1857,44 @@ void draw_pid
 
                   if (drawNZR21)
                   {
+                    auto bnX = bnRY0;
+                    auto bnY = bnRPtoa;
+
                     auto partz = fParticleZ[iParticle];
                     auto partm = fParticleMass[iParticle];
                     auto parta = fParticleA[iParticle];
                     const char *expressionNZ = Form("pt_cm/%d:fy_cm/(by_cm/2)",fParticleA[iParticle]);
-                    if (setDrawNZInKT)
+
+                    if (setDrawNZInKT) {
                       expressionNZ = Form("theta_cm*TMath::RadToDeg():(sqrt((p_cm)*(p_cm)+%f*%f)-%f)/%d",partm,partm,partm,parta);
+                      bnX = bnRKeoaCM;
+                      bnY = bnRTCM;
+                    }
 
                     auto nameYPR21Part = makeName("ypR21",iAna,iLR,iMult,iSys,iCutTheta,iCutYP,iParticle);
                     auto titleYPR21Part = makeTitle("Cor.",iAna,iLR,iMult,iSys,iCutTheta,iCutYP,iParticle);
                     TCut selection  = cut0 * getWeighting(iSys,iParticle) * cutSys * cutParticleYP * cutTheta * cutParticlePoz * cutParticleSD;
-                    auto histYPR21Part = (bnRY0*bnRPtoa).newHist(nameYPR21Part,titleYPR21Part);
-                    project(treeParticle,nameYPR21Part,expressionNZ,selection,histYPR21Part);
+                    auto histXYR21Part = (bnX*bnY).newHist(nameYPR21Part,titleYPR21Part);
+                    project(treeParticle,nameYPR21Part,expressionNZ,selection,histXYR21Part);
 
                     auto nameYPR21Part2 = makeName("ypR21_2",iAna,iLR,iMult,iSys,iCutTheta,iCutYP,iParticle);
                     TCut selection2 = cut1 * getWeighting(iSys,iParticle,1) * cutSys * cutParticleYP * cutTheta * cutParticlePoz * cutParticleSD;
-                    auto histYPR21Part2 = (bnRY0*bnRPtoa).newHist(nameYPR21Part2,titleYPR21Part);
-                    project(treeParticle,nameYPR21Part2,expressionNZ,selection2,histYPR21Part2);
+                    auto histXYR21Part2 = (bnX*bnY).newHist(nameYPR21Part2,titleYPR21Part);
+                    project(treeParticle,nameYPR21Part2,expressionNZ,selection2,histXYR21Part2);
 
-                    /*
-                    auto nameYPR21Part3 = makeName("ypR21_3",iAna,iLR,iMult,iSys,iCutTheta,iCutYP,iParticle);
-                    TCut selection3 = cut0 * getWeighting(iSys,iParticle,1) * cutSys * cutParticleYP * cutTheta * cutParticlePoz;
-                    auto histYPR21Part3 = (bnRY0*bnRPtoa).newHist(nameYPR21Part3,titleYPR21Part);
-                    project(treeParticle,nameYPR21Part3,expressionNZ,selection3);
-                    */
-
-                    bnRY0.reset();
-                    bnRPtoa.reset();
-                    while (bnRY0.next()) {
-                      while (bnRPtoa.next()) {
-                        auto value1 = histYPR21Part -> GetBinContent(bnRY0.fIdx,bnRPtoa.fIdx);
-                        auto value2 = histYPR21Part2 -> GetBinContent(bnRY0.fIdx,bnRPtoa.fIdx);
-                        //auto error2 = abs(value1 - value2)/value2;
+                    bnX.reset();
+                    bnY.reset();
+                    while (bnX.next()) {
+                      while (bnY.next()) {
+                        auto value1 = histXYR21Part -> GetBinContent(bnX.fIdx,bnY.fIdx);
+                        auto value2 = histXYR21Part2 -> GetBinContent(bnX.fIdx,bnY.fIdx);
                         auto error2 = abs(value1 - value2);
                         auto error = error2;
-                        //auto value3 = histYPR21Part3 -> GetBinContent(bnRY0.fIdx,bnRPtoa.fIdx);
-                        //auto error3 = abs(value1 - value3);
-                        //auto error = sqrt(error2*error2 + error3*error3);
-                        //histYPR21Part -> SetBinError(bnRY0.fIdx,bnRPtoa.fIdx,error);
                       }
                     }
 
-                    histYPR21Array[iSys][iCutTheta][iCutYP][iParticle] = histYPR21Part;
-                    histYPR21Array2[iSys][iCutTheta][iCutYP][iParticle] = histYPR21Part2;
+                    histXYR21Array[iSys][iCutTheta][iCutYP][iParticle] = histXYR21Part;
+                    histXYR21Array2[iSys][iCutTheta][iCutYP][iParticle] = histXYR21Part2;
                   }
 
                   delete treeParticle;
@@ -2539,7 +2527,7 @@ void draw_pid
                   hist0 -> Draw("same histp");
                   legend -> AddEntry(hist0,fParticleNames[iParticle],"p");
 
-                  if (histAPrev[iComb]!=nullptr)
+                  if (histAPrev1[iComb]!=nullptr)
                   {
                     auto graph = new TGraph();
                     bnRKeoaCM.reset();
@@ -2548,26 +2536,32 @@ void draw_pid
                       auto idx = bnRKeoaCM.fIdx;
                       auto n0 = fParticleN[iParticle];
                       auto z0 = fParticleZ[iParticle];
-                      auto c0 = histCPrev[iComb] -> GetBinContent(idx,1);
-                      auto alpha0 = histAPrev[iComb] -> GetBinContent(idx,1);
-                      auto beta0 = histBPrev[iComb] -> GetBinContent(idx,1);
+                      auto c0 = histCPrev1[iComb] -> GetBinContent(idx,1);
+                      auto alpha0 = histAPrev1[iComb] -> GetBinContent(idx,1);
+                      auto beta0 = histBPrev1[iComb] -> GetBinContent(idx,1);
                       graph -> SetPoint(graph->GetN(),bnRKeoaCM.getValue(),c0*exp(n0*alpha0+z0*beta0));
                     }
                     setAtt(graph,iParticle);
+                    graph -> SetLineStyle(2);
                     graph -> Draw("samel");
                   }
                 }
-                if (histAPrev[iComb]!=nullptr)
-                  legend -> AddEntry(new TGraph,"(fit)","l");
+                if (histAPrev1[iComb]!=nullptr) {
+                  auto graph00 = new TGraph;
+                  graph00 -> SetLineStyle(2);
+                  legend -> AddEntry(graph00,"(fit)","l");
+                }
                 makeLegend(cvs,legend) -> Draw();
 
-                if (histAPrev[iComb]!=nullptr)
+                if (histAPrev1[iComb]!=nullptr)
                 {
                   const char *nameABComb = makeName("abcomb_keoa",iAna,iLR,iMult,iSysComb,iCutTheta,iCutYP);
                   auto titleABComb = makeTitle("",iAna,iLR,iMult,iSysComb,iCutTheta,iCutYP);
                   auto cvsABComb = makeCvs(nameABComb);
+                  {
                   auto hist = (bnRKeoaCM*binning(100,-.5,1,"#alpha+#beta")).newHist(nameABComb,titleABComb);
                   hist -> Draw();
+                  }
 
                   auto line0 = new TLine(bnRKeoaCM.lowEdge(),0,bnRKeoaCM.highEdge(),0);
                   auto line05 = new TLine(bnRKeoaCM.lowEdge(),0.5,bnRKeoaCM.highEdge(),0.5);
@@ -2578,9 +2572,26 @@ void draw_pid
                   line0  -> Draw("samel");
                   line05 -> Draw("samel");
 
+                  const char *nameABComb2 = makeName("abcomb2_keoa",iAna,iLR,iMult,iSysComb,iCutTheta,iCutYP);
+                  auto titleABComb2 = makeTitle("",iAna,iLR,iMult,iSysComb,iCutTheta,iCutYP);
+                  auto cvsABComb2 = makeCvs(nameABComb2);
+                  {
+                  auto hist = (bnRKeoaCM*binning(100,-.5,1,"#alpha-#beta")).newHist(nameABComb2,titleABComb2);
+                  hist -> Draw();
+                  }
+
+                  line0 = new TLine(bnRKeoaCM.lowEdge(),0,bnRKeoaCM.highEdge(),0);
+                  line05 = new TLine(bnRKeoaCM.lowEdge(),0.5,bnRKeoaCM.highEdge(),0.5);
+                  line0  -> SetLineColor(kGray);
+                  line05 -> SetLineColor(kGray);
+                  line0  -> SetLineStyle(2);
+                  line05 -> SetLineStyle(2);
+                  line0  -> Draw("samel");
+                  line05 -> Draw("samel");
+
                   binning bnX = bnRKeoaCM;
 
-                  auto legendABComb = new TLegend();
+                  auto legendABComb2 = new TLegend();
 
                   {
                     auto graph_ake = new TGraph();
@@ -2589,56 +2600,34 @@ void draw_pid
                     auto graph_ambke = new TGraph();
                     bnX.reset();
                     while (bnX.next()) {
-                      auto alpha0 = histAPrev[iComb] -> GetBinContent(bnX.bi(),1);
-                      auto beta0 = histBPrev[iComb] -> GetBinContent(bnX.bi(),1);
+                      auto alpha0 = histAPrev1[iComb] -> GetBinContent(bnX.bi(),1);
+                      auto beta0 = histBPrev1[iComb] -> GetBinContent(bnX.bi(),1);
                       graph_ake -> SetPoint(graph_ake->GetN(),bnX.getValue(),alpha0);
                       graph_bke -> SetPoint(graph_bke->GetN(),bnX.getValue(),beta0);
                       graph_apbke -> SetPoint(graph_apbke->GetN(),bnX.getValue(),alpha0+beta0);
                       graph_ambke -> SetPoint(graph_ambke->GetN(),bnX.getValue(),alpha0-beta0);
                     }
-                    setAtt(graph_ake,0);   graph_ake   -> Draw("samelp");
-                    setAtt(graph_bke,1);   graph_bke   -> Draw("samelp");
-                    setAtt(graph_apbke,2); graph_apbke -> Draw("samelp");
-                    setAtt(graph_ambke,3); graph_ambke -> Draw("samelp");
 
-                    legendABComb -> AddEntry(graph_ake,"#alpha (spirit)","p");
-                    legendABComb -> AddEntry(graph_bke,"#beta (spirit)","p");
-                    legendABComb -> AddEntry(graph_apbke,"#alpha+#beta (spirit)","p");
-                    legendABComb -> AddEntry(graph_ambke,"#alpha-#beta (spirit)","p");
+                    cvsABComb -> cd();
+                    setAtt(graph_ake,1);   graph_ake   -> Draw("samelp");
+                    setAtt(graph_bke,2);   graph_bke   -> Draw("samelp");
+                    setAtt(graph_apbke,0,4); graph_apbke -> Draw("samelp");
+                    auto legendABComb = new TLegend();
+                    legendABComb -> AddEntry(graph_ake,"#alpha","p");
+                    legendABComb -> AddEntry(graph_bke,"#beta","p");
+                    legendABComb -> AddEntry(graph_apbke,"#alpha+#beta","p");
+                    makeLegend(cvsABComb,legendABComb,"",0,0,0.4,0.3) -> Draw();
+
+                    cvsABComb2 -> cd();
+                    setAtt(graph_ake,1);   graph_ake   -> Draw("samelp");
+                    setAtt(graph_bke,2);   graph_bke   -> Draw("samelp");
+                    setAtt(graph_ambke,0,4); graph_ambke -> Draw("samelp");
+                    auto legendABComb2 = new TLegend();
+                    legendABComb2 -> AddEntry(graph_ake,"#alpha","p");
+                    legendABComb2 -> AddEntry(graph_bke,"#beta","p");
+                    legendABComb2 -> AddEntry(graph_ambke,"#alpha-#beta","p");
+                    makeLegend(cvsABComb2,legendABComb2,"",0,0,0.4,0.3) -> Draw();
                   }
-
-                  auto legendABComb2 = new TLegend();
-                  {
-
-                    double energySn[] = {  4.0, 12.0, 20.0, 28, 36, 44, 52, 60};
-                    double alphaSn[]  = { 0.39, 0.39, 0.36, 0.35, 0.36, 0.35, 0.38, 0};
-                    double betaSn[]   = {-0.42, -.4, -.35, -.33, -.31, -.30, -.30, 0};
-
-                    auto graph_ake = new TGraph();
-                    auto graph_bke = new TGraph();
-                    auto graph_apbke = new TGraph();
-                    auto graph_ambke = new TGraph();
-                    for (auto i=0; i<7; ++i) {
-                      auto alpha0 = alphaSn[i];
-                      auto beta0 = betaSn[i];
-                      graph_ake -> SetPoint(graph_ake->GetN(),energySn[i],alpha0);
-                      graph_bke -> SetPoint(graph_bke->GetN(),energySn[i],beta0);
-                      graph_apbke -> SetPoint(graph_apbke->GetN(),energySn[i],alpha0+beta0);
-                      graph_ambke -> SetPoint(graph_ambke->GetN(),energySn[i],alpha0-beta0);
-                    }
-                    setAtt(graph_ake,0,4);   graph_ake   -> Draw("samelp");
-                    setAtt(graph_bke,1,4);   graph_bke   -> Draw("samelp");
-                    setAtt(graph_apbke,2,4); graph_apbke -> Draw("samelp");
-                    setAtt(graph_ambke,3,4); graph_ambke -> Draw("samelp");
-
-                    legendABComb2 -> AddEntry(graph_ake,"#alpha (sn50)","p");
-                    legendABComb2 -> AddEntry(graph_bke,"#beta (sn50)","p");
-                    legendABComb2 -> AddEntry(graph_apbke,"#alpha+#beta (sn50)","p");
-                    legendABComb2 -> AddEntry(graph_ambke,"#alpha-#beta (sn50)","p");
-                  }
-
-                  makeLegend(cvsABComb,legendABComb,"",0,0,0.4,0.3) -> Draw();
-                  makeLegend(cvsABComb,legendABComb2,"",0,0,0.4,0.3) -> Draw();
                 }
 
               }
@@ -2736,6 +2725,13 @@ void draw_pid
 
         if (drawNZR21)
         {
+          auto bnX = bnRY0;
+          auto bnY = bnRPtoa;
+          if (setDrawNZInKT) {
+            bnX = bnRKeoaCM;
+            bnY = bnRTCM;
+          }
+
           for (auto iCutYP : selCutYPIdx)
           {
             if (selCutYP>=0 && selCutYP!=iCutYP) continue;
@@ -2766,10 +2762,10 @@ void draw_pid
                   cvsMBeta = makeCvs(nameMBeta);
                 }
                 else {
-                  cvsAlpha = makeCvs(nameAlpha,100+dxCvsAB*bnRY0.fN,dyCvsAB*bnRPtoa.fN);
-                  cvsMBeta = makeCvs(nameMBeta,100+dxCvsAB*bnRY0.fN,dyCvsAB*bnRPtoa.fN);
-                  cvsDivideM0(cvsAlpha, bnRY0.fN, bnRPtoa.fN);
-                  cvsDivideM0(cvsMBeta, bnRY0.fN, bnRPtoa.fN);
+                  cvsAlpha = makeCvs(nameAlpha,100+dxCvsAB*bnX.fN,dyCvsAB*bnY.fN);
+                  cvsMBeta = makeCvs(nameMBeta,100+dxCvsAB*bnX.fN,dyCvsAB*bnY.fN);
+                  cvsDivideM0(cvsAlpha, bnX.fN, bnY.fN);
+                  cvsDivideM0(cvsMBeta, bnX.fN, bnY.fN);
                 }
 
                 double temperatureArray[10][10][3] = {{0}};
@@ -2786,16 +2782,25 @@ void draw_pid
                 TH2D *histYPR21[2][fNumParticles] = {{0}}; // 2/1, 1, 2
                 TH2D *histYield[2][fNumParticles] = {{0}}; // 2/1, 1, 2
 
+                /*
+                const char *nameSys2 = makeName("sys2",iAna,iLR,iMult,iSysComb,iCutTheta,iCutYP);
+                const char *nameSys1 = makeName("sys1",iAna,iLR,iMult,iSysComb,iCutTheta,iCutYP);
+                auto cvsSys2 = makeCvs(nameSys2);
+                auto cvsSys1 = makeCvs(nameSys1);
+                */
+
                 for (auto iParticle : fParticleIdx) {
                   const char *hname = makeName("hnzr21",iAna,iLR,iMult,iSysComb,iCutTheta,iCutYP,iParticle);
-                  auto hist2 = (TH2D *) histYPR21Array[iSys2][iCutTheta][iCutYP][iParticle];
-                  auto hist1 = (TH2D *) histYPR21Array[iSys1][iCutTheta][iCutYP][iParticle];
+                  auto hist2 = (TH2D *) histXYR21Array[iSys2][iCutTheta][iCutYP][iParticle];
+                  auto hist1 = (TH2D *) histXYR21Array[iSys1][iCutTheta][iCutYP][iParticle];
                   auto hist21 = (TH2D *) hist2 -> Clone(hname);
                   hist21 -> Divide(hist1);
+                  //cvsSys2 -> cd(); hist2 -> Draw("colz");
+                  //cvsSys1 -> cd(); hist1 -> Draw("colz");
 
                   const char *ename = makeName("enzr21",iAna,iLR,iMult,iSysComb,iCutTheta,iCutYP,iParticle);
-                  auto eist2 = (TH2D *) histYPR21Array2[iSys2][iCutTheta][iCutYP][iParticle];
-                  auto eist1 = (TH2D *) histYPR21Array2[iSys1][iCutTheta][iCutYP][iParticle];
+                  auto eist2 = (TH2D *) histXYR21Array2[iSys2][iCutTheta][iCutYP][iParticle];
+                  auto eist1 = (TH2D *) histXYR21Array2[iSys1][iCutTheta][iCutYP][iParticle];
                   auto eist21 = (TH2D *) eist2 -> Clone(ename);
                   eist21 -> Divide(eist1);
 
@@ -2806,15 +2811,15 @@ void draw_pid
                   histYield[1][iParticle] = hist1;
                 }
 
-                for (auto ibinY0=0; ibinY0<bnRY0.fN; ++ibinY0)
+                for (auto ibinY0=0; ibinY0<bnX.fN; ++ibinY0)
                 {
-                  for (auto ibinPtoa=0; ibinPtoa<bnRPtoa.fN; ++ibinPtoa)
+                  for (auto ibinPtoa=0; ibinPtoa<bnY.fN; ++ibinPtoa)
                   {
                     auto binY0 = ibinY0 + 1;
                     auto binPtoa = ibinPtoa + 1;
 
                     bool setDrawLegend = false;
-                    //bool setDrawLegend = ((!setDrawNZAll) && ibinY0==bnRY0.fN-1&&ibinPtoa==bnRPtoa.fN-1);
+                    //bool setDrawLegend = ((!setDrawNZAll) && ibinY0==bnX.fN-1&&ibinPtoa==bnY.fN-1);
 
                     auto graphAll = new TGraph2DErrors();
                     auto graph_z1_inN = new TGraphErrors(); graph_z1_inN -> SetMarkerStyle(10);
@@ -2833,8 +2838,8 @@ void draw_pid
                       r21Array[binY0][binPtoa][iParticle] = r21Value;
                       r21ErrorArray[binY0][binPtoa][iParticle] = r21Error;
 
-                      //auto value2 = histYPR21Array[iSys2][iCutTheta][iCutYP][iParticle] -> GetBinContent(binY0, binPtoa);
-                      //auto value1 = histYPR21Array[iSys1][iCutTheta][iCutYP][iParticle] -> GetBinContent(binY0, binPtoa);
+                      //auto value2 = histXYR21Array[iSys2][iCutTheta][iCutYP][iParticle] -> GetBinContent(binY0, binPtoa);
+                      //auto value1 = histXYR21Array[iSys1][iCutTheta][iCutYP][iParticle] -> GetBinContent(binY0, binPtoa);
                       //auto r21Value = value2/value1;
                       //r21Array[binY0][binPtoa][iParticle] = r21Value;
                       //auto r21Error = sqrt((1/sqrt(value1))*(1/sqrt(value1)) * (1/sqrt(value2))*(1/sqrt(value2)));
@@ -2879,7 +2884,7 @@ void draw_pid
                     }
                     temperatureArray[binY0][binPtoa][2] = (temperatureArray[binY0][binPtoa][0] + temperatureArray[binY0][binPtoa][1]) / 2.;
 
-                    auto idxCvs = (bnRPtoa.fN-ibinPtoa-1)*bnRY0.fN+ibinY0+1;
+                    auto idxCvs = (bnY.fN-ibinPtoa-1)*bnX.fN+ibinY0+1;
 
                     auto cvsAlpha0 = cvsAlpha -> cd();
                     if (!setDrawNZAll)
@@ -3167,25 +3172,25 @@ void draw_pid
                 }
 
                 auto nameAlphaYP = makeName("alaph_yp",iAna,iLR,iMult,iSysComb,iCutTheta,iCutYP);
-                auto histAlpha = (bnRY0*bnRPtoa).newHist(nameAlphaYP,Form("#alpha %s",fSysCombTitles[iComb]));
+                auto histAlpha = (bnX*bnY).newHist(nameAlphaYP,Form("#alpha %s",fSysCombTitles[iComb]));
 
                 auto nameMBetaYP = makeName("mbeta_yp",iAna,iLR,iMult,iSysComb,iCutTheta,iCutYP);
-                auto histMBeta = (bnRY0*bnRPtoa).newHist(nameMBetaYP,Form("-#beta %s",fSysCombTitles[iComb]));
+                auto histMBeta = (bnX*bnY).newHist(nameMBetaYP,Form("-#beta %s",fSysCombTitles[iComb]));
 
                 auto nameAlphaTYP = makeName("alphaT_yp",iAna,iLR,iMult,iSysComb,iCutTheta,iCutYP);
-                auto histAlphaT = (bnRY0*bnRPtoa).newHist(nameAlphaTYP,Form("#alpha#timesT %s",fSysCombTitles[iComb]));
+                auto histAlphaT = (bnX*bnY).newHist(nameAlphaTYP,Form("#alpha#timesT %s",fSysCombTitles[iComb]));
 
                 auto nameMBetaTYP = makeName("mbetaT_yp",iAna,iLR,iMult,iSysComb,iCutTheta,iCutYP);
-                auto histMBetaT = (bnRY0*bnRPtoa).newHist(nameMBetaTYP,Form("-#beta#timesT %s",fSysCombTitles[iComb]));
+                auto histMBetaT = (bnX*bnY).newHist(nameMBetaTYP,Form("-#beta#timesT %s",fSysCombTitles[iComb]));
 
                 auto nameCNormYP = makeName("cnorm_yp",iAna,iLR,iMult,iSysComb,iCutTheta,iCutYP);
-                auto histCNorm = (bnRY0*bnRPtoa).newHist(nameCNormYP,Form("c %s",fSysCombTitles[iComb]));
+                auto histCNorm = (bnX*bnY).newHist(nameCNormYP,Form("c %s",fSysCombTitles[iComb]));
 
                 auto nameErrorYP = makeName("error_yp",iAna,iLR,iMult,iSysComb,iCutTheta,iCutYP);
-                auto histdT = (bnRY0*bnRPtoa).newHist(nameErrorYP,Form("100#times(T_{2}-T_{1})/T_{2} %s",fSysCombTitles[iComb]));
+                auto histdT = (bnX*bnY).newHist(nameErrorYP,Form("100#times(T_{2}-T_{1})/T_{2} %s",fSysCombTitles[iComb]));
 
                 auto nameKYP = makeName("k_yp",iAna,iLR,iMult,iSysComb,iCutTheta,iCutYP);
-                auto histK = (bnRY0*bnRPtoa).newHist(nameKYP,Form("#alpha+#beta %s",fSysCombTitles[iComb]));
+                auto histK = (bnX*bnY).newHist(nameKYP,Form("#alpha+#beta %s",fSysCombTitles[iComb]));
 
                 histAlpha -> GetZaxis() -> SetRangeUser(bnAlpha.fMin,bnAlpha.fMax);
                 //histMBeta -> GetZaxis() -> SetRangeUser(-bnBeta.fMax,-bnBeta.fMin);
@@ -3206,25 +3211,25 @@ void draw_pid
                 for (bool iMM : {false,true})
                 {
                   auto nameR21AB = makeName("r21_ab",iAna,iLR,iMult,iSysComb,iCutTheta,iCutYP);
-                  binning bnX = bnAlpha;
-                  binning bnY = bnBeta;
+                  binning bnA = bnAlpha;
+                  binning bnB = bnBeta;
 
                   if (iMM)
                   {
                     nameR21AB = makeName("r21_mm",iAna,iLR,iMult,iSysComb,iCutTheta,iCutYP);
                     if (iComb!=3) {
-                      bnX.set(100,-1,5,"#Delta#mu_{n} = #alpha #times <T>_{KE}");
-                      bnY.set(100,-5,1,"#Delta#mu_{p} = #beta #times <T>_{KE}");
+                      bnA.set(100,-1,5,"#Delta#mu_{n} = #alpha #times <T>_{KE}");
+                      bnB.set(100,-5,1,"#Delta#mu_{p} = #beta #times <T>_{KE}");
                     }
                     else {
-                      bnX.set(100,-2,2,"#Delta#mu_{n} = #alpha #times <T>");
-                      bnY.set(100,-2,2,"#Delta#mu_{p} = #beta #times <T>");
+                      bnA.set(100,-2,2,"#Delta#mu_{n} = #alpha #times <T>");
+                      bnB.set(100,-2,2,"#Delta#mu_{p} = #beta #times <T>");
                     }
                   }
 
                   auto cvsABMM = makeCvs(nameR21AB,630,640);
                   auto titleR21AB = makeTitle("",iAna,iLR,iMult,iSysComb,iCutTheta,iCutYP);
-                  auto frameR21AB = (bnX*bnY).newHist(nameR21AB,titleR21AB);
+                  auto frameR21AB = (bnA*bnB).newHist(nameR21AB,titleR21AB);
                   frameR21AB -> GetYaxis() -> SetTitleOffset(1.4);
                   frameR21AB -> Draw();
 
@@ -3235,30 +3240,30 @@ void draw_pid
                   TGraphErrors *graphABError[10] = {0};
                   TGraph       *graphABNoError[10] = {0};
 
-                  bnRPtoa.end();
-                  while (bnRPtoa.prev())
+                  bnY.end();
+                  while (bnY.prev())
                   {
-                    bnRY0.end();
-                    while (bnRY0.prev())
+                    bnX.end();
+                    while (bnX.prev())
                     {
-                      if (graphABError[bnRY0.bi()]==nullptr) {
-                        graphABError[bnRY0.bi()] = new TGraphErrors();
-                        graphABNoError[bnRY0.bi()] = new TGraph();
+                      if (graphABError[bnX.bi()]==nullptr) {
+                        graphABError[bnX.bi()] = new TGraphErrors();
+                        graphABNoError[bnX.bi()] = new TGraph();
                       }
-                      auto alpha = alphaArray[bnRY0.bi()][bnRPtoa.bi()];
-                      auto mbeta = mbetaArray[bnRY0.bi()][bnRPtoa.bi()];
-                      auto beta = -mbetaArray[bnRY0.bi()][bnRPtoa.bi()];
-                      auto cnorm = cnormArray[bnRY0.bi()][bnRPtoa.bi()];
-                      auto alphaError = alphaErrorArray[bnRY0.bi()][bnRPtoa.bi()];
-                      auto mbetaError = mbetaErrorArray[bnRY0.bi()][bnRPtoa.bi()];
+                      auto alpha = alphaArray[bnX.bi()][bnY.bi()];
+                      auto mbeta = mbetaArray[bnX.bi()][bnY.bi()];
+                      auto beta = -mbetaArray[bnX.bi()][bnY.bi()];
+                      auto cnorm = cnormArray[bnX.bi()][bnY.bi()];
+                      auto alphaError = alphaErrorArray[bnX.bi()][bnY.bi()];
+                      auto mbetaError = mbetaErrorArray[bnX.bi()][bnY.bi()];
 
-                      double tempMean = 0;// = (temperatureArray[bnRY0.bi()][bnRPtoa.bi()][0] + temperatureArray[bnRY0.bi()][bnRPtoa.bi()][1])/2.;
+                      double tempMean = 0;// = (temperatureArray[bnX.bi()][bnY.bi()][0] + temperatureArray[bnX.bi()][bnY.bi()][1])/2.;
                       if (histTPrev1[iComb]==nullptr) {
                         cout_error << "run once more" << endl;
-                        tempMean = (temperatureArray[bnRY0.bi()][bnRPtoa.bi()][0] + temperatureArray[bnRY0.bi()][bnRPtoa.bi()][1])/2.;
+                        tempMean = (temperatureArray[bnX.bi()][bnY.bi()][0] + temperatureArray[bnX.bi()][bnY.bi()][1])/2.;
                       }
                       else
-                        tempMean = histTPrev1[iComb] -> GetBinContent(bnRY0.bi(),1);
+                        tempMean = histTPrev1[iComb] -> GetBinContent(bnX.bi(),1);
 
                       auto muNValue = alpha * tempMean;
                       auto muZValue = beta * tempMean;
@@ -3268,100 +3273,100 @@ void draw_pid
                         alpha = muNValue;
                         beta = muZValue;
                         mbeta = -muZValue;
-                        alphaError = alphaErrorArray[bnRY0.bi()][bnRPtoa.bi()] * tempMean;
-                        mbetaError = mbetaErrorArray[bnRY0.bi()][bnRPtoa.bi()] * tempMean;
+                        alphaError = alphaErrorArray[bnX.bi()][bnY.bi()] * tempMean;
+                        mbetaError = mbetaErrorArray[bnX.bi()][bnY.bi()] * tempMean;
                       }
                       auto betaError = mbetaError;
                       TMarker *markerAB = nullptr;
 
-                      if (bnX.isInside(alpha) && bnY.isInside(beta)) {
-                        markerAB = new TMarker(alpha,beta,fDrawMStyle[bnRPtoa.ii()]);
-                        setAtt(markerAB,bnRPtoa.ii(),bnRY0.ii(),2);
+                      if (bnA.isInside(alpha) && bnB.isInside(beta)) {
+                        markerAB = new TMarker(alpha,beta,fDrawMStyle[bnY.ii()]);
+                        setAtt(markerAB,bnY.ii(),bnX.ii(),2);
                         markers.push_back(markerAB);
                       }
 
-                      graphABError[bnRY0.bi()] -> SetPoint(graphABError[bnRY0.bi()]->GetN(),alpha,beta);
-                      graphABError[bnRY0.bi()] -> SetPointError(graphABError[bnRY0.bi()]->GetN()-1,alphaError,betaError);
-                      graphABNoError[bnRY0.bi()] -> SetPoint(graphABNoError[bnRY0.bi()]->GetN(),alpha,beta);
+                      graphABError[bnX.bi()] -> SetPoint(graphABError[bnX.bi()]->GetN(),alpha,beta);
+                      graphABError[bnX.bi()] -> SetPointError(graphABError[bnX.bi()]->GetN()-1,alphaError,betaError);
+                      graphABNoError[bnX.bi()] -> SetPoint(graphABNoError[bnX.bi()]->GetN(),alpha,beta);
 
                       if (!iMM) {
-                        histAlpha -> SetBinContent(bnRY0.bi(),bnRPtoa.bi(),alpha);
-                        histMBeta -> SetBinContent(bnRY0.bi(),bnRPtoa.bi(),mbeta);
-                        histCNorm -> SetBinContent(bnRY0.bi(),bnRPtoa.bi(),cnorm);
-                        int dTOT2PC = (100*abs(temperatureArray[bnRY0.bi()][bnRPtoa.bi()][0] - temperatureArray[bnRY0.bi()][bnRPtoa.bi()][1]) / temperatureArray[bnRY0.bi()][bnRPtoa.bi()][0]);
-                        histdT -> SetBinContent(bnRY0.bi(),bnRPtoa.bi(),dTOT2PC);
-                        histK -> SetBinContent(bnRY0.bi(),bnRPtoa.bi(),alpha-mbeta);
-                        histAlphaT -> SetBinContent(bnRY0.bi(),bnRPtoa.bi(),muNValue);
-                        histMBetaT -> SetBinContent(bnRY0.bi(),bnRPtoa.bi(),-muZValue);
+                        histAlpha -> SetBinContent(bnX.bi(),bnY.bi(),alpha);
+                        histMBeta -> SetBinContent(bnX.bi(),bnY.bi(),mbeta);
+                        histCNorm -> SetBinContent(bnX.bi(),bnY.bi(),cnorm);
+                        int dTOT2PC = (100*abs(temperatureArray[bnX.bi()][bnY.bi()][0] - temperatureArray[bnX.bi()][bnY.bi()][1]) / temperatureArray[bnX.bi()][bnY.bi()][0]);
+                        histdT -> SetBinContent(bnX.bi(),bnY.bi(),dTOT2PC);
+                        histK -> SetBinContent(bnX.bi(),bnY.bi(),alpha-mbeta);
+                        histAlphaT -> SetBinContent(bnX.bi(),bnY.bi(),muNValue);
+                        histMBetaT -> SetBinContent(bnX.bi(),bnY.bi(),-muZValue);
                       }
                     }
                   }
 
-                  bnRY0.end();
-                  while (bnRY0.prev())
+                  bnX.end();
+                  while (bnX.prev())
                   {
                     TF1 *fitSep = nullptr;
-                    if (setDrawNZInKT) fitSep = new TF1(Form("absep_linf_%s",nameR21AB),"-x+[0]",bnX.fMin,bnX.fMax);
-                    else fitSep = new TF1(Form("absep_linf_%s",nameR21AB),"[1]*x+[0]",bnX.fMin,bnX.fMax);
-                    graphABError[bnRY0.bi()] -> Fit(fitSep,"RQ0N");
+                    if (setDrawNZInKT) fitSep = new TF1(Form("absep_linf_%s",nameR21AB),"-x+[0]",bnA.fMin,bnA.fMax);
+                    else fitSep = new TF1(Form("absep_linf_%s",nameR21AB),"[1]*x+[0]",bnA.fMin,bnA.fMax);
+                    graphABError[bnX.bi()] -> Fit(fitSep,"RQ0N");
 
                     if (setFitABSep && iComb!=3)
                     {
                       auto graphSep = new TGraphErrors(); 
-                      graphSep -> SetPoint(0,bnX.fMin,fitSep->Eval(bnX.fMin));
-                      graphSep -> SetPoint(1,bnX.fMax,fitSep->Eval(bnX.fMax));
+                      graphSep -> SetPoint(0,bnA.fMin,fitSep->Eval(bnA.fMin));
+                      graphSep -> SetPoint(1,bnA.fMax,fitSep->Eval(bnA.fMax));
                       auto errorSep = fitSep -> GetParError(0);
                       /*
                       if (!setDrawNZInKT) {
                         errorSep = 0.01;
-                        if (bnRY0.bi()==1)
+                        if (bnX.bi()==1)
                           errorSep = 0;
                       }
                       */
                       graphSep -> SetPointError(0,0,errorSep);
                       graphSep -> SetPointError(1,0,errorSep);
-                      setAtt(graphSep,bnRY0.ii(),3);
+                      setAtt(graphSep,bnX.ii(),3);
 
                       if (!setDrawFit3) {
-                        graphSep -> SetPointError(0,0,bnX.getFullWidth()*0.01);
-                        graphSep -> SetPointError(1,0,bnX.getFullWidth()*0.01);
+                        graphSep -> SetPointError(0,0,bnA.getFullWidth()*0.01);
+                        graphSep -> SetPointError(1,0,bnA.getFullWidth()*0.01);
                         cvsABMM -> cd();
                       }
                       graphSep -> Draw("same3");
 
                     }
 
-                    setAtt(graphABError[bnRY0.bi()],bnRY0.ii(),2);
-                    graphABError[bnRY0.bi()] -> SetMarkerStyle(10);
+                    setAtt(graphABError[bnX.bi()],bnX.ii(),2);
+                    graphABError[bnX.bi()] -> SetMarkerStyle(10);
                     cvsABMM -> cd();
-                    if (setDrawNZInKT) graphABError[bnRY0.bi()] -> Draw("sameezl");
-                    else graphABError[bnRY0.bi()] -> Draw("sameezl");
+                    if (setDrawNZInKT) graphABError[bnX.bi()] -> Draw("sameezl");
+                    else graphABError[bnX.bi()] -> Draw("sameezl");
                   }
 
                   TF1 *f1RefAB = nullptr;
-                  f1RefAB = new TF1(Form("ref_%s",nameR21AB),"-x",bnX.fMin,bnX.fMax);
+                  f1RefAB = new TF1(Form("ref_%s",nameR21AB),"-x",bnA.fMin,bnA.fMax);
                   f1RefAB -> SetLineColor(kGray);
                   if (setDrawRefAB)
                   {
                     cvsABMM -> cd();
 
                     auto refxy0 = new TGraph;
-                    refxy0 -> SetPoint(0,bnX.fMin,-bnX.fMin);
-                    refxy0 -> SetPoint(1,bnX.fMax,-bnX.fMax);
+                    refxy0 -> SetPoint(0,bnA.fMin,-bnA.fMin);
+                    refxy0 -> SetPoint(1,bnA.fMax,-bnA.fMax);
                     refxy0 -> SetLineColor(kGray);
                     refxy0 -> SetLineStyle(2);
                     refxy0 -> Draw("samel");
 
                     auto refx0 = new TGraph();
-                    refx0 -> SetPoint(0,0,bnY.fMin);
-                    refx0 -> SetPoint(1,0,bnY.fMax);
+                    refx0 -> SetPoint(0,0,bnB.fMin);
+                    refx0 -> SetPoint(1,0,bnB.fMax);
                     refx0 -> SetLineColor(kGray);
                     refx0 -> SetLineStyle(2);
                     refx0 -> Draw("samel");
 
                     auto refy0 = new TGraph();
-                    refy0 -> SetPoint(0,bnX.fMin,0);
-                    refy0 -> SetPoint(1,bnX.fMax,0);
+                    refy0 -> SetPoint(0,bnA.fMin,0);
+                    refy0 -> SetPoint(1,bnA.fMax,0);
                     refy0 -> SetLineColor(kGray);
                     refy0 -> SetLineStyle(2);
                     refy0 -> Draw("samel");
@@ -3370,21 +3375,21 @@ void draw_pid
                   cvsABMM -> cd();
                   for (auto mab : markers) mab -> Draw("p");
 
-                  bnRPtoa.reset();
-                  while (bnRPtoa.next()) {
+                  bnY.reset();
+                  while (bnY.next()) {
                     auto markerAB = new TMarker(0,0,0);
-                    setAtt(markerAB,bnRPtoa.ii(),0,2);
-                    if (setDrawNZInKT) legendAB -> AddEntry(markerAB,Form("%s = %.0f ~ %.0f",bnRPtoa.getTitle(),bnRPtoa.cLow(),bnRPtoa.cHigh()),"p");
-                    else legendAB -> AddEntry(markerAB,Form("%s = %.0f ~ %.0f",bnRPtoa.getTitle(),bnRPtoa.cLow(),bnRPtoa.cHigh()),"p");
+                    setAtt(markerAB,bnY.ii(),0,2);
+                    if (setDrawNZInKT) legendAB -> AddEntry(markerAB,Form("%s = %.0f ~ %.0f",bnY.getTitle(),bnY.cLow(),bnY.cHigh()),"p");
+                    else legendAB -> AddEntry(markerAB,Form("%s = %.0f ~ %.0f",bnY.getTitle(),bnY.cLow(),bnY.cHigh()),"p");
                   }
 
-                  bnRY0.reset();
-                  while (bnRY0.next()) {
+                  bnX.reset();
+                  while (bnX.next()) {
                     auto lineAB = new TGraph();
-                    setAtt(lineAB,bnRY0.ii());
+                    setAtt(lineAB,bnX.ii());
                     lineAB -> SetLineWidth(2);
-                    if (setDrawNZInKT) legendAB -> AddEntry(lineAB,Form("%s = %.0f ~ %.0f",bnRY0.getTitle(),bnRY0.cLow(),bnRY0.cHigh()),"l");
-                    else legendAB -> AddEntry(lineAB,Form("y_{0} = %.2f ~ %.2f",bnRY0.cLow(),bnRY0.cHigh()),"l");
+                    if (setDrawNZInKT) legendAB -> AddEntry(lineAB,Form("%s = %.0f ~ %.0f",bnX.getTitle(),bnX.cLow(),bnX.cHigh()),"l");
+                    else legendAB -> AddEntry(lineAB,Form("y_{0} = %.2f ~ %.2f",bnX.cLow(),bnX.cHigh()),"l");
                   }
 
                   cvsABMM -> cd();
@@ -3470,18 +3475,18 @@ void draw_pid
                   const char *nameAlphaBetaRoot = Form("%s/rooto/alpha_beta_%d.root",fVName.Data(),iComb);
                   cout << nameAlphaBetaRoot << endl;
                   auto file = new TFile(nameAlphaBetaRoot,"recreate");
-                  auto histA = (bnRY0*bnRPtoa).newHist("alpha");
-                  auto histB = (bnRY0*bnRPtoa).newHist("beta");
-                  auto histC = (bnRY0*bnRPtoa).newHist("cnorm");
-                  auto histT = (bnRY0*bnRPtoa).newHist("temperature");
-                  bnRY0.reset();
-                  while (bnRY0.next()) {
-                    bnRPtoa.reset();
-                    while (bnRPtoa.next()) {
-                      histA -> SetBinContent(bnRY0.fIdx, bnRPtoa.fIdx, alphaArray[bnRY0.fIdx][bnRPtoa.fIdx]);
-                      histB -> SetBinContent(bnRY0.fIdx, bnRPtoa.fIdx, -mbetaArray[bnRY0.fIdx][bnRPtoa.fIdx]);
-                      histC -> SetBinContent(bnRY0.fIdx, bnRPtoa.fIdx, cnormArray[bnRY0.fIdx][bnRPtoa.fIdx]);
-                      histT -> SetBinContent(bnRY0.fIdx, bnRPtoa.fIdx, temperatureArray[bnRY0.fIdx][bnRPtoa.fIdx][2]);
+                  auto histA = (bnX*bnY).newHist("alpha");
+                  auto histB = (bnX*bnY).newHist("beta");
+                  auto histC = (bnX*bnY).newHist("cnorm");
+                  auto histT = (bnX*bnY).newHist("temperature");
+                  bnX.reset();
+                  while (bnX.next()) {
+                    bnY.reset();
+                    while (bnY.next()) {
+                      histA -> SetBinContent(bnX.fIdx, bnY.fIdx, alphaArray[bnX.fIdx][bnY.fIdx]);
+                      histB -> SetBinContent(bnX.fIdx, bnY.fIdx, -mbetaArray[bnX.fIdx][bnY.fIdx]);
+                      histC -> SetBinContent(bnX.fIdx, bnY.fIdx, cnormArray[bnX.fIdx][bnY.fIdx]);
+                      histT -> SetBinContent(bnX.fIdx, bnY.fIdx, temperatureArray[bnX.fIdx][bnY.fIdx][2]);
                     }
                   }
                   histA -> Write();
@@ -3496,45 +3501,45 @@ void draw_pid
                   std::ofstream fileAB(nameAlphaBetaOut);
 
                   fileAB << "cnorm" << endl;
-                  fileAB << ","; bnRY0.reset(); while (bnRY0.next()) { fileAB << ", " << bnRY0.fIdx; } fileAB << endl;
-                  fileAB << ","; bnRY0.reset(); while (bnRY0.next()) { fileAB << ", " << bnY0.fTitle << "=" << Form("%.2f",bnRY0.cLow()) << "~" << Form("%.2f",bnRY0.cHigh()); } fileAB << endl;
-                  bnRPtoa.end(); while (bnRPtoa.prev()) {
-                    fileAB << bnRPtoa.fIdx << ",  " << bnRPtoa.fTitle << "=" << int(bnRPtoa.cLow()) << "~" << int(bnRPtoa.cHigh());
-                    bnRY0.reset(); while (bnRY0.next()) { fileAB << ", " << cnormArray[bnRY0.fIdx][bnRPtoa.fIdx]; } fileAB << endl;
+                  fileAB << ","; bnX.reset(); while (bnX.next()) { fileAB << ", " << bnX.fIdx; } fileAB << endl;
+                  fileAB << ","; bnX.reset(); while (bnX.next()) { fileAB << ", " << bnY0.fTitle << "=" << Form("%.2f",bnX.cLow()) << "~" << Form("%.2f",bnX.cHigh()); } fileAB << endl;
+                  bnY.end(); while (bnY.prev()) {
+                    fileAB << bnY.fIdx << ",  " << bnY.fTitle << "=" << int(bnY.cLow()) << "~" << int(bnY.cHigh());
+                    bnX.reset(); while (bnX.next()) { fileAB << ", " << cnormArray[bnX.fIdx][bnY.fIdx]; } fileAB << endl;
                   } fileAB << endl;
 
                   fileAB << "temperature" << endl;
-                  fileAB << ","; bnRY0.reset(); while (bnRY0.next()) { fileAB << ", " << bnRY0.fIdx; } fileAB << endl;
-                  fileAB << ","; bnRY0.reset(); while (bnRY0.next()) { fileAB << ", " << bnY0.fTitle << "=" << Form("%.2f",bnRY0.cLow()) << "~" << Form("%.2f",bnRY0.cHigh()); } fileAB << endl;
-                  bnRPtoa.end(); while (bnRPtoa.prev()) {
-                    fileAB << bnRPtoa.fIdx << ",  " << bnRPtoa.fTitle << "=" << int(bnRPtoa.cLow()) << "~" << int(bnRPtoa.cHigh());
-                    bnRY0.reset(); while (bnRY0.next()) { fileAB << ", " << temperatureArray[bnRY0.fIdx][bnRPtoa.fIdx][2]; } fileAB << endl;
+                  fileAB << ","; bnX.reset(); while (bnX.next()) { fileAB << ", " << bnX.fIdx; } fileAB << endl;
+                  fileAB << ","; bnX.reset(); while (bnX.next()) { fileAB << ", " << bnY0.fTitle << "=" << Form("%.2f",bnX.cLow()) << "~" << Form("%.2f",bnX.cHigh()); } fileAB << endl;
+                  bnY.end(); while (bnY.prev()) {
+                    fileAB << bnY.fIdx << ",  " << bnY.fTitle << "=" << int(bnY.cLow()) << "~" << int(bnY.cHigh());
+                    bnX.reset(); while (bnX.next()) { fileAB << ", " << temperatureArray[bnX.fIdx][bnY.fIdx][2]; } fileAB << endl;
                   } fileAB << endl;
 
                   fileAB << "alpha" << endl;
-                  fileAB << ","; bnRY0.reset(); while (bnRY0.next()) { fileAB << ", " << bnRY0.fIdx; } fileAB << endl;
-                  fileAB << ","; bnRY0.reset(); while (bnRY0.next()) { fileAB << ", " << bnY0.fTitle << "=" << Form("%.2f",bnRY0.cLow()) << "~" << Form("%.2f",bnRY0.cHigh()); } fileAB << endl;
-                  bnRPtoa.end(); while (bnRPtoa.prev()) {
-                    fileAB << bnRPtoa.fIdx << ",  " << bnRPtoa.fTitle << "=" << int(bnRPtoa.cLow()) << "~" << int(bnRPtoa.cHigh());
-                    bnRY0.reset(); while (bnRY0.next()) { fileAB << ", " << alphaArray[bnRY0.fIdx][bnRPtoa.fIdx]; } fileAB << endl;
+                  fileAB << ","; bnX.reset(); while (bnX.next()) { fileAB << ", " << bnX.fIdx; } fileAB << endl;
+                  fileAB << ","; bnX.reset(); while (bnX.next()) { fileAB << ", " << bnY0.fTitle << "=" << Form("%.2f",bnX.cLow()) << "~" << Form("%.2f",bnX.cHigh()); } fileAB << endl;
+                  bnY.end(); while (bnY.prev()) {
+                    fileAB << bnY.fIdx << ",  " << bnY.fTitle << "=" << int(bnY.cLow()) << "~" << int(bnY.cHigh());
+                    bnX.reset(); while (bnX.next()) { fileAB << ", " << alphaArray[bnX.fIdx][bnY.fIdx]; } fileAB << endl;
                   } fileAB << endl;
 
                   fileAB << "beta" << endl;
-                  fileAB << ","; bnRY0.reset(); while (bnRY0.next()) { fileAB << ", " << bnRY0.fIdx; } fileAB << endl;
-                  fileAB << ","; bnRY0.reset(); while (bnRY0.next()) { fileAB << ", " << bnY0.fTitle << "=" << Form("%.2f",bnRY0.cLow()) << "~" << Form("%.2f",bnRY0.cHigh()); } fileAB << endl;
-                  bnRPtoa.end(); while (bnRPtoa.prev()) {
-                    fileAB << bnRPtoa.fIdx << ",  " << bnRPtoa.fTitle << "=" << int(bnRPtoa.cLow()) << "~" << int(bnRPtoa.cHigh());
-                    bnRY0.reset(); while (bnRY0.next()) { fileAB << ", " << -mbetaArray[bnRY0.fIdx][bnRPtoa.fIdx]; } fileAB << endl;
+                  fileAB << ","; bnX.reset(); while (bnX.next()) { fileAB << ", " << bnX.fIdx; } fileAB << endl;
+                  fileAB << ","; bnX.reset(); while (bnX.next()) { fileAB << ", " << bnY0.fTitle << "=" << Form("%.2f",bnX.cLow()) << "~" << Form("%.2f",bnX.cHigh()); } fileAB << endl;
+                  bnY.end(); while (bnY.prev()) {
+                    fileAB << bnY.fIdx << ",  " << bnY.fTitle << "=" << int(bnY.cLow()) << "~" << int(bnY.cHigh());
+                    bnX.reset(); while (bnX.next()) { fileAB << ", " << -mbetaArray[bnX.fIdx][bnY.fIdx]; } fileAB << endl;
                   } fileAB << endl;
 
                   for (auto iParticle : fParticleIdx)
                   {
                     fileAB << "R21_" << fParticleNames[iParticle] << endl;
-                    fileAB << ","; bnRY0.reset(); while (bnRY0.next()) { fileAB << ", " << bnRY0.fIdx; } fileAB << endl;
-                    fileAB << ","; bnRY0.reset(); while (bnRY0.next()) { fileAB << ", " << bnY0.fTitle << "=" << Form("%.2f",bnRY0.cLow()) << "~" << Form("%.2f",bnRY0.cHigh()); } fileAB << endl;
-                    bnRPtoa.end(); while (bnRPtoa.prev()) {
-                      fileAB << bnRPtoa.fIdx << ",  " << bnRPtoa.fTitle << "=" << int(bnRPtoa.cLow()) << "~" << int(bnRPtoa.cHigh());
-                      bnRY0.reset(); while (bnRY0.next()) { fileAB << ", " << r21Array[bnRY0.fIdx][bnRPtoa.fIdx][iParticle]; } fileAB << endl;
+                    fileAB << ","; bnX.reset(); while (bnX.next()) { fileAB << ", " << bnX.fIdx; } fileAB << endl;
+                    fileAB << ","; bnX.reset(); while (bnX.next()) { fileAB << ", " << bnY0.fTitle << "=" << Form("%.2f",bnX.cLow()) << "~" << Form("%.2f",bnX.cHigh()); } fileAB << endl;
+                    bnY.end(); while (bnY.prev()) {
+                      fileAB << bnY.fIdx << ",  " << bnY.fTitle << "=" << int(bnY.cLow()) << "~" << int(bnY.cHigh());
+                      bnX.reset(); while (bnX.next()) { fileAB << ", " << r21Array[bnX.fIdx][bnY.fIdx][iParticle]; } fileAB << endl;
                     } fileAB << endl;
                   }
 
@@ -4000,62 +4005,6 @@ void cvsDivide(TCanvas *cvs, int nx, int ny)
   }
 }
 
-void setAtt(TH1 *hist, int iDraw) {
-  hist -> SetLineColor(fDrawColor[iDraw]);
-  hist -> SetMarkerColor(fDrawColor[iDraw]);
-  hist -> SetMarkerStyle(fDrawMStyle[iDraw]);
-  hist -> SetMarkerSize(fDrawMSize[iDraw]);
-}
-void setAtt(TGraph *graph, int iDraw, int option) {
-  if (option==3) {
-    graph -> SetLineColor(fDrawColor[iDraw]);
-    graph -> SetMarkerColor(fDrawColor[iDraw]);
-    graph -> SetFillColor(fDrawColor3[iDraw]);
-    graph -> SetMarkerStyle(fDrawMStyle2[iDraw]);
-    graph -> SetMarkerSize(fDrawMSize[iDraw]);
-  }
-  else if (option==2) {
-    graph -> SetLineColor(fDrawColor2[iDraw]);
-    graph -> SetMarkerColor(fDrawColor2[iDraw]);
-    graph -> SetFillColor(fDrawColor3[iDraw]);
-    graph -> SetMarkerStyle(fDrawMStyle2[iDraw]);
-    graph -> SetMarkerSize(fDrawMSize2[iDraw]);
-  }
-  else if (option==4) {
-    graph -> SetLineColor(fDrawColor[iDraw]);
-    graph -> SetMarkerColor(fDrawColor[iDraw]);
-    graph -> SetFillColor(fDrawColor[iDraw]);
-    graph -> SetMarkerStyle(fDrawMStyle3[iDraw]);
-    graph -> SetMarkerSize(fDrawMSize[iDraw]);
-  }
-  else { //3?
-    graph -> SetLineColor(fDrawColor[iDraw]);
-    graph -> SetMarkerColor(fDrawColor[iDraw]);
-    graph -> SetFillColor(fDrawColor3[iDraw]);
-    graph -> SetMarkerStyle(fDrawMStyle[iDraw]);
-    graph -> SetMarkerSize(fDrawMSize3[iDraw]);
-  }
-}
-void setAtt(TMarker *marker, int iDraw, int iColor, int option) {
-  if (iColor<0) iColor = iDraw;
-
-  if (option==2) {
-    marker -> SetMarkerColor(fDrawColor[iColor]);
-    marker -> SetMarkerStyle(fDrawMStyle2[iDraw]);
-    marker -> SetMarkerSize(fDrawMSize2[iDraw]);
-    if (setDrawNZAll) marker -> SetMarkerSize(2*fDrawMSize2[iDraw]);
-  }
-  else {
-    marker -> SetMarkerColor(fDrawColor[iColor]);
-    marker -> SetMarkerStyle(fDrawMStyle[iDraw]);
-    marker -> SetMarkerSize(fDrawMSize[iDraw]);
-    if (setDrawNZAll) marker -> SetMarkerSize(2*fDrawMSize[iDraw]);
-  }
-}
-void setAtt(TF1 *fit, int iDraw) {
-  fit -> SetLineColor(fDrawColor[iDraw]);
-}
-
 const char *makeName(const char *mainName, int iAna, int iLR, int iMult, int iSys, int iCutTheta, int iCutYP, int iPart)
 {
   TString sdName = fSDNames[fSelSDType];
@@ -4127,4 +4076,63 @@ const char *makeTitle(const char *mainName, int iAna, int iLR, int iMult, int iS
 
   return title;
 
+}
+
+void setAtt(TH1 *hist, int iDraw) {
+  hist -> SetLineColor(fDrawColor[iDraw]);
+  hist -> SetMarkerColor(fDrawColor[iDraw]);
+  hist -> SetMarkerStyle(fDrawMStyle[iDraw]);
+  hist -> SetMarkerSize(fDrawMSize[iDraw]);
+}
+
+void setAtt(TGraph *graph, int iDraw, int option) {
+  if (option==3) {
+    graph -> SetLineColor(fDrawColor[iDraw]);
+    graph -> SetMarkerColor(fDrawColor[iDraw]);
+    graph -> SetFillColor(fDrawColor3[iDraw]);
+    graph -> SetMarkerStyle(fDrawMStyle2[iDraw]);
+    graph -> SetMarkerSize(fDrawMSize[iDraw]);
+  }
+  else if (option==2) {
+    graph -> SetLineColor(fDrawColor2[iDraw]);
+    graph -> SetMarkerColor(fDrawColor2[iDraw]);
+    graph -> SetFillColor(fDrawColor3[iDraw]);
+    graph -> SetMarkerStyle(fDrawMStyle2[iDraw]);
+    graph -> SetMarkerSize(fDrawMSize2[iDraw]);
+  }
+  else if (option==4) {
+    graph -> SetLineColor(fDrawColor[iDraw]);
+    graph -> SetMarkerColor(fDrawColor[iDraw]);
+    graph -> SetFillColor(fDrawColor[iDraw]);
+    graph -> SetMarkerStyle(fDrawMStyle3[iDraw]);
+    graph -> SetMarkerSize(fDrawMSize[iDraw]);
+  }
+  else { //3?
+    graph -> SetLineColor(fDrawColor[iDraw]);
+    graph -> SetMarkerColor(fDrawColor[iDraw]);
+    graph -> SetFillColor(fDrawColor3[iDraw]);
+    graph -> SetMarkerStyle(fDrawMStyle[iDraw]);
+    graph -> SetMarkerSize(fDrawMSize3[iDraw]);
+  }
+}
+
+void setAtt(TMarker *marker, int iDraw, int iColor, int option) {
+  if (iColor<0) iColor = iDraw;
+
+  if (option==2) {
+    marker -> SetMarkerColor(fDrawColor[iColor]);
+    marker -> SetMarkerStyle(fDrawMStyle2[iDraw]);
+    marker -> SetMarkerSize(fDrawMSize2[iDraw]);
+    if (setDrawNZAll) marker -> SetMarkerSize(2*fDrawMSize2[iDraw]);
+  }
+  else {
+    marker -> SetMarkerColor(fDrawColor[iColor]);
+    marker -> SetMarkerStyle(fDrawMStyle[iDraw]);
+    marker -> SetMarkerSize(fDrawMSize[iDraw]);
+    if (setDrawNZAll) marker -> SetMarkerSize(2*fDrawMSize[iDraw]);
+  }
+}
+
+void setAtt(TF1 *fit, int iDraw) {
+  fit -> SetLineColor(fDrawColor[iDraw]);
 }

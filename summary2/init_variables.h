@@ -69,16 +69,16 @@ const char*    fSysCombNames         [fNumSysComb]    = {"comb_132_108", "comb_1
 const char*    fSysCombNames2        [fNumSysComb]    = {"132 / 108",     "132 / 112",     "124 / 108",     "124 / 112"};
 const char*    fSysCombTitles        [fNumSysComb]    = {"(132 / 108)",  "(132 / 112)",   "(124 / 108)",   "(124 / 112)"};
 
-const int      kF132 = 0, kB132 = 1, kFSys=2;
-const int      fNumAna = 3;
-const int      fAnaIdx     [fNumAna] = {kF132, kB132, kFSys};
-const char*    fAnaFNames  [fNumAna] = {"f7", "x0", "fixPID"};
-const char*    fAnaNames   [fNumAna] = {"f132", "x0", "fsys"};
-const char*    fAnaONames  [fNumAna] = {"f132", "x0", "fsys"};
-const char*    fAnaShort   [fNumAna] = {"f132", "x0", "fsys"};
-const char*    fAnaTitles  [fNumAna] = {"After_Fix(132)", "Before_Fix(132)", "After_Fix(Sys)"};
-const char*    fAnaTitles2 [fNumAna] = {"132", "b132", "sys"};
-const char*    fAnaVersion [fNumAna] = {"NewAna.2107.4fd2bca", "NewAna.2107.4fd2bca", "NewAna.2107.4fd2bca"};
+const int      kF132 = 0, kB132 = 1, kFSys=2, kFNN=3, kFNN2=4, kFNN50=5;
+const int      fNumAna = 6;
+const int      fAnaIdx     [fNumAna] = {kF132, kB132, kFSys, kFNN, kFNN2, kFNN50};
+const char*    fAnaFNames  [fNumAna] = {"f7", "x0", "fixPID", "nn", "nn2", "nn50"};
+const char*    fAnaNames   [fNumAna] = {"f132", "x0", "fsys", "nn", "nn2", "nn50"};
+const char*    fAnaONames  [fNumAna] = {"f132", "x0", "fsys", "nn", "nn2", "nn50"};
+const char*    fAnaShort   [fNumAna] = {"f132", "x0", "fsys", "nn", "nn2", "nn50"};
+const char*    fAnaTitles2 [fNumAna] = {"132", "b132", "sys", "nn", "nn2", "nn50"};
+const char*    fAnaTitles  [fNumAna] = {"After_Fix(132)", "Before_Fix(132)", "After_Fix(Sys)", "NN C.M.", "NN C.M. (vadpoca cut)", "central cut 50"};
+const char*    fAnaVersion [fNumAna] = {"NewAna.2107.4fd2bca", "NewAna.2107.4fd2bca", "NewAna.2107.4fd2bca","NewAna.2107.4fd2bca","NewAna.2107.4fd2bca","NewAna.2107.4fd2bca"};
 
 const int      kLR = 0, kLeft = 1, kRight = 2;
 const int      fNumLRs = 3;
@@ -87,16 +87,16 @@ const char*    fLRNames  [fNumLRs] = {"all","left","right"};
 const char*    fLRFNames [fNumLRs] = {"*","left","right"};
 const char*    fLRTitles [fNumLRs] = {"TPC-All","TPC-Left","TPC-Right"};
 
-const int      kMultAll = 0, kMult45 = 1, kMult55 = 2;
-const int      fNumMultOption = 3;
-const int      fMultIdx     []               = {kMultAll, kMult45, kMult55};
-const char*    fMultFNames  [fNumMultOption] = {"*","45_54", "55_100"};
-const char*    fMultNames   [fNumMultOption] = {"45100","4554", "55100"};
-const char*    fMultShort   [fNumMultOption] = {"ml", "mh", "mlh"};
-const char*    fMultNames2  [fNumMultOption] = {"m45to100", "m45to54", "m55to100"};
-const char*    fMultTitles  [fNumMultOption] = {"mult=45~100", "mult=45~54", "mult=55~100"};
-const int      fMultLL      [fNumMultOption] = {45,  45,  55};
-const int      fMultHL      [fNumMultOption] = {100, 54, 100};
+const int      kMultAll = 0, kMult45 = 1, kMult55 = 2, kMult50=3;
+const int      fNumMultOption = 4;
+const int      fMultIdx     []               = {kMultAll, kMult45, kMult55, kMult50};
+const char*    fMultFNames  [fNumMultOption] = {"*","45_54", "55_100", "50_100"};
+const char*    fMultNames   [fNumMultOption] = {"45100","4554", "55100", "50100"};
+const char*    fMultShort   [fNumMultOption] = {"ml", "mh", "mlh", "m50"};
+const char*    fMultNames2  [fNumMultOption] = {"m45to100", "m45to54", "m55to100", "m50to100"};
+const char*    fMultTitles  [fNumMultOption] = {"mult=45~100", "mult=45~54", "mult=55~100", "mult=50~100"};
+const int      fMultLL      [fNumMultOption] = {45,  45,  55, 50};
+const int      fMultHL      [fNumMultOption] = {100, 54, 100, 55};
 
 const int      kThetaAll = 0, kTheta0 = 1, kTheta20 = 2, kTheta40 = 3, kTheta60 = 4, kThetaLT60 = 5, kThetaGT60 = 6;
 const int      fNumCutThetas = 7;
@@ -174,6 +174,5 @@ const double   fDrawMSize2   [] = {1.5,1.5,1.5,2.0,1.8,1.9,1.3,1.3,1.3};
 const int      fDrawColor2   [] = {kGray+1, kRed-8, kBlue-8, kGreen-8, kOrange-8, kViolet-8, kGray+1, kPink+2};
 
 const int      fDrawMStyle3  [] = {20,21,22,33,3,28,26,25,24};
-//const int      fDrawMStyle3  [] = {20,21,22,34,3,28,26,25,24};
 const double   fDrawMSize3   [] = {1.7,1.7,1.7,2.0,2.0, 1.3,1.3,1.3,1.3};
 const int      fDrawColor3   [] = {kGray, kRed-10, kBlue-10, kGreen-10, kOrange-9, kViolet-9, kGray, kPink+1};

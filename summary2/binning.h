@@ -183,6 +183,7 @@ void binning::operator=(const binning binn)
   fMin = binn.getMin();
   fMax = binn.getMax();
   fW = binn.getW();
+  fTitle = binn.getTitle();
 }
 
 binning2 binning::operator*(const binning binn) {
