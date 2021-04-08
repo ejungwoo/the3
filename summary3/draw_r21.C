@@ -1,38 +1,74 @@
 #include "init_variables.h"
 #include "binning.h"
 
+TString fNameV;
+
 int fiSys;
 int fiSys2;
 int fiSys1;
 int fiComb = -1;
 int fiParticle;
+int fXOffCvs = 1200;
 int fCountCvs = 0;
 int fdxCvsAB = 150;
 int fdyCvsAB = 200;
+vector<TCanvas *> fCvsArray;
+
+TH2D *fHYValue[4][5][2] = {{0}};
+TH2D *fHYLoose[4][5][2] = {{0}};
+
+
+//double fTMargin = 0.11;
+//double fBMargin = 0.15;
+//double fLMargin = 0.12;
+//double fRMargin = 0.055;
+
+double fTMargin = 0.11;
+double fBMargin = 0.10;
+double fLMargin = 0.12;
+double fRMargin = 0.055;
 
 const char *make_name(const char *name0, int idx=0, const char *tag="");
+const char *make_title(binning bn_range=binning(), int idx=-1);
 void project(TTree *tree, TH1 *hist, const char *expression, const char *selection="");
 TF2 *fit_r21(TGraph2DErrors *graph_r21);
 TCanvas *make_cvs(const char *name, int opt=0, int w=630, int h=550, int nx=0, int ny=0);
+void save_cvs();
+TGraphErrors *attGraph(TGraphErrors *graph, int idx);
 TMarker *attMarker(TMarker *marker, int idx);
+
 TH2D *make_r21_frame(TH2D *hist);
 TF1 *get_fit1_r21(int nValue, int zValue, double alpha, double beta, double cnorm, double x1, double x2);
 void draw_ab_fit(binning bnx, binning bny, double r21ValueArray[10][10][5], double r21ErrorArray[10][10][5], double abcValueArray[10][10][3]);
+void draw_r21_x(binning bnx, binning bny, double r21ValueArray[10][10][5], double r21ErrorArray[10][10][5], double abcValueArray[10][10][3]);
 void draw_apmb(binning bnx, binning bny, double r21ValueArray[10][10][5], double r21ErrorArray[10][10][5], double abcValueArray[10][10][3]);
+void draw_avb(binning bnx, binning bny, double r21ValueArray[10][10][5], double r21ErrorArray[10][10][5], double abcValueArray[10][10][3]);
+TLegend *make_legend(TVirtualPad *cvs, TLegend *legend, TString opt = "", double x_offset=0, double y_offset=0, double width_fixed=0, double height_fixed=0);
 
 void draw_r21()
 {
   bool set_recreate_hist = false;
+
   bool set_draw1 = true;
   bool set_draw2 = false;
+
+  bool set_draw_yield = false;
   bool set_draw_ab_fit = false;
-  bool set_draw_apmb = true;
+  bool set_draw_r21_x = true;
+  bool set_draw_apmb = false;
+  bool set_draw_avb = false;
 
   const char *anaV = "nn50";
   binning bn_y0(4,-.15,1.05,"y_{0}","y0");
   binning bn_pt(4,0,400,"p_{T}/A (MeV/c)","ptoac");
   binning bn_ke(4,0,120,"KE_{CM}/A (MeV)","keoac");
-  binning bn_tt(4,0,100,"#theta_{CM} (deg)","ttc");
+  binning bn_tt(4,0,90,"#theta_{CM} (deg)","ttc");
+  if (1) {
+    bn_y0.set(8,0,1,"y_{0}","y0");
+    bn_pt.set(8,0,400,"p_{T}/A (MeV/c)","ptoac");
+    bn_ke.set(8,0,120,"KE_{CM}/A (MeV)","keoac");
+    bn_tt.set(8,0,90,"#theta_{CM} (deg)","ttc");
+  }
 
   vector<binning2> var2Array = {(bn_ke*bn_tt), (bn_pt*bn_y0)};
 
@@ -44,13 +80,10 @@ void draw_r21()
     return -1;
   };
 
-
-  binning bn_alpha(100,-.1,.5,"#alpha");
-  binning bn_beta(100,-.5,.1,"#beta");
-
-
-  TH2D *hyValue[4][5][2] = {{0}};
-  TH2D *hyLoose[4][5][2] = {{0}};
+  //fNameV = Form("%s.hist_%s_%s_%s_%s",anaV,bn_y0.nnmm(),bn_pt.nnmm(),bn_ke.nnmm(),bn_tt.nnmm());
+  fNameV = Form("%s_%d_%d_%d_%d",anaV,bn_y0.fN,bn_pt.fN,bn_ke.fN,bn_tt.fN);
+  gSystem -> mkdir(fNameV);
+  gSystem -> mkdir(Form("%s/figures",fNameV.Data()));
 
   gStyle -> SetOptStat(0);
 
@@ -58,9 +91,10 @@ void draw_r21()
   {
     fiSys = iSys;
 
-    auto name_file_hist = Form("data2/%s/compact_sys%d_%s.hist_%d_%d_%d_%d.root",anaV,fSysBeams[fiSys],anaV,bn_y0.fN,bn_pt.fN,bn_ke.fN,bn_tt.fN);
+    auto nameV = Form("%s.hist_%s_%s_%s_%s",anaV,bn_y0.nnmm(),bn_pt.nnmm(),bn_ke.nnmm(),bn_tt.nnmm());
+    auto name_file_hist = Form("data2/%s/compact_sys%d_%s.root",anaV,fSysBeams[fiSys],nameV);
     TFile *file_hist = new TFile(name_file_hist,"read");
-    cout << name_file_hist << endl;
+    cout << "hist: " << name_file_hist << endl;
 
     if (set_recreate_hist || file_hist->IsZombie())
     {
@@ -77,11 +111,11 @@ void draw_r21()
 
         for (auto var2 : var2Array)
         {
-          auto hist_vv0 = var2.newHist(make_name(var2.name(),0)); project(tree,hist_vv0,var2.ee(),"prob/eff*(prob>.7)");
-          auto hist_vv1 = var2.newHist(make_name(var2.name(),1)); project(tree,hist_vv1,var2.ee(),"prob/eff*(prob>.5)");
+          auto hist_vv0 = var2.newHist(make_name(var2.name(),0)); project(tree,hist_vv0,var2.ee(),"corr*(prob>.7)");
+          auto hist_vv1 = var2.newHist(make_name(var2.name(),1)); project(tree,hist_vv1,var2.ee(),"corr*(prob>.5)");
 
-          hyValue[fiSys][fiParticle][findv(var2)] = hist_vv0;
-          hyLoose[fiSys][fiParticle][findv(var2)] = hist_vv1;
+          fHYValue[fiSys][fiParticle][findv(var2)] = hist_vv0;
+          fHYLoose[fiSys][fiParticle][findv(var2)] = hist_vv1;
 
           file_hist -> cd();
           hist_vv0 -> Write();
@@ -98,8 +132,26 @@ void draw_r21()
 
         for (auto var2 : var2Array)
         {
-          hyValue[fiSys][fiParticle][findv(var2)] = (TH2D *) file_hist -> Get(make_name(var2.name(),0));
-          hyLoose[fiSys][fiParticle][findv(var2)] = (TH2D *) file_hist -> Get(make_name(var2.name(),1));
+          fHYValue[fiSys][fiParticle][findv(var2)] = (TH2D *) file_hist -> Get(make_name(var2.name(),0));
+          fHYLoose[fiSys][fiParticle][findv(var2)] = (TH2D *) file_hist -> Get(make_name(var2.name(),1));
+        }
+      }
+    }
+  }
+
+  if (set_draw_yield)
+  {
+    for (auto iSys : fSysIdx)
+    {
+      for (auto var2 : var2Array)
+      {
+        fiSys = iSys;
+        for (auto iParticle : fParticleIdx)
+        {
+          fiParticle = iParticle;
+          auto hist = fHYValue[fiSys][fiParticle][findv(var2)];
+          make_cvs(hist->GetName(),2);
+          hist -> Draw("colz");
         }
       }
     }
@@ -110,26 +162,26 @@ void draw_r21()
   /////////////////////////////////////////////////////
   /////////////////////////////////////////////////////
 
-  for (auto var2 : var2Array)
+  if (set_draw1)
   {
-    auto bnx = var2.bx();
-    auto bny = var2.by();
-
-    for (auto iComb : fSysCombIndx)
+    for (int ivar : {0,1})
     {
-      fiComb = iComb;
-      fiSys2 = fSysCombIdx[fiComb][0];
-      fiSys1 = fSysCombIdx[fiComb][1];
-
-      if (set_draw1)
+      for (auto var2 : var2Array)
       {
-        for (int ivar : {0,1})
+        auto bnx = var2.bx();
+        auto bny = var2.by();
+
+        for (auto iComb : fSysCombIndx)
         {
-          auto bn_var = bnx;
-          auto bn_sum = bny;
+          fiComb = iComb;
+          fiSys2 = fSysCombIdx[fiComb][0];
+          fiSys1 = fSysCombIdx[fiComb][1];
+
+          auto bnv = bnx;
+          auto bns = bny;
           if (ivar==1) {
-            bn_var = bny;
-            bn_sum = bnx;
+            bnv = bny;
+            bns = bnx;
           }
 
           double r21ValueArray[10][10][5] = {{0}};
@@ -137,8 +189,8 @@ void draw_r21()
           double abcValueArray[10][10][3] = {{0}};
           double abcErrorArray[10][10][3] = {{0}};
 
-          bn_var.reset();
-          while (bn_var.next())
+          bnv.reset();
+          while (bnv.next())
           {
             auto graph_r21 = new TGraph2DErrors();
 
@@ -152,24 +204,24 @@ void draw_r21()
               double loose1 = 0;
 
               if (ivar==0) {
-                bn_sum.reset(); while (bn_sum.next()) { value2 += hyValue[fiSys2][fiParticle][findv(var2)] -> GetBinContent(bn_var.bi(),bn_sum.bi()); }
-                bn_sum.reset(); while (bn_sum.next()) { value1 += hyValue[fiSys1][fiParticle][findv(var2)] -> GetBinContent(bn_var.bi(),bn_sum.bi()); }
-                bn_sum.reset(); while (bn_sum.next()) { loose2 += hyLoose[fiSys2][fiParticle][findv(var2)] -> GetBinContent(bn_var.bi(),bn_sum.bi()); }
-                bn_sum.reset(); while (bn_sum.next()) { loose1 += hyLoose[fiSys1][fiParticle][findv(var2)] -> GetBinContent(bn_var.bi(),bn_sum.bi()); }
+                bns.reset(); while (bns.next()) { value2 += fHYValue[fiSys2][fiParticle][findv(var2)] -> GetBinContent(bnv.bi(),bns.bi()); }
+                bns.reset(); while (bns.next()) { value1 += fHYValue[fiSys1][fiParticle][findv(var2)] -> GetBinContent(bnv.bi(),bns.bi()); }
+                bns.reset(); while (bns.next()) { loose2 += fHYLoose[fiSys2][fiParticle][findv(var2)] -> GetBinContent(bnv.bi(),bns.bi()); }
+                bns.reset(); while (bns.next()) { loose1 += fHYLoose[fiSys1][fiParticle][findv(var2)] -> GetBinContent(bnv.bi(),bns.bi()); }
               }
               else {
-                bn_sum.reset(); while (bn_sum.next()) { value2 += hyValue[fiSys2][fiParticle][findv(var2)] -> GetBinContent(bn_sum.bi(),bn_var.bi()); }
-                bn_sum.reset(); while (bn_sum.next()) { value1 += hyValue[fiSys1][fiParticle][findv(var2)] -> GetBinContent(bn_sum.bi(),bn_var.bi()); }
-                bn_sum.reset(); while (bn_sum.next()) { loose2 += hyLoose[fiSys2][fiParticle][findv(var2)] -> GetBinContent(bn_sum.bi(),bn_var.bi()); }
-                bn_sum.reset(); while (bn_sum.next()) { loose1 += hyLoose[fiSys1][fiParticle][findv(var2)] -> GetBinContent(bn_sum.bi(),bn_var.bi()); }
+                bns.reset(); while (bns.next()) { value2 += fHYValue[fiSys2][fiParticle][findv(var2)] -> GetBinContent(bns.bi(),bnv.bi()); }
+                bns.reset(); while (bns.next()) { value1 += fHYValue[fiSys1][fiParticle][findv(var2)] -> GetBinContent(bns.bi(),bnv.bi()); }
+                bns.reset(); while (bns.next()) { loose2 += fHYLoose[fiSys2][fiParticle][findv(var2)] -> GetBinContent(bns.bi(),bnv.bi()); }
+                bns.reset(); while (bns.next()) { loose1 += fHYLoose[fiSys1][fiParticle][findv(var2)] -> GetBinContent(bns.bi(),bnv.bi()); }
               }
 
               auto r21Value = value2/value1;
               auto r21Loose = loose2/loose1;
               auto r21Error = abs(r21Value - r21Loose);
 
-              r21ValueArray[bn_var.ii()][0][fiParticle] = r21Value;
-              r21ErrorArray[bn_var.ii()][0][fiParticle] = r21Error;
+              r21ValueArray[bnv.ii()][0][fiParticle] = r21Value;
+              r21ErrorArray[bnv.ii()][0][fiParticle] = r21Error;
 
               auto zValue = fParticleZ[fiParticle];
               auto nValue = fParticleN[fiParticle];
@@ -183,9 +235,10 @@ void draw_r21()
             double alpha = fitIsoscaling -> GetParameter(0);
             double beta = fitIsoscaling -> GetParameter(1);
             double cnorm = fitIsoscaling -> GetParameter(2);
-            abcValueArray[bn_var.ii()][0][0] = alpha;
-            abcValueArray[bn_var.ii()][0][1] = beta;
-            abcValueArray[bn_var.ii()][0][2] = cnorm;
+            cout << make_name("",0,var2.name()) << " " << alpha << " " << beta << " " << cnorm << endl;
+            abcValueArray[bnv.ii()][0][0] = alpha;
+            abcValueArray[bnv.ii()][0][1] = beta;
+            abcValueArray[bnv.ii()][0][2] = cnorm;
 
             double alphaError = 0.;
             double betaError = 0.;
@@ -197,7 +250,7 @@ void draw_r21()
               auto nValue = fParticleN[iParticle];
               auto zValue = fParticleZ[iParticle];
 
-              auto r21Value = r21ValueArray[bn_var.ii()][0][fiParticle];
+              auto r21Value = r21ValueArray[bnv.ii()][0][fiParticle];
               auto r21Eval = fitIsoscaling -> Eval(nValue, zValue);
               auto alphaError1 = (r21Value - r21Eval) / r21Value / nValue;
               auto betaError1 = (r21Value - r21Eval) / r21Value / zValue;
@@ -207,22 +260,35 @@ void draw_r21()
             }
             alphaError = sqrt(alphaError / 4);
             betaError = sqrt(betaError / 5);
-            abcErrorArray[bn_var.ii()][0][0] = alphaError;
-            abcErrorArray[bn_var.ii()][0][1] = betaError;
+            abcErrorArray[bnv.ii()][0][0] = alphaError;
+            abcErrorArray[bnv.ii()][0][1] = betaError;
           }
 
-          auto bn2 = bn_sum;
+          auto bn2 = bns;
           bn2.setN(1);
           bn2.setExpression("all");
 
-          if (set_draw_ab_fit) draw_ab_fit(bn_var, bn2, r21ValueArray, r21ErrorArray, abcValueArray);
-          if (set_draw_apmb) draw_apmb(bn_var, bn2, r21ValueArray, r21ErrorArray, abcValueArray);
-
+          if (set_draw_ab_fit) draw_ab_fit(bnv, bn2, r21ValueArray, r21ErrorArray, abcValueArray);
+          if (set_draw_r21_x) draw_r21_x(bnv, bn2, r21ValueArray, r21ErrorArray, abcValueArray);
+          if (set_draw_apmb) draw_apmb(bnv, bn2, r21ValueArray, r21ErrorArray, abcValueArray);
         }
       }
+    }
+  }
 
-      if (set_draw2)
+  if (set_draw2)
+  {
+    for (auto var2 : var2Array)
+    {
+      auto bnx = var2.bx();
+      auto bny = var2.by();
+
+      for (auto iComb : fSysCombIndx)
       {
+        fiComb = iComb;
+        fiSys2 = fSysCombIdx[fiComb][0];
+        fiSys1 = fSysCombIdx[fiComb][1];
+
         auto graph_ab = new TGraphErrors();
 
         double r21ValueArray[10][10][5] = {{0}};
@@ -242,10 +308,10 @@ void draw_r21()
             {
               fiParticle = iParticle;
 
-              auto value2 = hyValue[fiSys2][fiParticle][findv(var2)] -> GetBinContent(bnx.bi(),bny.bi());
-              auto value1 = hyValue[fiSys1][fiParticle][findv(var2)] -> GetBinContent(bnx.bi(),bny.bi());
-              auto loose2 = hyLoose[fiSys2][fiParticle][findv(var2)] -> GetBinContent(bnx.bi(),bny.bi());
-              auto loose1 = hyLoose[fiSys1][fiParticle][findv(var2)] -> GetBinContent(bnx.bi(),bny.bi());
+              auto value2 = fHYValue[fiSys2][fiParticle][findv(var2)] -> GetBinContent(bnx.bi(),bny.bi());
+              auto value1 = fHYValue[fiSys1][fiParticle][findv(var2)] -> GetBinContent(bnx.bi(),bny.bi());
+              auto loose2 = fHYLoose[fiSys2][fiParticle][findv(var2)] -> GetBinContent(bnx.bi(),bny.bi());
+              auto loose1 = fHYLoose[fiSys1][fiParticle][findv(var2)] -> GetBinContent(bnx.bi(),bny.bi());
 
               auto r21Value = value2/value1;
               auto r21Loose = loose2/loose1;
@@ -266,6 +332,7 @@ void draw_r21()
             double alpha = fitIsoscaling -> GetParameter(0);
             double beta = fitIsoscaling -> GetParameter(1);
             double cnorm = fitIsoscaling -> GetParameter(2);
+            cout << make_name("",0,var2.name()) << " " << alpha << " " << beta << " " << cnorm << endl;
             abcValueArray[bnx.ii()][bny.ii()][0] = alpha;
             abcValueArray[bnx.ii()][bny.ii()][1] = beta;
             abcValueArray[bnx.ii()][bny.ii()][2] = cnorm;
@@ -295,111 +362,15 @@ void draw_r21()
           }
         }
 
-        if (set_draw_ab_fit)
-          draw_ab_fit(bnx, bny, r21ValueArray, r21ErrorArray, abcValueArray);
-
-        bool draw_avb = true;
-        if (draw_avb)
-        {
-          make_cvs(make_name("avb"));
-          (bn_alpha*bn_beta).newHist(make_name("avb")) -> Draw();
-
-          bnx.reset();
-          while (bnx.next()) {
-            TGraphErrors *graph_avb = new TGraphErrors(); 
-            bny.reset();
-            while (bny.next())
-            {
-              auto alpha = abcValueArray[bnx.ii()][bny.ii()][0];
-              auto beta = abcValueArray[bnx.ii()][bny.ii()][1];
-              auto cnorm = abcValueArray[bnx.ii()][bny.ii()][2];
-
-              graph_avb -> SetPoint(graph_avb->GetN(),alpha,beta);
-            }
-
-            graph_avb -> Draw("same*l");
-          }
-        }
-
-        return;
+        if (set_draw_ab_fit) draw_ab_fit(bnx, bny, r21ValueArray, r21ErrorArray, abcValueArray);
+        if (set_draw_r21_x) draw_r21_x(bnx, bny, r21ValueArray, r21ErrorArray, abcValueArray);
+        if (set_draw_avb) draw_avb(bnx, bny, r21ValueArray, r21ErrorArray, abcValueArray);
       }
     }
   }
 
 }
 
-const char *make_name(const char *name0, int idx, const char *tag) {
-  const char *nameSC = ( fiComb>=0 ? fSysCombNames[fiComb] : Form("%d",fSysBeams[fiSys]) );
-  const char *name = Form("%s_%s_%s_%s_%d",name0,tag,nameSC,fParticleNames[fiParticle],idx);
-  return name;
-}
-
-void project(TTree *tree, TH1 *hist, const char *expression, const char *selection) {
-  tree -> Project(hist->GetName(),expression,selection);
-}
-
-TF2 *fit_r21(TGraph2DErrors *graph_r21)
-{
-  TF2 *fitIsoscaling = new TF2("fitIsoscaling","[2]*exp([0]*x+[1]*y)",1,2,0,2);
-  fitIsoscaling -> SetParameters(1,.3,-.3);
-  graph_r21 -> Fit(fitIsoscaling,"","RQ0");
-  return fitIsoscaling;
-}
-
-TCanvas *make_cvs(const char *name, int opt, int w, int h, int nx, int ny)
-{
-  auto cvs = new TCanvas(name,name, 20+20*(fCountCvs+1), 20*(fCountCvs+1), w, h);
-  if (nx>0||ny>0) {
-    if (opt==0)
-    {
-      auto sMargin = 0;
-      double lMargin = 0.15;
-      double rMargin = 0.055;
-      double bMargin = 0.20;
-      double tMargin = 0.12;
-      cvs -> Divide(nx,ny,0,0);
-      for (auto ix=1; ix<=nx; ++ix) {
-        for (auto iy=1; iy<=ny; ++iy)
-        {
-          auto i = ix + nx*(iy-1);
-          if (iy==1&&iy==ny) {
-            if (ix==1) cvs->cd(i)->SetMargin(lMargin,0,bMargin,0);
-            else if (ix==nx) cvs->cd(i)->SetMargin(0,rMargin,bMargin,0);
-            else cvs->cd(i)->SetMargin(0,0,bMargin,0);
-          } else if (iy==1) {
-            if (ix==1&&ix==nx) cvs->cd(i)->SetMargin(lMargin,rMargin,sMargin,tMargin);
-            else if (ix==1) cvs->cd(i)->SetMargin(lMargin,0,sMargin,tMargin);
-            else if (ix==nx) cvs->cd(i)->SetMargin(0,rMargin,sMargin,tMargin);
-            else cvs->cd(i)->SetMargin(0,0,sMargin,tMargin);
-          } else if (iy==ny) {
-            if (ix==1&&ix==nx) cvs->cd(i)->SetMargin(lMargin,rMargin,bMargin,sMargin);
-            else if (ix==1) cvs->cd(i)->SetMargin(lMargin,0,bMargin,sMargin);
-            else if (ix==nx) cvs->cd(i)->SetMargin(0,rMargin,bMargin,sMargin);
-            else cvs->cd(i)->SetMargin(0,0,bMargin,sMargin);
-          } else {
-            if (ix==1&&ix==nx) cvs->cd(i)->SetMargin(lMargin,rMargin,sMargin,sMargin);
-            else if (ix==1) cvs->cd(i)->SetMargin(lMargin,0,sMargin,sMargin);
-            else if (ix==nx) cvs->cd(i)->SetMargin(0,rMargin,sMargin,sMargin);
-            else cvs->cd(i)->SetMargin(0,0,sMargin,sMargin);
-          }
-        }
-      }
-    }
-    else {
-      cvs -> Divide(nx,ny);
-    }
-  }
-  fCountCvs++;
-  return cvs;
-}
-
-TMarker *attMarker(TMarker *marker, int idx)
-{
-  marker -> SetMarkerStyle(fDrawMStyle[idx]);
-  marker -> SetMarkerColor(fDrawColor[idx]);
-  marker -> SetMarkerSize(fDrawMSize[idx]);
-  return marker;
-}
 
 TH2D *make_r21_frame(TH2D *hist)
 {
@@ -438,7 +409,7 @@ void draw_ab_fit(binning bnx, binning bny, double r21ValueArray[10][10][5], doub
 {
   binning bn_n(100,-.8,2.8,"N");
   binning bn_z(100,0.2,2.8,"Z");
-  binning bn_r21(100,0.5,2.8,"R_{21}");
+  binning bn_r21(100,0.5,1.8,"R_{21}");
 
   auto var2 = (bnx*bny);
 
@@ -509,39 +480,427 @@ void draw_ab_fit(binning bnx, binning bny, double r21ValueArray[10][10][5], doub
   }
 }
 
-void draw_apmb(binning bnx, binning bny, double r21ValueArray[10][10][5], double r21ErrorArray[10][10][5], double abcValueArray[10][10][3])
+void draw_r21_x(binning bnx, binning bny, double r21ValueArray[10][10][5], double r21ErrorArray[10][10][5], double abcValueArray[10][10][3])
 {
-  if (1) {
-    auto graph_alpha   = new TGraph();
-    graph_alpha -> SetMarkerStyle(24);
-    graph_alpha -> SetMarkerSize(1.5);
-    graph_alpha -> SetMarkerColor(kRed);
-    auto graph_beta    = new TGraph();
-    graph_beta -> SetMarkerStyle(25);
-    graph_beta -> SetMarkerSize(1.5);
-    graph_beta -> SetMarkerColor(kRed);
-    auto graph_aplusb  = new TGraph();
-    auto graph_aminusb = new TGraph();
-    graph_aminusb -> SetLineStyle(9);
+  binning bn_r21(100,0.5,1.8,"R_{21}");
 
-    bnx.reset();
-    while (bnx.next())
+  bny.reset();
+  while (bny.next())
+  {
+    auto name = make_name("r21_x",bny.ii(),bnx.getE());
+    auto title = make_title(bny,bny.bi());
+    make_cvs(name);
+    (bnx*bn_r21).newHist(name,title) -> Draw();
+    for (auto iParticle : fParticleIdx)
     {
-      auto alpha = abcValueArray[bnx.ii()][0][0];
-      auto beta =  abcValueArray[bnx.ii()][0][1];
-      auto cnorm = abcValueArray[bnx.ii()][0][2];
+      fiParticle = iParticle;
 
-      graph_alpha   -> SetPoint(bnx.ii(),bnx.getValue(),alpha);
-      graph_beta    -> SetPoint(bnx.ii(),bnx.getValue(),beta);
-      graph_aplusb  -> SetPoint(bnx.ii(),bnx.getValue(),alpha+beta);
-      graph_aminusb -> SetPoint(bnx.ii(),bnx.getValue(),alpha-beta);
+      auto graph_r21 = new TGraphErrors();
+      attGraph(graph_r21, fiParticle);
+
+      bnx.reset();
+      while (bnx.next())
+      {
+        auto r21Value = r21ValueArray[bnx.ii()][bny.ii()][fiParticle];
+        graph_r21 -> SetPoint(bnx.ii(),bnx.getValue(),r21Value);
+      }
+
+      graph_r21 -> Draw("pl");
+    }
+  }
+}
+
+void draw_avb(binning bnx, binning bny, double r21ValueArray[10][10][5], double r21ErrorArray[10][10][5], double abcValueArray[10][10][3])
+{
+  auto var2 = (bnx*bny);
+
+  auto name = make_name("avb",0,var2.name());
+  make_cvs(name);
+  binning bn_alpha(100,-.1,.5,"#alpha");
+  binning bn_beta(100,-.5,.1,"#beta");
+  (bn_alpha*bn_beta).newHist(name) -> Draw();
+
+  bnx.reset();
+  while (bnx.next()) {
+    TGraphErrors *graph_avb = new TGraphErrors(); 
+    bny.reset();
+    while (bny.next())
+    {
+      auto alpha = abcValueArray[bnx.ii()][bny.ii()][0];
+      auto beta = abcValueArray[bnx.ii()][bny.ii()][1];
+      auto cnorm = abcValueArray[bnx.ii()][bny.ii()][2];
+
+      graph_avb -> SetPoint(graph_avb->GetN(),alpha,beta);
     }
 
-    make_cvs(make_name(Form("apmp_%s",bnx.getE())));
-    (bnx*binning(100,-.5,1)).newHist(make_name(Form("apmp_%s",bnx.getE()))) -> Draw();
-    graph_alpha   -> Draw("samep");
-    graph_beta    -> Draw("samep");
-    graph_aplusb  -> Draw("samel");
-    graph_aminusb -> Draw("samel");
+    graph_avb -> Draw("same*l");
   }
+}
+
+void draw_apmb(binning bnx, binning bny, double r21ValueArray[10][10][5], double r21ErrorArray[10][10][5], double abcValueArray[10][10][3])
+{
+  auto legend = new TLegend();
+
+  auto graph_alpha   = new TGraphErrors();
+  graph_alpha -> SetMarkerStyle(24);
+  graph_alpha -> SetMarkerSize(1.5);
+  auto graph_beta    = new TGraphErrors();
+  graph_beta -> SetMarkerStyle(25);
+  graph_beta -> SetMarkerSize(1.5);
+  auto graph_aplusb  = new TGraphErrors();
+  graph_aplusb -> SetLineColor(kRed);
+  auto graph_aminusb = new TGraphErrors();
+  graph_aminusb -> SetLineColor(kBlue);
+
+  legend -> AddEntry(graph_alpha  ,"#alpha",       "p");
+  legend -> AddEntry(graph_beta   ,"#beta",        "p");
+  legend -> AddEntry(graph_aplusb ,"#alpha+#beta", "l");
+  legend -> AddEntry(graph_aminusb,"#alpha-#beta", "l");
+
+  bnx.reset();
+  while (bnx.next())
+  {
+    auto alpha = abcValueArray[bnx.ii()][0][0];
+    auto beta =  abcValueArray[bnx.ii()][0][1];
+    auto cnorm = abcValueArray[bnx.ii()][0][2];
+
+    graph_alpha   -> SetPoint(bnx.ii(),bnx.getValue(),alpha);
+    graph_beta    -> SetPoint(bnx.ii(),bnx.getValue(),beta);
+    graph_aplusb  -> SetPoint(bnx.ii(),bnx.getValue(),alpha+beta);
+    graph_aminusb -> SetPoint(bnx.ii(),bnx.getValue(),alpha-beta);
+  }
+
+  auto cvs = make_cvs(make_name(Form("apmp_%s",bnx.getE())));
+  auto hist = (bnx*binning(100,-.5,1)).newHist(make_name(Form("apmp_%s",bnx.getE())));
+  auto iSys2 = fSysCombIdx[fiComb][0];
+  auto iSys1 = fSysCombIdx[fiComb][1];
+  if (TString(bny.getTitle()).Index("y_{0}")>=0)
+    hist -> SetTitle(Form("%s/%s : %s=%.2f~%.2f",fSysTitles[iSys2],fSysTitles[iSys1],bny.getTitle(),bny.fMin,bny.fMax));
+  else
+    hist -> SetTitle(Form("%s/%s : %s=%.0f~%.0f",fSysTitles[iSys2],fSysTitles[iSys1],bny.getTitle(),bny.fMin,bny.fMax));
+  hist -> SetYTitle("#alpha, #beta");
+
+  hist -> Draw();
+  auto line0 = new TLine(bnx.fMin,0,bnx.fMax,0);
+  line0 -> SetLineStyle(2);
+  line0 -> SetLineColor(kGray+1);
+  line0 -> Draw("samel");
+  auto line5 = new TLine(bnx.fMin,.5,bnx.fMax,.5);
+  line5 -> SetLineStyle(2);
+  line5 -> SetLineColor(kGray+1);
+  line5 -> Draw("samel");
+  graph_alpha   -> Draw("samep");
+  graph_beta    -> Draw("samep");
+  graph_aplusb  -> Draw("samel");
+  graph_aminusb -> Draw("samel");
+  make_legend(cvs, legend) -> Draw();
+}
+
+TLegend *make_legend(TVirtualPad *cvs, TLegend *legend, TString fLegendDrawStyle="rt", double x_offset, double y_offset, double width_fixed, double height_fixed)
+{
+  double fWidthPerLengthLegend = 0.012;
+  double fHeightPerEntryLegend = 0.05;
+  double fWidthDefaultLegend = 0.15;
+  int fFillStyleLegend = 0;
+  int fBorderSizeLegend = 0;
+
+  auto lmargin_cvs = fLMargin;
+  auto rmargin_cvs = fRMargin;
+  auto bmargin_cvs = fBMargin;
+  auto tmargin_cvs = fTMargin;
+  if (cvs != nullptr) {
+    lmargin_cvs = cvs -> GetLeftMargin();
+    rmargin_cvs = cvs -> GetRightMargin();
+    bmargin_cvs = cvs -> GetBottomMargin();
+    tmargin_cvs = cvs -> GetTopMargin();
+  }
+  else if (gPad != nullptr) {
+    lmargin_cvs = ((TCanvas *) gPad) -> GetLeftMargin();
+    rmargin_cvs = ((TCanvas *) gPad) -> GetRightMargin();
+    bmargin_cvs = ((TCanvas *) gPad) -> GetBottomMargin();
+    tmargin_cvs = ((TCanvas *) gPad) -> GetTopMargin();
+  }
+
+  auto x1_box =     lmargin_cvs;
+  auto x2_box = 1.- rmargin_cvs;
+  auto y1_box =     bmargin_cvs;
+  auto y2_box = 1.- tmargin_cvs;
+  auto unit_x = x2_box - x1_box;
+  auto unit_y = y2_box - y1_box;
+
+  auto y1_stat = y2_box;
+  auto y2_stat = y2_box;
+  auto x1_stat = x1_box;
+  auto x2_stat = x2_box;
+  auto dx_stat = x2_stat - x1_stat;
+  auto dy_stat = y2_stat - y1_stat;
+
+  if (fLegendDrawStyle=="xx1")
+  {
+    auto legend0 = legend;
+    legend = new TLegend();
+    auto count = 0;
+    TIter next_entry(legend0->GetListOfPrimitives());
+    while (auto label=(TLegendEntry*)next_entry()) {
+      auto name = label -> GetLabel();
+      auto obj = label -> GetObject();
+      auto opt = label -> GetOption();
+      if (count<5)
+        legend -> AddEntry(obj,name,opt);
+      count++;
+    }
+  }
+  else if (fLegendDrawStyle=="xx2")
+  {
+    auto legend0 = legend;
+    legend = new TLegend();
+    auto count = 0;
+    TIter next_entry(legend0->GetListOfPrimitives());
+    while (auto label=(TLegendEntry*)next_entry()) {
+      auto name = label -> GetLabel();
+      auto obj = label -> GetObject();
+      auto opt = label -> GetOption();
+      if (count>=5)
+        legend -> AddEntry(obj,name,opt);
+      count++;
+    }
+  }
+
+  auto length_text_max = 0;
+  TIter next_entry(legend->GetListOfPrimitives());
+  while (auto label=(TLegendEntry*)next_entry()) {
+    auto lenth_text = TString(label->GetLabel()).Length();
+    if (length_text_max<lenth_text)
+      length_text_max = lenth_text;
+  }
+
+  auto y2_legend = y1_stat;
+  auto y1_legend = y2_legend - legend->GetNRows() * fHeightPerEntryLegend;
+  if (height_fixed>0) y1_legend = y2_legend - height_fixed*unit_y;
+
+  auto x2_legend = x2_box;
+  auto x1_legend = x2_legend - (length_text_max * fWidthPerLengthLegend) - fWidthDefaultLegend*unit_x;
+  if (width_fixed>0) x1_legend = x2_legend - width_fixed*unit_x;
+
+  if (fLegendDrawStyle=="rr")
+  {
+    x1_legend = x2_box;
+    auto www = (length_text_max * fWidthPerLengthLegend) + fWidthDefaultLegend*unit_x;
+    x2_legend = x1_legend + www;
+    //cvs -> SetRightMargin(www);
+  }
+  if (fLegendDrawStyle=="lt")
+  {
+    x1_legend = x1_box;
+    x2_legend = x1_legend + (length_text_max * fWidthPerLengthLegend) + fWidthDefaultLegend*unit_x;
+    if (width_fixed>0) x2_legend = x1_legend + width_fixed*unit_x;
+    if (x_offset==0) x_offset = 0.02;
+  }
+  else if (fLegendDrawStyle=="lb")
+  {
+    x1_legend = x1_box;
+    x2_legend = x1_legend + (length_text_max * fWidthPerLengthLegend) + fWidthDefaultLegend*unit_x;
+    if (width_fixed>0) x2_legend = x1_legend + width_fixed*unit_x;
+
+    y1_legend = y1_box;
+    y2_legend = y1_legend + legend->GetNRows() * fHeightPerEntryLegend;
+    if (height_fixed>0) y1_legend = y2_legend - height_fixed*unit_y;
+    if (x_offset==0) x_offset = 0.02;
+    if (y_offset==0) y_offset = 0.04;
+  }
+  else if (fLegendDrawStyle=="fb")
+  {
+    x1_legend = x1_box;
+    x2_legend = x2_box;
+
+    y1_legend = y1_box;
+    y2_legend = y1_legend + legend->GetNRows() * fHeightPerEntryLegend*1.2;
+    if (height_fixed>0) y1_legend = y2_legend - height_fixed*unit_y;
+    if (x_offset==0) x_offset = 0.02;
+    if (y_offset==0) y_offset = 0.04;
+  }
+
+  else if (fLegendDrawStyle=="rb")
+  {
+    x2_legend = x2_box;
+    x1_legend = x2_legend - (length_text_max * fWidthPerLengthLegend) - fWidthDefaultLegend*unit_x;
+    if (width_fixed>0) x1_legend = x2_legend - width_fixed*unit_x;
+
+    y1_legend = y1_box;
+    y2_legend = y1_legend + legend->GetNRows() * fHeightPerEntryLegend;
+    if (height_fixed>0) y1_legend = y2_legend - height_fixed*unit_y;
+    if (y_offset==0) y_offset = 0.04;
+  }
+  else if (fLegendDrawStyle=="xx1")
+  {
+    x1_legend = x1_box;
+    x2_legend = x1_legend + (length_text_max * fWidthPerLengthLegend) + fWidthDefaultLegend*unit_x;
+    if (width_fixed>0) x2_legend = x1_legend + width_fixed*unit_x;
+
+    y1_legend = y1_box;
+    y2_legend = y1_legend + legend->GetNRows() * fHeightPerEntryLegend;
+    if (height_fixed>0) y1_legend = y2_legend - height_fixed*unit_y;
+
+    x_offset = 0.02;
+    y_offset = 0.04;
+  }
+  else if (fLegendDrawStyle=="xx2")
+  {
+    x2_legend = x2_box;
+    x1_legend = x2_legend - (length_text_max * fWidthPerLengthLegend) - fWidthDefaultLegend*unit_x;
+    if (width_fixed>0) x1_legend = x2_legend - width_fixed*unit_x;
+
+    y1_legend = y1_box;
+    y2_legend = y1_legend + legend->GetNRows() * fHeightPerEntryLegend;
+    if (height_fixed>0) y1_legend = y2_legend - height_fixed*unit_y;
+
+    x_offset = 0;
+    y_offset = 0.04;
+  }
+
+  x1_legend += x_offset*unit_x;
+  x2_legend += x_offset*unit_x;
+  y1_legend += y_offset*unit_y;
+  y2_legend += y_offset*unit_y;
+
+  auto dx_legend = x2_legend - x1_legend;
+
+  if (dx_stat > 0) {
+    if (abs(dx_legend-dx_stat)/dx_stat < 0.4)
+      dx_legend = dx_stat;
+
+    x1_legend = x2_legend - dx_legend;
+  }
+
+  legend -> SetX1(x1_legend);
+  legend -> SetX2(x2_legend);
+  legend -> SetY1(y1_legend);
+  legend -> SetY2(y2_legend);
+
+  legend -> SetFillStyle(fFillStyleLegend);
+  legend -> SetBorderSize(fBorderSizeLegend);
+
+  return legend;
+}
+
+
+const char *make_name(const char *name0, int idx, const char *tag) {
+  const char *nameSC = ( fiComb>=0 ? fSysCombNames[fiComb] : Form("%d",fSysBeams[fiSys]) );
+  const char *name = Form("%s_%s_%s_%s_%d",name0,tag,nameSC,fParticleNames[fiParticle],idx);
+  return name;
+}
+
+const char *make_title(binning bn_range, int idx)
+{
+  const char *tt_range = "";
+  if (!bn_range.isNull())
+  {
+    fiSys2 = fSysCombIdx[fiComb][0];
+    fiSys1 = fSysCombIdx[fiComb][1];
+    auto x1 = bn_range.fMin;
+    auto x2 = bn_range.fMax;
+    if (idx>=0) {
+      x1 = bn_range.lowEdge(idx);
+      x2 = bn_range.highEdge(idx);
+    }
+    tt_range = Form(" : %s=%.2f~%.2f",bn_range.getTitle(),x1,x2);
+  }
+  auto tt_sys = Form("%s/%s",fSysTitles[fiSys2],fSysTitles[fiSys1]);
+  auto title = Form("%s%s",tt_sys,tt_range);
+  return title;
+}
+
+void project(TTree *tree, TH1 *hist, const char *expression, const char *selection) {
+  tree -> Project(hist->GetName(),expression,selection);
+}
+
+TF2 *fit_r21(TGraph2DErrors *graph_r21)
+{
+  TF2 *fitIsoscaling = new TF2("fitIsoscaling","[2]*exp([0]*x+[1]*y)",1,2,0,2);
+  fitIsoscaling -> SetParameters(1,.3,-.3);
+  graph_r21 -> Fit(fitIsoscaling,"RQ0");
+  return fitIsoscaling;
+}
+
+TCanvas *make_cvs(const char *name, int opt, int w, int h, int nx, int ny)
+{
+  auto cvs = new TCanvas(name,name, fXOffCvs+20*(fCountCvs+1), 20*(fCountCvs+1), w, h);
+
+  if (nx>0||ny>0) {
+    if (opt==0)
+    {
+      auto sMargin = 0;
+      double lMargin = 0.15;
+      double rMargin = 0.055;
+      double bMargin = 0.20;
+      double tMargin = 0.12;
+      cvs -> Divide(nx,ny,0,0);
+      for (auto ix=1; ix<=nx; ++ix) {
+        for (auto iy=1; iy<=ny; ++iy)
+        {
+          auto i = ix + nx*(iy-1);
+          if (iy==1&&iy==ny) {
+            if (ix==1) cvs->cd(i)->SetMargin(lMargin,0,bMargin,0);
+            else if (ix==nx) cvs->cd(i)->SetMargin(0,rMargin,bMargin,0);
+            else cvs->cd(i)->SetMargin(0,0,bMargin,0);
+          } else if (iy==1) {
+            if (ix==1&&ix==nx) cvs->cd(i)->SetMargin(lMargin,rMargin,sMargin,tMargin);
+            else if (ix==1) cvs->cd(i)->SetMargin(lMargin,0,sMargin,tMargin);
+            else if (ix==nx) cvs->cd(i)->SetMargin(0,rMargin,sMargin,tMargin);
+            else cvs->cd(i)->SetMargin(0,0,sMargin,tMargin);
+          } else if (iy==ny) {
+            if (ix==1&&ix==nx) cvs->cd(i)->SetMargin(lMargin,rMargin,bMargin,sMargin);
+            else if (ix==1) cvs->cd(i)->SetMargin(lMargin,0,bMargin,sMargin);
+            else if (ix==nx) cvs->cd(i)->SetMargin(0,rMargin,bMargin,sMargin);
+            else cvs->cd(i)->SetMargin(0,0,bMargin,sMargin);
+          } else {
+            if (ix==1&&ix==nx) cvs->cd(i)->SetMargin(lMargin,rMargin,sMargin,sMargin);
+            else if (ix==1) cvs->cd(i)->SetMargin(lMargin,0,sMargin,sMargin);
+            else if (ix==nx) cvs->cd(i)->SetMargin(0,rMargin,sMargin,sMargin);
+            else cvs->cd(i)->SetMargin(0,0,sMargin,sMargin);
+          }
+        }
+      }
+    }
+    else {
+      cvs -> Divide(nx,ny);
+    }
+  }
+  else if (opt==2) {
+    cvs -> SetMargin(fLMargin,0.15,fBMargin,fTMargin);
+  }
+  else {
+    cvs -> SetMargin(fLMargin,fRMargin,fBMargin,fTMargin);
+  }
+
+  fCountCvs++;
+
+  fCvsArray.push_back(cvs);
+
+  return cvs;
+}
+
+void save_cvs() {
+  for (auto cvs : fCvsArray) {
+    cout << fNameV << " " << cvs -> GetName() << endl;
+    cvs -> cd();
+    cvs -> SaveAs(Form("%s/figures/%s.png",fNameV.Data(),cvs->GetName()));
+  }
+}
+
+TGraphErrors *attGraph(TGraphErrors *graph, int idx)
+{
+  graph -> SetMarkerStyle(fDrawMStyle[idx]);
+  graph -> SetMarkerColor(fDrawColor[idx]);
+  graph -> SetMarkerSize(fDrawMSize[idx]);
+  graph -> SetLineColor(fDrawColor[idx]);
+  return graph;
+}
+
+TMarker *attMarker(TMarker *marker, int idx)
+{
+  marker -> SetMarkerStyle(fDrawMStyle[idx]);
+  marker -> SetMarkerColor(fDrawColor[idx]);
+  marker -> SetMarkerSize(fDrawMSize[idx]);
+  return marker;
 }
