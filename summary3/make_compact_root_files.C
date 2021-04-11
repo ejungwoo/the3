@@ -26,10 +26,10 @@ void make_compact_root_files()
 
       int particle_a = fParticleA[iParticle];
 
-      double br_prob, br_eff, br_sd, br_ke_cm, br_pt_cm, br_by_cm0, br_by_cm, br_fy_cm, br_fy_lab, br_p_lab, br_dedx,
-             br_p_cm, br_theta_cm, br_phi_cm, br_theta_lab, br_phi_lab, br_dpoca, br_dpoca_r;
-      int br_nr, br_nl, br_nt2;
       short br_nt;
+      int br_nr, br_nl, br_nt2;
+      double br_prob, br_eff, br_sd, br_ke_cm, br_pt_cm, br_by_cm0, br_by_cm, br_fy_cm, br_fy_lab, br_p_lab, br_dedx;
+      double br_p_cm, br_theta_cm, br_phi_cm, br_theta_lab, br_phi_lab, br_dpoca, br_dpoca_r;
 
       chain -> SetBranchAddress("prob"     , &br_prob     );
       chain -> SetBranchAddress("eff"      , &br_eff      );

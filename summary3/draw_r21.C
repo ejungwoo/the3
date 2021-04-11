@@ -3,30 +3,17 @@
 
 TString fNameV;
 
-int fiSys;
-int fiSys2;
-int fiSys1;
-int fiComb = -1;
-int fiParticle;
-int fXOffCvs = 1200;
+int fiSys, fiSys2, fiSys1, fiComb = -1, fiParticle;
 int fCountCvs = 0;
+int fXOffCvs = 1200;
 int fdxCvsAB = 150;
 int fdyCvsAB = 200;
 vector<TCanvas *> fCvsArray;
 
-TH2D *fHYValue[4][5][3] = {{0}};
-TH2D *fHYLoose[4][5][3] = {{0}};
+TH2D *fHYValue[4][5][3] = {0};
+TH2D *fHYLoose[4][5][3] = {0};
 
-
-//double fTMargin = 0.11;
-//double fBMargin = 0.15;
-//double fLMargin = 0.12;
-//double fRMargin = 0.055;
-
-double fTMargin = 0.11;
-double fBMargin = 0.10;
-double fLMargin = 0.12;
-double fRMargin = 0.055;
+double fLMargin = 0.12, fRMargin = 0.055, fBMargin = 0.10, fTMargin = 0.11;
 
 const char *make_name(const char *name0, int idx=0, const char *tag="");
 const char *make_title(binning bn_range=binning(), int idx=-1);
@@ -36,7 +23,6 @@ TCanvas *make_cvs(const char *name, int opt=0, int w=630, int h=550, int nx=0, i
 void save_cvs();
 TGraphErrors *attGraph(TGraphErrors *graph, int idx);
 TMarker *attMarker(TMarker *marker, int idx);
-
 TH2D *make_r21_frame(TH2D *hist);
 TF1 *get_fit1_r21(int nValue, int zValue, double alpha, double beta, double cnorm, double x1, double x2);
 void draw_ab_fit(binning bnx, binning bny, double r21Values[8][8][5][2], double abcValues[8][8][3][2], double tptValues[8][8][2][2]);
@@ -47,18 +33,17 @@ TLegend *make_legend(TVirtualPad *cvs, TLegend *legend, TString opt = "", double
 
 void draw_r21()
 {
-  bool set_recreate_hist = false;
+  bool set_recreate_hist = kUnSet;
 
-  bool set_draw1 = false;
-  bool set_draw2 = true;
+  bool set_draw1 = kUnSet;
+  bool set_draw2 = kSet;
 
-  bool set_draw_yield = true;
-
-  bool set_draw_ab_fit = false;
-  bool set_draw_r21_x = false;
-  bool set_draw_apmb = false;
-  bool set_draw_apmbt = false;
-  bool set_draw_avb = false;
+  bool set_draw_yield = kHold;
+  bool set_draw_ab_fit = kDraw;
+  bool set_draw_r21_x = kHold;
+  bool set_draw_apmb = kHold;
+  bool set_draw_apmbt = kHold;
+  bool set_draw_avb = kHold;
 
   const char *anaV = "nn50";
 
@@ -70,34 +55,40 @@ void draw_r21()
   binning bn_ke(4,0,120,"KE_{CM}/A (MeV)","keoac");
   binning bn_tt(4,0,90,"#theta_{CM} (deg)","ttc");
   if (0) {
+    bn_y0.set(2,0,1,"y_{0}","y0");
+    bn_pt.set(2,0,400,"p_{T}/A (MeV/c)","ptoac");
+    bn_ke.set(2,0,120,"KE_{CM}/A (MeV)","keoac");
+    bn_tt.set(2,0,90,"#theta_{CM} (deg)","ttc");
+  }
+  if (1) {
     bn_y0.set(8,0,1,"y_{0}","y0");
     bn_pt.set(8,0,400,"p_{T}/A (MeV/c)","ptoac");
     bn_ke.set(8,0,120,"KE_{CM}/A (MeV)","keoac");
     bn_tt.set(8,0,90,"#theta_{CM} (deg)","ttc");
   }
-  if (1) {
+  if (0) {
     bn_y0.set(1,0,1,"y_{0}","y0");
     bn_pt.set(1,0,400,"p_{T}/A (MeV/c)","ptoac");
     bn_ke.set(1,0,120,"KE_{CM}/A (MeV)","keoac");
     bn_tt.set(1,0,90,"#theta_{CM} (deg)","ttc");
   }
 
-  int selSysIdx[] = {0};
+  int selSysIdx[] = {0,1};
   int selSysCombIdx[] = {0};
+  //int selSysIdx[] = {0,1,2,3};
+  //int selSysCombIdx[] = {0,1,2,3,4,5};
 
-  vector<binning2> var2Array;
-  vector<binning2> var2ArrayPP = {(bn_pozl*bn_dedx)};
-
-  //vector<binning2> var2Array = {(bn_ke*bn_tt)};
-  //vector<binning2> var2ArrayPP = {(bn_ke*bn_tt),(bn_pozl*bn_dedx)};
-
-  //vector<binning2> var2Array = {(bn_ke*bn_tt)};
+  vector<binning2> var2Array = {(bn_ke*bn_tt)};
   //vector<binning2> var2Array = {(bn_pt*bn_y0)};
   //vector<binning2> var2Array = {(bn_ke*bn_tt), (bn_pt*bn_y0)};
 
-  auto findv = [&var2Array](binning2 var2) {
-    for (auto idx=0; idx<var2Array.size(); ++idx) {
-      if (strcmp(var2Array[idx].name(),var2.name())==0)
+  vector<binning2> var2ArrayPP;
+  for (auto var2 : var2Array) var2ArrayPP.push_back(var2);
+  var2ArrayPP.push_back((bn_pozl*bn_dedx));
+
+  auto findv = [&var2ArrayPP](binning2 var2) {
+    for (auto idx=0; idx<var2ArrayPP.size(); ++idx) {
+      if (strcmp(var2ArrayPP[idx].name(),var2.name())==0)
         return idx;
     }
     return -1;
@@ -154,8 +145,14 @@ void draw_r21()
 
         for (auto var2 : var2ArrayPP)
         {
-          fHYValue[fiSys][fiParticle][findv(var2)] = (TH2D *) file_hist -> Get(make_name(var2.name(),0));
-          fHYLoose[fiSys][fiParticle][findv(var2)] = (TH2D *) file_hist -> Get(make_name(var2.name(),1));
+          auto nameValue = make_name(var2.name(),0);
+          auto nameLoose = make_name(var2.name(),1);
+          fHYValue[fiSys][fiParticle][findv(var2)] = (TH2D *) file_hist -> Get(nameValue);
+          fHYLoose[fiSys][fiParticle][findv(var2)] = (TH2D *) file_hist -> Get(nameLoose);
+          auto histValue = fHYValue[fiSys][fiParticle][findv(var2)];
+          auto histLoose = fHYLoose[fiSys][fiParticle][findv(var2)]; 
+          if (histValue!=nullptr) cout << fiSys << " " << fiParticle << " " << findv(var2) << " " << histValue->GetName() << endl; else cout << "nullptr " << nameValue << endl;
+          if (histLoose!=nullptr) cout << fiSys << " " << fiParticle << " " << findv(var2) << " " << histLoose->GetName() << endl; else cout << "nullptr " << nameLoose << endl;
         }
       }
     }
@@ -276,6 +273,7 @@ void draw_r21()
               auto r21Value = value2/value1;
               auto r21Loose = loose2/loose1;
               auto r21Error = abs(r21Value - r21Loose);
+              //cout << iParticle << " " << r21Value << " " << r21Loose << " " << r21Error << endl;
 
               r21Values[bnv.ii()][0][fiParticle][kVal] = r21Value;
               r21Values[bnv.ii()][0][fiParticle][kErr] = r21Error;
@@ -386,7 +384,7 @@ void draw_r21()
               auto r21Value = value2/value1;
               auto r21Loose = loose2/loose1;
               auto r21Error = abs(r21Value - r21Loose);
-              cout << " >>>>> " << r21Value << " " << r21Loose << " " << r21Error << endl;
+              //cout << iParticle << " " << r21Value << " " << r21Loose << " " << r21Error << endl;
 
               r21Values[bnx.ii()][bny.ii()][fiParticle][kVal] = r21Value;
               r21Values[bnx.ii()][bny.ii()][fiParticle][kErr] = r21Error;
@@ -411,7 +409,9 @@ void draw_r21()
             double alpha = fitIsoscaling -> GetParameter(0);
             double beta = fitIsoscaling -> GetParameter(1);
             double cnorm = fitIsoscaling -> GetParameter(2);
+
             //cout << make_name("",0,var2.name()) << " " << alpha << " " << beta << " " << cnorm << endl;
+
             abcValues[bnx.ii()][bny.ii()][0][kVal] = alpha;
             abcValues[bnx.ii()][bny.ii()][1][kVal] = beta;
             abcValues[bnx.ii()][bny.ii()][2][kVal] = cnorm;
@@ -504,15 +504,15 @@ void draw_ab_fit(binning bnx, binning bny, double r21Values[8][8][5][2], double 
       TObjArray draw_alpha_fit(10);
       TObjArray draw_beta_fit(10);
 
-      auto color_r21_error = kGray+1;
+      auto color_r21_error = kBlack;
 
-      auto graph_alpha_fit = new TGraphErrors();
-      graph_alpha_fit -> SetMarkerStyle(10);
-      graph_alpha_fit -> SetLineColor(color_r21_error);
+      auto graph_alpha_error = new TGraphErrors();
+      graph_alpha_error -> SetMarkerStyle(10);
+      graph_alpha_error -> SetLineColor(color_r21_error);
 
-      auto graph_beta_fit  = new TGraphErrors();
-      graph_beta_fit -> SetMarkerStyle(10);
-      graph_alpha_fit -> SetLineColor(color_r21_error);
+      auto graph_beta_error  = new TGraphErrors();
+      graph_beta_error -> SetMarkerStyle(10);
+      graph_beta_error -> SetLineColor(color_r21_error);
 
       for (auto iParticle : fParticleIdx)
       {
@@ -523,11 +523,11 @@ void draw_ab_fit(binning bnx, binning bny, double r21Values[8][8][5][2], double 
         auto r21Value = r21Values[bnx.ii()][bny.ii()][fiParticle][0];
         auto r21Error = r21Values[bnx.ii()][bny.ii()][fiParticle][1];
 
-        graph_alpha_fit -> SetPoint(graph_alpha_fit->GetN(),nValue,r21Value);
-        graph_alpha_fit -> SetPointError(graph_alpha_fit->GetN()-1,0,r21Error);
+        graph_alpha_error -> SetPoint(graph_alpha_error->GetN(),nValue,r21Value);
+        graph_alpha_error -> SetPointError(graph_alpha_error->GetN()-1,0,r21Error);
 
-        graph_beta_fit -> SetPoint(graph_beta_fit->GetN(),zValue,r21Value);
-        graph_beta_fit -> SetPointError(graph_beta_fit->GetN()-1,0,r21Error);
+        graph_beta_error -> SetPoint(graph_beta_error->GetN(),zValue,r21Value);
+        graph_beta_error -> SetPointError(graph_beta_error->GetN()-1,0,r21Error);
 
         draw_alpha_fit.Add(attMarker(new TMarker(nValue,r21Value,20),fiParticle));
         draw_beta_fit.Add(attMarker(new TMarker(zValue,r21Value,20),fiParticle));
@@ -546,7 +546,7 @@ void draw_ab_fit(binning bnx, binning bny, double r21Values[8][8][5][2], double 
       auto frame_alpha = (bn_n*bn_r21).newHist(make_name("nr21",iii,var2.name()));
       make_r21_frame(frame_alpha);
       frame_alpha -> Draw();
-      graph_alpha_fit -> Draw("same e");
+      graph_alpha_error -> Draw("same e");
       draw_alpha_fit.Draw("same");
       get_fit1_r21(-1,1,alpha,beta,cnorm,-0.2,2.2) -> Draw("samel");
       get_fit1_r21(-1,2,alpha,beta,cnorm, 0.8,2.2) -> Draw("samel");
@@ -575,16 +575,16 @@ void draw_ab_fit(binning bnx, binning bny, double r21Values[8][8][5][2], double 
         tt2 -> SetTextFont(42);
         tt2 -> Draw();
 
-        auto lineR211 = new TLine(bn_n.fMin,1,bn_n.fMax,1);
-        lineR211 -> SetLineColor(kGray);
-        lineR211 -> SetLineStyle(2);
-        lineR211 -> Draw("samel");
+        auto line_r21_1 = new TLine(bn_n.fMin,1,bn_n.fMax,1);
+        line_r21_1 -> SetLineColor(kGray);
+        line_r21_1 -> SetLineStyle(2);
+        line_r21_1 -> Draw("samel");
       }
 
       auto cvs_b = cvs_beta -> cd(iii);
       cvs_b -> SetLogy();
       make_r21_frame((bn_z*bn_r21).newHist(make_name("zr21",iii,var2.name()))) -> Draw();
-      graph_beta_fit -> Draw("samee");
+      graph_beta_error -> Draw("samee");
       draw_beta_fit.Draw("same");
       get_fit1_r21(0,-1,alpha,beta,cnorm,0.8,1.2) -> Draw("samel");
       get_fit1_r21(1,-1,alpha,beta,cnorm,0.8,2.2) -> Draw("samel");
@@ -616,10 +616,10 @@ void draw_ab_fit(binning bnx, binning bny, double r21Values[8][8][5][2], double 
         tt2 -> SetTextFont(42);
         tt2 -> Draw();
 
-        auto lineR211 = new TLine(bn_z.fMin,1,bn_z.fMax,1);
-        lineR211 -> SetLineColor(kGray);
-        lineR211 -> SetLineStyle(2);
-        lineR211 -> Draw("samel");
+        auto line_r21_1 = new TLine(bn_z.fMin,1,bn_z.fMax,1);
+        line_r21_1 -> SetLineColor(kGray);
+        line_r21_1 -> SetLineStyle(2);
+        line_r21_1 -> Draw("samel");
       }
     }
   }
