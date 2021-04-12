@@ -79,6 +79,12 @@ void make_compact_root_files()
         if (br_dpoca > 15) continue;
         if (br_nr+br_nl < 15) continue;
 
+             if (iParticle==0) { if (br_p_lab<100) continue; }
+        else if (iParticle==1) { if (br_p_lab<200) continue; }
+        else if (iParticle==2) { if (br_p_lab<200) continue; }
+        else if (iParticle==3) { if (br_p_lab<350) continue; }
+        else if (iParticle==4) { if (br_p_lab<400) continue; }
+
         br_keoac = br_ke_cm / particle_a;
         br_ptoac = br_pt_cm / particle_a;
         br_y0 = br_fy_cm / (br_by_cm/2);

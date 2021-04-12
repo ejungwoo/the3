@@ -1,3 +1,4 @@
+#include "KBGlobal.hh"
 #include "init_variables.h"
 #include "binning.h"
 
@@ -31,56 +32,55 @@ void draw_apmb(binning bnx, binning bny, double r21Values[8][8][5][2], double ab
 void draw_avb(binning bnx, binning bny, double r21Values[8][8][5][2], double abcValues[8][8][3][2]);
 TLegend *make_legend(TVirtualPad *cvs, TLegend *legend, TString opt = "", double x_offset=0, double y_offset=0, double width_fixed=0, double height_fixed=0);
 
-void draw_r21()
+void draw_r21(int fnn=4, int recreate_hist=0, int hold_all=0, int add_all=0)
 {
-  bool set_recreate_hist = kUnSet;
+  bool set_recreate_hist = recreate_hist;
 
   bool set_draw1 = kUnSet;
   bool set_draw2 = kSet;
 
   bool set_draw_yield = kHold;
-  bool set_draw_ab_fit = kDraw;
   bool set_draw_r21_x = kHold;
-  bool set_draw_apmb = kHold;
-  bool set_draw_apmbt = kHold;
-  bool set_draw_avb = kHold;
+  bool set_draw_apmb = kDraw;
+  bool set_draw_apmbt = kDraw;
+  bool set_draw_ab_fit = kDraw;
+  bool set_draw_avb = kDraw;
+
+  if (hold_all) {
+    set_draw1 = kUnSet;
+    set_draw2 = kUnSet;
+    set_draw_yield = kHold;
+    set_draw_r21_x = kHold;
+    set_draw_apmb = kHold;
+    set_draw_apmbt = kHold;
+    set_draw_ab_fit = kHold;
+    set_draw_avb = kHold;
+  }
 
   const char *anaV = "nn50";
 
   binning bn_pozl(200,0,2000,"p_{Lab.}/Z","pozl");
   binning bn_dedx(200,0,1500,"dE/dx","dedx");
 
-  binning bn_y0(4,-.15,1.05,"y_{0}","y0");
-  binning bn_pt(4,0,400,"p_{T}/A (MeV/c)","ptoac");
-  binning bn_ke(4,0,120,"KE_{CM}/A (MeV)","keoac");
-  binning bn_tt(4,0,90,"#theta_{CM} (deg)","ttc");
-  if (0) {
-    bn_y0.set(2,0,1,"y_{0}","y0");
-    bn_pt.set(2,0,400,"p_{T}/A (MeV/c)","ptoac");
-    bn_ke.set(2,0,120,"KE_{CM}/A (MeV)","keoac");
-    bn_tt.set(2,0,90,"#theta_{CM} (deg)","ttc");
-  }
-  if (1) {
-    bn_y0.set(8,0,1,"y_{0}","y0");
-    bn_pt.set(8,0,400,"p_{T}/A (MeV/c)","ptoac");
-    bn_ke.set(8,0,120,"KE_{CM}/A (MeV)","keoac");
-    bn_tt.set(8,0,90,"#theta_{CM} (deg)","ttc");
-  }
-  if (0) {
-    bn_y0.set(1,0,1,"y_{0}","y0");
-    bn_pt.set(1,0,400,"p_{T}/A (MeV/c)","ptoac");
-    bn_ke.set(1,0,120,"KE_{CM}/A (MeV)","keoac");
-    bn_tt.set(1,0,90,"#theta_{CM} (deg)","ttc");
-  }
+  binning bn_y0(fnn,0,1,"y_{0}","y0");
+  binning bn_pt(fnn,0,400,"p_{T}/A (MeV/c)","ptoac");
+  binning bn_ke(fnn,0,120,"KE_{CM}/A (MeV)","keoac");
+  binning bn_tt(fnn,0,90,"#theta_{CM} (deg)","ttc");
 
-  int selSysIdx[] = {0,1};
-  int selSysCombIdx[] = {0};
-  //int selSysIdx[] = {0,1,2,3};
-  //int selSysCombIdx[] = {0,1,2,3,4,5};
+  vector<int> selSysIdx = {0,1,2,3};
+  vector<int> selSysCombIdx = {4};
 
   vector<binning2> var2Array = {(bn_ke*bn_tt)};
   //vector<binning2> var2Array = {(bn_pt*bn_y0)};
   //vector<binning2> var2Array = {(bn_ke*bn_tt), (bn_pt*bn_y0)};
+
+  if (add_all) {
+    var2Array.clear();
+    var2Array.push_back(bn_ke*bn_tt);
+    var2Array.push_back(bn_pt*bn_y0);
+    selSysIdx.clear(); for (auto i : {0,1,2,3}) selSysIdx.push_back(i);
+    selSysCombIdx.clear(); for (auto i : {0,1,2,3,4,5}) selSysCombIdx.push_back(i);
+  }
 
   vector<binning2> var2ArrayPP;
   for (auto var2 : var2Array) var2ArrayPP.push_back(var2);
@@ -107,13 +107,13 @@ void draw_r21()
     auto nameV = Form("%s.hist_%s_%s_%s_%s",anaV,bn_y0.nnmm(),bn_pt.nnmm(),bn_ke.nnmm(),bn_tt.nnmm());
     auto name_file_hist = Form("data2/%s/compact_sys%d_%s.root",anaV,fSysBeams[fiSys],nameV);
     TFile *file_hist = new TFile(name_file_hist,"read");
-    cout << "hist: " << name_file_hist << endl;
+    cout_info << "hist file: " << name_file_hist << endl;
 
     if (set_recreate_hist || file_hist->IsZombie())
     {
       auto name_file_in = Form("data2/%s/compact_sys%d_%s.root",anaV,fSysBeams[fiSys],anaV);
       auto file_tree = new TFile(name_file_in);
-      cout << name_file_in  << endl;
+      cout_info << "compact file: " << name_file_in  << endl;
       file_hist = new TFile(name_file_hist,"recreate");
 
       for (auto iParticle : fParticleIdx)
@@ -129,6 +129,9 @@ void draw_r21()
 
           fHYValue[fiSys][fiParticle][findv(var2)] = hist_vv0;
           fHYLoose[fiSys][fiParticle][findv(var2)] = hist_vv1;
+
+          cout_info << fiSys2 << " " <<  fiParticle << " " << findv(var2) << " " << hist_vv0 -> GetName() << endl;
+          cout_info << fiSys2 << " " <<  fiParticle << " " << findv(var2) << " " << hist_vv1 -> GetName() << endl;
 
           file_hist -> cd();
           hist_vv0 -> Write();
@@ -151,8 +154,8 @@ void draw_r21()
           fHYLoose[fiSys][fiParticle][findv(var2)] = (TH2D *) file_hist -> Get(nameLoose);
           auto histValue = fHYValue[fiSys][fiParticle][findv(var2)];
           auto histLoose = fHYLoose[fiSys][fiParticle][findv(var2)]; 
-          if (histValue!=nullptr) cout << fiSys << " " << fiParticle << " " << findv(var2) << " " << histValue->GetName() << endl; else cout << "nullptr " << nameValue << endl;
-          if (histLoose!=nullptr) cout << fiSys << " " << fiParticle << " " << findv(var2) << " " << histLoose->GetName() << endl; else cout << "nullptr " << nameLoose << endl;
+          if (histValue!=nullptr) cout_info << fiSys << " " << fiParticle << " " << findv(var2) << " " << histValue->GetName() << endl; else cout_error << "nullptr " << nameValue << endl;
+          if (histLoose!=nullptr) cout_info << fiSys << " " << fiParticle << " " << findv(var2) << " " << histLoose->GetName() << endl; else cout_error << "nullptr " << nameLoose << endl;
         }
       }
     }
@@ -273,7 +276,6 @@ void draw_r21()
               auto r21Value = value2/value1;
               auto r21Loose = loose2/loose1;
               auto r21Error = abs(r21Value - r21Loose);
-              //cout << iParticle << " " << r21Value << " " << r21Loose << " " << r21Error << endl;
 
               r21Values[bnv.ii()][0][fiParticle][kVal] = r21Value;
               r21Values[bnv.ii()][0][fiParticle][kErr] = r21Error;
@@ -298,7 +300,6 @@ void draw_r21()
             double alpha = fitIsoscaling -> GetParameter(0);
             double beta = fitIsoscaling -> GetParameter(1);
             double cnorm = fitIsoscaling -> GetParameter(2);
-            //cout << make_name("",0,var2.name()) << " " << alpha << " " << beta << " " << cnorm << endl;
             abcValues[bnv.ii()][0][0][kVal] = alpha;
             abcValues[bnv.ii()][0][1][kVal] = beta;
             abcValues[bnv.ii()][0][2][kVal] = cnorm;
@@ -384,7 +385,6 @@ void draw_r21()
               auto r21Value = value2/value1;
               auto r21Loose = loose2/loose1;
               auto r21Error = abs(r21Value - r21Loose);
-              //cout << iParticle << " " << r21Value << " " << r21Loose << " " << r21Error << endl;
 
               r21Values[bnx.ii()][bny.ii()][fiParticle][kVal] = r21Value;
               r21Values[bnx.ii()][bny.ii()][fiParticle][kErr] = r21Error;
@@ -410,7 +410,6 @@ void draw_r21()
             double beta = fitIsoscaling -> GetParameter(1);
             double cnorm = fitIsoscaling -> GetParameter(2);
 
-            //cout << make_name("",0,var2.name()) << " " << alpha << " " << beta << " " << cnorm << endl;
 
             abcValues[bnx.ii()][bny.ii()][0][kVal] = alpha;
             abcValues[bnx.ii()][bny.ii()][1][kVal] = beta;
@@ -423,8 +422,8 @@ void draw_r21()
             {
               fiParticle = iParticle;
 
-              auto nValue = fParticleN[iParticle];
-              auto zValue = fParticleZ[iParticle];
+              auto nValue = fParticleN[fiParticle];
+              auto zValue = fParticleZ[fiParticle];
 
               auto r21Value = r21Values[bnx.ii()][bny.ii()][fiParticle][kVal];
               auto r21Eval = fitIsoscaling -> Eval(nValue, zValue);
@@ -433,6 +432,7 @@ void draw_r21()
 
               if (nValue!=0) alphaError += alphaError1*alphaError1;
               if (zValue!=0) betaError += betaError1*betaError1;
+
             }
             alphaError = sqrt(alphaError / 4);
             betaError = sqrt(betaError / 5);
@@ -488,12 +488,13 @@ void draw_ab_fit(binning bnx, binning bny, double r21Values[8][8][5][2], double 
 {
   binning bn_n(100,-.8,2.8,"N");
   binning bn_z(100,0.2,2.8,"Z");
-  binning bn_r21(100,0.5,1.8,"R_{21}");
+  //binning bn_r21(100,0.5,1.8,"R_{21}");
+  binning bn_r21(100,0.3,2.0,"R_{21}");
 
   auto var2 = (bnx*bny);
 
-  auto cvs_alpha = make_cvs(make_name("alpha",0,var2.name()), 0, 100+fdxCvsAB*bnx.fN, fdyCvsAB*bny.fN, bnx.fN, bny.fN);
-  auto cvs_beta  = make_cvs(make_name("beta",0,var2.name()),  0, 100+fdxCvsAB*bnx.fN, fdyCvsAB*bny.fN, bnx.fN, bny.fN);
+  auto cvs_alpha = make_cvs(make_name("alpha",0,var2.namen()), 0, 100+fdxCvsAB*bnx.fN, fdyCvsAB*bny.fN, bnx.fN, bny.fN);
+  auto cvs_beta  = make_cvs(make_name("beta",0,var2.namen()),  0, 100+fdxCvsAB*bnx.fN, fdyCvsAB*bny.fN, bnx.fN, bny.fN);
 
   bnx.reset();
   while (bnx.next())
@@ -543,7 +544,7 @@ void draw_ab_fit(binning bnx, binning bny, double r21Values[8][8][5][2], double 
 
       auto cvs_a = cvs_alpha -> cd(iii);
       cvs_a -> SetLogy();
-      auto frame_alpha = (bn_n*bn_r21).newHist(make_name("nr21",iii,var2.name()));
+      auto frame_alpha = (bn_n*bn_r21).newHist(make_name("nr21",iii,var2.namen()));
       make_r21_frame(frame_alpha);
       frame_alpha -> Draw();
       graph_alpha_error -> Draw("same e");
@@ -583,7 +584,7 @@ void draw_ab_fit(binning bnx, binning bny, double r21Values[8][8][5][2], double 
 
       auto cvs_b = cvs_beta -> cd(iii);
       cvs_b -> SetLogy();
-      make_r21_frame((bn_z*bn_r21).newHist(make_name("zr21",iii,var2.name()))) -> Draw();
+      make_r21_frame((bn_z*bn_r21).newHist(make_name("zr21",iii,var2.namen()))) -> Draw();
       graph_beta_error -> Draw("samee");
       draw_beta_fit.Draw("same");
       get_fit1_r21(0,-1,alpha,beta,cnorm,0.8,1.2) -> Draw("samel");
@@ -591,7 +592,7 @@ void draw_ab_fit(binning bnx, binning bny, double r21Values[8][8][5][2], double 
       get_fit1_r21(2,-1,alpha,beta,cnorm,0.8,2.2) -> Draw("samel");
 
       {
-        double offb = 1;
+        double offb = .8;
 
         auto mmb = new TMarker(offb+.5,bn_r21.fMax-0.20*bn_r21.getFullWidth(),fDrawMStyle2[bnx.ii()]);
         mmb -> SetMarkerColor(fDrawColor[bny.ii()]);
@@ -632,7 +633,7 @@ void draw_r21_x(binning bnx, binning bny, double r21Values[8][8][5][2], double a
   bny.reset();
   while (bny.next())
   {
-    auto name = make_name("r21_x",bny.ii(),bnx.getE());
+    auto name = make_name("r21_x",bny.ii(),(bnx*bny).namen());
     auto title = make_title(bny,bny.bi());
     auto cvs = make_cvs(name);
     (bnx*bn_r21).newHist(name,title) -> Draw();
@@ -656,33 +657,117 @@ void draw_r21_x(binning bnx, binning bny, double r21Values[8][8][5][2], double a
     }
     make_legend(cvs,legend) -> Draw();
   }
+
+  bnx.reset();
+  while (bnx.next())
+  {
+    auto name = make_name("r21_y",bnx.ii(),(bny*bnx).namen());
+    auto title = make_title(bnx,bnx.bi());
+    auto cvs = make_cvs(name);
+    (bny*bn_r21).newHist(name,title) -> Draw();
+    auto legend = new TLegend();
+    for (auto iParticle : fParticleIdx)
+    {
+      fiParticle = iParticle;
+
+      auto graph_r21_x = new TGraphErrors();
+      attGraph(graph_r21_x, fiParticle);
+      legend -> AddEntry(graph_r21_x,fParticleNames[fiParticle],"pl");
+
+      bny.reset();
+      while (bny.next())
+      {
+        auto r21Value = r21Values[bnx.ii()][bny.ii()][fiParticle][0];
+        graph_r21_x -> SetPoint(bny.ii(),bny.getValue(),r21Value);
+      }
+
+      graph_r21_x -> Draw("pl");
+    }
+    make_legend(cvs,legend) -> Draw();
+  }
 }
 
 void draw_avb(binning bnx, binning bny, double r21Values[8][8][5][2], double abcValues[8][8][3][2])
 {
   auto var2 = (bnx*bny);
 
-  auto name = make_name("avb",0,var2.name());
-  make_cvs(name);
+  auto name = make_name("avb",0,var2.namen());
+  auto cvs = make_cvs(name);
   binning bn_alpha(100,-.1,.5,"#alpha");
   binning bn_beta(100,-.5,.1,"#beta");
   (bn_alpha*bn_beta).newHist(name) -> Draw();
 
+  vector<TMarker *> markers;
+  vector<TGraphErrors *> graph_errorls;
+
   bnx.reset();
   while (bnx.next()) {
-    TGraphErrors *graph_avb = new TGraphErrors(); 
+    TGraphErrors *graph_errorl = new TGraphErrors(); 
+    graph_errorl -> SetLineColor(fDrawColor2[bnx.ii()]);
+    graph_errorl -> SetMarkerColor(fDrawColor2[bnx.ii()]);
+    graph_errorl -> SetMarkerSize(fDrawMSize2[bnx.ii()]);
     bny.reset();
     while (bny.next())
     {
       auto alpha = abcValues[bnx.ii()][bny.ii()][0][kVal];
       auto beta = abcValues[bnx.ii()][bny.ii()][1][kVal];
-      auto cnorm = abcValues[bnx.ii()][bny.ii()][2][kVal];
+      auto alphaError = abcValues[bnx.ii()][bny.ii()][0][kErr];
+      auto betaError = abcValues[bnx.ii()][bny.ii()][1][kErr];
+      if (!bn_alpha.isInside(alpha)||!bn_beta.isInside(beta)) continue;
 
-      graph_avb -> SetPoint(graph_avb->GetN(),alpha,beta);
+      graph_errorl -> SetPoint(graph_errorl->GetN(),alpha,beta);
+      graph_errorl -> SetPointError(graph_errorl->GetN()-1,alphaError,betaError);
+
+      auto marker = new TMarker(alpha,beta,20);
+      marker -> SetMarkerColor(fDrawColor[bnx.ii()]);
+      marker -> SetMarkerStyle(fDrawMStyle2[bny.ii()]);
+      marker -> SetMarkerSize(fDrawMSize2[bny.ii()]);
+      markers.push_back(marker);
     }
 
-    graph_avb -> Draw("same*l");
+    graph_errorls.push_back(graph_errorl);
   }
+
+  auto legend = new TLegend();
+  bny.reset();
+  while (bny.next()) {
+    auto marker = new TMarker(0,0,20);
+    marker -> SetMarkerStyle(fDrawMStyle2[bny.ii()]);
+    marker -> SetMarkerSize(fDrawMSize2[bny.ii()]);
+    //legend -> AddEntry(marker,Form("%s = %.0f ~ %.0f",bny.getTitle(),bny.cLow(),bny.cHigh()),"p");
+    legend -> AddEntry(marker,Form("%s = %.1f ~ %.1f",bny.getTitle(),bny.cLow(),bny.cHigh()),"p");
+  }
+  bnx.reset();
+  while (bnx.next()) {
+    auto graph = new TGraph();
+    graph -> SetLineColor(fDrawColor[bnx.ii()]);
+    legend -> AddEntry(graph,Form("%s = %.0f ~ %.0f",bnx.getTitle(),bnx.cLow(),bnx.cHigh()),"l");
+  }
+  make_legend(cvs,legend,"",0,0,.5,.4) -> Draw();
+
+  auto refxy0 = new TGraph;
+  refxy0 -> SetPoint(0,bn_alpha.fMin,bn_beta.fMax);
+  refxy0 -> SetPoint(1,bn_alpha.fMax,bn_beta.fMin);
+  refxy0 -> SetLineColor(kGray);
+  refxy0 -> SetLineStyle(2);
+  refxy0 -> Draw("samel");
+
+  auto refx0 = new TGraph();
+  refx0 -> SetPoint(0,0,bn_beta.fMin);
+  refx0 -> SetPoint(1,0,bn_beta.fMax);
+  refx0 -> SetLineColor(kGray);
+  refx0 -> SetLineStyle(2);
+  refx0 -> Draw("samel");
+
+  auto refy0 = new TGraph();
+  refy0 -> SetPoint(0,bn_alpha.fMin,0);
+  refy0 -> SetPoint(1,bn_alpha.fMax,0);
+  refy0 -> SetLineColor(kGray);
+  refy0 -> SetLineStyle(2);
+  refy0 -> Draw("samel");
+
+  for (auto graph : graph_errorls) graph -> Draw("sameezl");
+  for (auto marker : markers) marker -> Draw("samep");
 }
 
 void draw_apmb(binning bnx, binning bny, double r21Values[8][8][5][2], double abcValues[8][8][3][2], double tptValues[8][8][2][2], bool multt)
@@ -1052,7 +1137,7 @@ TCanvas *make_cvs(const char *name, int opt, int w, int h, int nx, int ny)
 
 void save_cvs() {
   for (auto cvs : fCvsArray) {
-    cout << fNameV << " " << cvs -> GetName() << endl;
+    cout_info << fNameV << " " << cvs -> GetName() << endl;
     cvs -> cd();
     cvs -> SaveAs(Form("%s/figures/%s.png",fNameV.Data(),cvs->GetName()));
   }
