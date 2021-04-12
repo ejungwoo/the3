@@ -27,24 +27,24 @@ TMarker *attMarker(TMarker *marker, int idx);
 TH2D *make_r21_frame(TH2D *hist);
 TF1 *get_fit1_r21(int nValue, int zValue, double alpha, double beta, double cnorm, double x1, double x2);
 void draw_ab_fit(binning bnx, binning bny, double r21Values[8][8][5][2], double abcValues[8][8][3][2], double tptValues[8][8][2][2]);
-void draw_r21_x(binning bnx, binning bny, double r21Values[8][8][5][2], double abcValues[8][8][3][2]);
+void draw_r21_x(binning bnx, binning bny, double r21Values[8][8][5][2], double abcValues[8][8][3][2], bool do_for_y=true);
 void draw_apmb(binning bnx, binning bny, double r21Values[8][8][5][2], double abcValues[8][8][3][2], double tptValues[8][8][2][2], bool multt=0);
 void draw_avb(binning bnx, binning bny, double r21Values[8][8][5][2], double abcValues[8][8][3][2]);
 TLegend *make_legend(TVirtualPad *cvs, TLegend *legend, TString opt = "", double x_offset=0, double y_offset=0, double width_fixed=0, double height_fixed=0);
 
-void draw_r21(int fnn=4, int recreate_hist=0, int hold_all=0, int add_all=0)
+void draw_r21(int fnn=8, int recreate_hist=0, int hold_all=0, int add_all=0)
 {
   bool set_recreate_hist = recreate_hist;
 
-  bool set_draw1 = kUnSet;
-  bool set_draw2 = kSet;
+  bool set_draw1 = kSet;
+  bool set_draw2 = kUnSet;
 
   bool set_draw_yield = kHold;
   bool set_draw_r21_x = kHold;
-  bool set_draw_apmb = kDraw;
-  bool set_draw_apmbt = kDraw;
+  bool set_draw_apmb = kHold;
+  bool set_draw_apmbt = kHold;
   bool set_draw_ab_fit = kDraw;
-  bool set_draw_avb = kDraw;
+  bool set_draw_avb = kHold;
 
   if (hold_all) {
     set_draw1 = kUnSet;
@@ -68,11 +68,12 @@ void draw_r21(int fnn=4, int recreate_hist=0, int hold_all=0, int add_all=0)
   binning bn_tt(fnn,0,90,"#theta_{CM} (deg)","ttc");
 
   vector<int> selSysIdx = {0,1,2,3};
-  vector<int> selSysCombIdx = {4};
+  //vector<int> selSysCombIdx = {3};
+  vector<int> selSysCombIdx = {0,1,2,3,4,5};
 
-  vector<binning2> var2Array = {(bn_ke*bn_tt)};
+  //vector<binning2> var2Array = {(bn_ke*bn_tt)};
   //vector<binning2> var2Array = {(bn_pt*bn_y0)};
-  //vector<binning2> var2Array = {(bn_ke*bn_tt), (bn_pt*bn_y0)};
+  vector<binning2> var2Array = {(bn_ke*bn_tt), (bn_pt*bn_y0)};
 
   if (add_all) {
     var2Array.clear();
@@ -333,7 +334,7 @@ void draw_r21(int fnn=4, int recreate_hist=0, int hold_all=0, int add_all=0)
           bn2.setExpression("all");
 
           if (set_draw_ab_fit) draw_ab_fit(bnv, bn2, r21Values, abcValues, tptValues);
-          if (set_draw_r21_x) draw_r21_x(bnv, bn2, r21Values, abcValues);
+          if (set_draw_r21_x) draw_r21_x(bnv, bn2, r21Values, abcValues, 0);
           if (set_draw_apmb) draw_apmb(bnv, bn2, r21Values, abcValues, tptValues);
           if (set_draw_apmbt) draw_apmb(bnv, bn2, r21Values, abcValues, tptValues, 1);
         }
@@ -626,7 +627,7 @@ void draw_ab_fit(binning bnx, binning bny, double r21Values[8][8][5][2], double 
   }
 }
 
-void draw_r21_x(binning bnx, binning bny, double r21Values[8][8][5][2], double abcValues[8][8][3][2])
+void draw_r21_x(binning bnx, binning bny, double r21Values[8][8][5][2], double abcValues[8][8][3][2], bool do_for_y)
 {
   binning bn_r21(100,0.5,1.8,"R_{21}");
 
@@ -637,6 +638,12 @@ void draw_r21_x(binning bnx, binning bny, double r21Values[8][8][5][2], double a
     auto title = make_title(bny,bny.bi());
     auto cvs = make_cvs(name);
     (bnx*bn_r21).newHist(name,title) -> Draw();
+
+    auto line = new TLine(bnx.fMin,1,bnx.fMax,1);
+    line -> SetLineColor(kGray+1);
+    line -> SetLineStyle(2);
+    line -> Draw("samle");
+
     auto legend = new TLegend();
     for (auto iParticle : fParticleIdx)
     {
@@ -658,6 +665,8 @@ void draw_r21_x(binning bnx, binning bny, double r21Values[8][8][5][2], double a
     make_legend(cvs,legend) -> Draw();
   }
 
+  if (!do_for_y) return;
+
   bnx.reset();
   while (bnx.next())
   {
@@ -665,6 +674,12 @@ void draw_r21_x(binning bnx, binning bny, double r21Values[8][8][5][2], double a
     auto title = make_title(bnx,bnx.bi());
     auto cvs = make_cvs(name);
     (bny*bn_r21).newHist(name,title) -> Draw();
+
+    auto line = new TLine(bny.fMin,1,bny.fMax,1);
+    line -> SetLineColor(kGray+1);
+    line -> SetLineStyle(2);
+    line -> Draw("samle");
+
     auto legend = new TLegend();
     for (auto iParticle : fParticleIdx)
     {
@@ -1040,7 +1055,7 @@ TLegend *make_legend(TVirtualPad *cvs, TLegend *legend, TString fLegendDrawStyle
 
 
 const char *make_name(const char *name0, int idx, const char *tag) {
-  const char *nameSC = ( fiComb>=0 ? fSysCombNames[fiComb] : Form("%d",fSysBeams[fiSys]) );
+  const char *nameSC = ( fiComb>=0 ? Form("c%d_%s",fSysCombIdx2[fiComb],fSysCombNames[fiComb]) : Form("%d",fSysBeams[fiSys]) );
   const char *name = Form("%s_%s_%s_%s_%d",name0,tag,nameSC,fParticleNames[fiParticle],idx);
   return name;
 }
