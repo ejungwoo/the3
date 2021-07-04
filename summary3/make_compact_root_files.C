@@ -2,16 +2,58 @@
 
 void make_compact_root_files()
 {
-  const char *ana_version = "nn50";
-  const char *path_to_data = Form("data2/%s",ana_version);
+  //const char *out_version = "rb3";
+  //const char *in_version = "rb3";
+  //double probCut = 0.5;
+  //double effCut = 0.05;
+  //double asdCut = 3;
+  //double dpocaCut = 15;
+  //int numClusCut = 15;
+
+  //const char *out_version = "rb3_tight";
+  //const char *in_version = "rb3";
+  //double probCut = 0.5;
+  //double effCut = 0.05;
+  //double asdCut = 2.2;
+  //double dpocaCut = 15;
+  //int numClusCut = 15;
+
+  //const char *out_version = "f7";
+  //const char *in_version = "f7";
+  //double probCut = 0.5;
+  //double effCut = 0.02;
+  //double asdCut = 3;
+  //double dpocaCut = 15;
+  //int numClusCut = 15;
+
+  //const char *out_version = "af7";
+  //const char *in_version = "af7";
+  //double probCut = 0.5;
+  //double effCut = 0.02;
+  //double asdCut = 3;
+  //double dpocaCut = 15;
+  //int numClusCut = 15;
+
+  //const char *out_version = "af72";
+  //const char *in_version = "af72";
+  //double probCut = 0.5;
+  //double effCut = 0.02;
+  //double asdCut = 3;
+  //double dpocaCut = 15;
+  //int numClusCut = 15;
+
+  const char *path_to_in = Form("data2/%s",in_version);
+  const char *path_to_out = Form("data2/%s",out_version);
+  gSystem -> mkdir(path_to_out);
 
   for (auto iSystem : fSysIdx)
   {
-    auto name_file_out = Form("%s/compact_sys%d_%s.root",path_to_data,fSysBeams[iSystem],ana_version);
+    auto name_file_out = Form("%s/compact_sys%d_%s.root",path_to_out,fSysBeams[iSystem],out_version);
     cout << name_file_out << endl;
     auto file_out = new TFile(name_file_out,"recreate");
 
-    auto name_file_mult = Form("%s/sys%d_%s_*_50_100.NewAna.2107.4fd2bca.ana.mult.root",path_to_data,fSysBeams[iSystem],ana_version);
+    //auto name_file_mult = Form("%s/sys%d_%s_lr_*_100.NewAna.2107.4fd2bca.ana.mult.root",path_to_in,fSysBeams[iSystem],in_version);
+    auto name_file_mult = Form("%s/sys%d_%s_*_*_100.NewAna.2107.4fd2bca.ana.mult.root",path_to_in,fSysBeams[iSystem],in_version);
     auto tree_mult = new TChain("mult");
     tree_mult -> Add(name_file_mult);
     auto n_events = tree_mult -> GetEntries("1");
@@ -20,7 +62,7 @@ void make_compact_root_files()
     {
       auto name_particle = fParticleNames[iParticle];
       cout << name_particle << endl;
-      auto name_file_in = Form("%s/sys%d_%s_*_50_100.NewAna.2107.4fd2bca.ana.%s.root",path_to_data,fSysBeams[iSystem],ana_version,name_particle);
+      auto name_file_in = Form("%s/sys%d_%s_lr_*_100.NewAna.2107.4fd2bca.ana.%s.root",path_to_in,fSysBeams[iSystem],in_version,name_particle);
       auto chain = new TChain(name_particle);
       chain -> Add(name_file_in);
 
@@ -36,7 +78,7 @@ void make_compact_root_files()
       chain -> SetBranchAddress("sd"       , &br_sd       );
       chain -> SetBranchAddress("ke_cm"    , &br_ke_cm    );
       chain -> SetBranchAddress("pt_cm"    , &br_pt_cm    );
-      chain -> SetBranchAddress("by_cm0"   , &br_by_cm0   );
+      //chain -> SetBranchAddress("by_cm0"   , &br_by_cm0   );
       chain -> SetBranchAddress("by_cm"    , &br_by_cm    );
       chain -> SetBranchAddress("fy_cm"    , &br_fy_cm    );
       chain -> SetBranchAddress("fy_lab"   , &br_fy_lab   );
@@ -52,11 +94,11 @@ void make_compact_root_files()
       chain -> SetBranchAddress("nr"       , &br_nr       );
       chain -> SetBranchAddress("nl"       , &br_nl       );
       chain -> SetBranchAddress("nt"       , &br_nt       );
-      chain -> SetBranchAddress("nt2"      , &br_nt2      );
+      //chain -> SetBranchAddress("nt2"      , &br_nt2      );
 
       file_out -> cd();
       double br_keoac, br_ptoac, br_y0, br_ttc, br_corr;
-      auto tree_out = new TTree(name_particle,"");
+      auto tree_out = new TTree(name_particle,Form("%lld",n_events));
       tree_out -> Branch("prob"     , &br_prob  );
       tree_out -> Branch("corr"     , &br_corr  );
       tree_out -> Branch("keoac"    , &br_keoac );
@@ -73,11 +115,12 @@ void make_compact_root_files()
       {
         chain -> GetEntry(i);
 
-        if (br_prob < 0.5) continue;
-        if (br_eff < 0.05) continue;
-        if (abs(br_sd) > 3) continue;
-        if (br_dpoca > 15) continue;
-        if (br_nr+br_nl < 15) continue;
+        if (br_prob < probCut) continue;
+        if (br_eff < effCut) continue;
+        if (abs(br_sd) > asdCut) continue;
+        //if (br_dpoca > dpocaCut) continue;
+        if (br_dpoca_r > dpocaCut) continue;
+        if (br_nr+br_nl < numClusCut) continue;
 
              if (iParticle==0) { if (br_p_lab<100) continue; }
         else if (iParticle==1) { if (br_p_lab<200) continue; }
